@@ -9,15 +9,15 @@ import { renderChapter, renderPage, buildSearchIndex } from "./render.ts";
 import { renderLanding } from "./landing.ts";
 import { chapters } from "../content/chapters/index.ts";
 import { pages } from "../content/pages/index.ts";
-import { type Locale, LOCALES, DEFAULT_LOCALE, localePath, url, t } from "./i18n.ts";
+import { type Locale, LOCALES, DEFAULT_LOCALE, BASE_PATH, localePath, url, t } from "./i18n.ts";
 import { zhChapters, zhPageMeta, zhTranslatedPages } from "../content/zh/index.ts";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = join(ROOT, "dist");
 /** Absolute origin used for the sitemap, robots.txt and canonical URLs.
- *  Set SITE_URL in the deploy workflow; the default is the GitHub Pages
- *  project URL, which is where an unconfigured fork will actually answer. */
-const BASE = (process.env.SITE_URL ?? "https://xinbetween.github.io/learn-ai-agent-from-scratch").replace(/\/+$/, "");
+ *  Defaults to where the site actually answers; the deploy workflow sets it
+ *  explicitly. Must agree with SITE_BASE_PATH — asserted below. */
+const BASE = (process.env.SITE_URL ?? "https://agent.xinbetween.com").replace(/\/+$/, "");
 
 function write(rel: string, body: string) {
   const file = join(OUT, rel);
@@ -28,6 +28,23 @@ function write(rel: string, body: string) {
 /** The paths handed in already carry the base path, so compose them against
  *  the origin alone — otherwise SITE_URL's own sub-path gets doubled. */
 const ORIGIN = new URL(BASE).origin;
+
+/* SITE_URL and SITE_BASE_PATH describe the same fact twice, and setting one
+   without the other produces a site where every asset and link 404s while the
+   build still reports success. Fail here instead. */
+{
+  const declared = new URL(BASE).pathname.replace(/\/+$/, "");
+  if (declared !== BASE_PATH) {
+    console.error(
+      `\nSITE_URL and SITE_BASE_PATH disagree:\n` +
+        `  SITE_URL path : "${declared || "(root)"}"  (from ${BASE})\n` +
+        `  SITE_BASE_PATH: "${BASE_PATH || "(root)"}"\n` +
+        `They must describe the same sub-path. A custom domain at its origin ` +
+        `root means both are empty; project Pages hosting means both are /<repo>.\n`
+    );
+    process.exit(1);
+  }
+}
 const HOME = localePath(DEFAULT_LOCALE, "/");
 
 function sitemap(urls: string[]): string {

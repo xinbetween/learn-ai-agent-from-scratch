@@ -14,7 +14,7 @@ Read the diagram → break the simulator → run the file → take the quiz.
 [![API key required: none](https://img.shields.io/badge/API_key_required-none-16a34a.svg?style=flat-square)](code/)
 [![Languages: EN · 中文](https://img.shields.io/badge/languages-EN%20·%20中文-f59e0b.svg?style=flat-square)](#-translating)
 
-[**Read it →**](https://xinbetween.github.io/learn-ai-agent-from-scratch/) &nbsp;·&nbsp;
+[**Read it →**](https://agent.xinbetween.com/) &nbsp;·&nbsp;
 [**Star on GitHub**](https://github.com/xinbetween/learn-ai-agent-from-scratch) &nbsp;·&nbsp;
 [**Follow on X**](https://x.com/xinbetween)
 
@@ -300,7 +300,7 @@ Built on the work of the people who actually solved these problems. Particular d
 to Anthropic's *Building Effective Agents*, OpenAI Codex's `apply_patch`, Microsoft's
 `autogen-core` runtime, the Model Context Protocol specification, and Simon Willison's
 writing on prompt injection and the lethal trifecta. Chapter references are on the
-[references page](https://xinbetween.github.io/learn-ai-agent-from-scratch/references/).
+[references page](https://agent.xinbetween.com/references/).
 
 This is an educational reimplementation and is not affiliated with any of them.
 Production frameworks are the real thing; this teaches you how to read them.
@@ -309,7 +309,7 @@ Production frameworks are the real thing; this teaches you how to read them.
 
 <div align="center">
 
-**[Start with C00 →](https://xinbetween.github.io/learn-ai-agent-from-scratch/c00/)**
+**[Start with C00 →](https://agent.xinbetween.com/c00/)**
 
 If this helped, a ⭐ makes it findable for the next person.
 

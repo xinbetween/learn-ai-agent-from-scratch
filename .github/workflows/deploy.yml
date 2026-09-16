@@ -26,15 +26,18 @@ jobs:
       # canonical/OG URLs are absolute and baked in at build time, so this has
       # to match reality or they point at a site that does not exist.
       #
-      # SITE_BASE_PATH is the sub-path Pages serves from. Project hosting means
-      # /<repo>; a custom domain at its origin root means the empty string.
-      # Every internal URL goes through url()/localePath() in src/i18n.ts, so
-      # these two variables are the whole configuration.
+      # Served from a custom domain at its origin root, so there is no path
+      # prefix and SITE_BASE_PATH is deliberately empty. The domain itself
+      # lives in static/CNAME so it survives every deploy.
       #
-      # Moving to a custom domain: clear SITE_BASE_PATH, point SITE_URL at the
-      # domain, and add a CNAME file to static/ so it survives every deploy.
-      SITE_URL: https://xinbetween.github.io/learn-ai-agent-from-scratch
-      SITE_BASE_PATH: /learn-ai-agent-from-scratch
+      # Every internal URL goes through url()/localePath() in src/i18n.ts, so
+      # these two variables are the whole configuration. Reverting to the
+      # github.io project path means restoring
+      # SITE_BASE_PATH: /learn-ai-agent-from-scratch and pointing SITE_URL back
+      # at https://<user>.github.io/<repo> — set one without the other and
+      # every asset and link 404s.
+      SITE_URL: https://agent.xinbetween.com
+      SITE_BASE_PATH: ""
     steps:
       - uses: actions/checkout@v4
 
