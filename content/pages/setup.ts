@@ -50,13 +50,13 @@ const model = process.argv.includes("--live")
 
 // Because both satisfy the Model type, nothing downstream changes.` }) +
 
-      `<h3>Running against a real model</h3>` +
+      `<h3>Trying the live client</h3>` +
       code({ title: "", lang: "bash", plain: true,
         src: `export ANTHROPIC_API_KEY=sk-ant-...        # or OPENAI_API_KEY
-node --experimental-strip-types code/c04_agent_loop.ts --live
+node --experimental-strip-types code/c01_model_call.ts --live
 
-# A whole-course run of every chapter's live path costs roughly $2–4.
-# Start with C04 and C23; they are where a real model changes what you see.` }) +
+# This opt-in path is a C01 client demonstration. The chapter programs use
+# deterministic mocks so their output stays reproducible.` }) +
       note("warn", "Set a spend limit first", p(`Before running anything with <code>--live</code>, set a hard spend cap in your provider's dashboard. C12's simulator exists because runaway loops are real, and the first one you encounter should cost a few cents rather than a few hundred dollars.`)) +
 
       `<h3>Optional, per chapter</h3>` +

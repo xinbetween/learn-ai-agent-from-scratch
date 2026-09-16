@@ -120,7 +120,7 @@ const chapter: Chapter = {
         `<h3>The loop has no natural end</h3>` +
         p(`Nothing in the code above guarantees <code>reply.stop</code> ever becomes true. A model that keeps deciding "I should check one more thing" produces an infinite loop that costs real money per iteration. Every production agent enforces termination from the outside, with a turn budget or a token budget or a wall-clock deadline, because the inside cannot be trusted to supply one. ${ch("c12", "C12")} is that problem in full.`) +
         `<h3>Everything re-enters the context</h3>` +
-        p(`Each tool result is appended to <code>messages</code>, and <code>messages</code> is re-sent in its entirety on the next iteration. A ten-step task sends the first step's output ten times. Cost therefore grows quadratically in steps, and the limit on how long a task can run turns out to be the context window rather than the model's intelligence. ${ch("c05", "C05")} is entirely about that.`) +
+        p(`If you retain and resend the full history, each tool result is appended to <code>messages</code> and sent again on the next iteration. A ten-step task can send the first step's output ten times. That makes transmitted input grow roughly quadratically with turns; compaction and prompt caching can change the bill, but neither removes the finite context window. ${ch("c05", "C05")} is about managing both constraints.`) +
         note(
           "",
           "A useful negative definition",
@@ -353,7 +353,7 @@ export async function agent(goal: string, env: Env, limits: Limits): Promise<Res
         note(
           "good",
           "No key needed, ever",
-          p(`Every runnable file in this course ships with a deterministic mock model and works offline. Where a chapter benefits from a real model, the same file takes <code>--live</code> and reads <code>ANTHROPIC_API_KEY</code> or <code>OPENAI_API_KEY</code>. See <a href="/setup/">local setup</a>.`)
+          p(`Every runnable file in this course ships with a deterministic mock model and works offline. C01 also includes an opt-in <code>--live</code> client that reads <code>ANTHROPIC_API_KEY</code> or <code>OPENAI_API_KEY</code>; the rest of the course deliberately stays deterministic. See <a href="/setup/">local setup</a>.`)
         ),
     },
     {
@@ -498,7 +498,7 @@ export async function agent(goal: string, env: Env, limits: Limits): Promise<Res
       ],
       answer: 0,
       why:
-        "The loop appends each observation to `messages` and re-sends the whole array. Ten steps means the first tool result is transmitted ten times. This quadratic-ish growth is why context engineering (C05) is a cost discipline and not just a quality one.",
+        "When a loop retains and re-sends its full history, the first tool result in a ten-step run is transmitted ten times. This roughly quadratic growth is why context engineering (C05) is a cost discipline, not just a quality concern; compaction and caching change the trade-off rather than making the context limit disappear.",
     },
     {
       q: "The model asks to call `lookup_ordre` — a tool that does not exist. What is the best behaviour?",

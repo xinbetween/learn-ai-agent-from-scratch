@@ -10,7 +10,7 @@ export function comparePage(): Page {
     html:
       p(`<span class="lede">This course builds everything from scratch so that framework APIs stop being vocabulary. Once you have written the loop, the context manager and the runtime yourself, these tools are legible as choices rather than as magic, and the comparison below is about <em>which layer each one occupies</em>, not which is best.</span>`) +
 
-      note("key", "The honest summary", p(`Every framework gives you the agent loop, which is four lines, and a tool abstraction, which is a schema and a dispatch table. None of them decides your context budget, your retry semantics, your eval set, your permission model, or what the user receives when the budget runs out. Those are the hard parts, and they are the chapters of this course.`)) +
+      note("key", "The honest summary", p(`Most agent frameworks provide a loop and a tool abstraction; the exact API and defaults differ. They cannot choose your context budget, retry semantics, eval set, permission model, or the partial result a user receives when a budget expires. Those design decisions remain yours.`)) +
 
       `<h3>The landscape by layer</h3>` +
       table(["", "Layer it occupies", "Corresponds to", "Leaves you"], [
@@ -27,7 +27,7 @@ export function comparePage(): Page {
       ]) +
 
       `<h3>Where each one's loop lives</h3>` +
-      p(`Useful when reading the source: the ${'<a href="/c04/" class="mono">C04</a>'} loop exists in all of them, under different names.`) +
+      p(`Useful when reading the source: each of these frameworks has a control loop analogous to ${'<a href="/c04/" class="mono">C04</a>'}, though its orchestration and stopping rules vary.`) +
       code({ title: "the same four lines, five times", lang: "text", plain: true,
         src: `this course        runAgent()              while (true) { model → decide → tools → append }
 LangGraph          create_react_agent      agent node ⇄ tools node, conditional edge on tool_calls

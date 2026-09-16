@@ -33,7 +33,7 @@ export const REQ_SVG = `
 
   <rect x="322" y="70" width="150" height="112" rx="8" class="d-box-a"/>
   <text x="397" y="102" class="d-text" text-anchor="middle">the model</text>
-  <text x="397" y="122" class="d-mono" text-anchor="middle" fill="var(--fg-faint)">stateless</text>
+  <text x="397" y="122" class="d-mono" text-anchor="middle" fill="var(--fg-faint)">request-scoped</text>
   <text x="397" y="140" class="d-mono" text-anchor="middle" fill="var(--fg-faint)">function of</text>
   <text x="397" y="158" class="d-mono" text-anchor="middle" fill="var(--fg-faint)">the request</text>
 
@@ -61,7 +61,7 @@ const chapter: Chapter = {
   title: "The Model Call",
   subtitle: "Messages, stop reasons, tokens, and the one function everything else is built on",
   blurb:
-    "A model is a stateless function from a message array to a response. Its signature has to carry streaming, retries, usage accounting and cancellation, and getting that right decides how pleasant the next twenty-three chapters are.",
+    "This course treats a model call as a request-scoped function from a message array to a response. Its signature has to carry streaming, retries, usage accounting and cancellation, and getting that right decides how pleasant the next twenty-three chapters are.",
   lines: 395,
   file: "code/c01_model_call.ts",
   tags: ["messages", "roles", "stop_reason", "tokens", "temperature", "streaming", "retries", "cost"],
@@ -77,7 +77,7 @@ const chapter: Chapter = {
         note(
           "key",
           "The property that shapes everything",
-          p(`<strong>The model is stateless.</strong> It has no memory of the previous call, no session, no notion that you are mid-task. Anything it "knows" about the conversation is there because you put it in this request. Cost, context limits, memory, compaction, multi-agent handoff. Every hard problem in agent engineering is downstream of that one fact.`)
+          p(`<strong>Make the request contract stateless.</strong> This course sends the model the context it needs on each call, so the application—not an opaque server-side session—owns the conversation state. Some providers offer stored conversations or server-side state, but you still need to account for the context the model processes and retain enough state to resume, audit and edit a run.`)
         ),
     },
     {
@@ -148,7 +148,7 @@ export type Model = (messages: Message[], opts?: CallOptions) => Promise<ModelRe
           title: "one request, one response, no memory",
           body: REQ_SVG,
           caption:
-            `The dashed return path is the only "memory" in the system: you appending the response to your array. Nothing on the server side remembers you between calls, which is why the request grows every turn and why cost is quadratic in turn count.`,
+            `In this course, the dashed return path is the memory: your application appends the response to its array. Retaining full history makes the request grow each turn and input work grow roughly quadratically; compaction and caching change that trade-off, not the need to manage it.`,
         }) +
         `<h3>The four roles, and what each is for</h3>` +
         ul([

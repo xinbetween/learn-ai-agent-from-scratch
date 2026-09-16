@@ -160,8 +160,8 @@ npm run agent code/c04_agent_loop.ts    # either version
 ```
 
 Every file ships a deterministic mock model, so the whole course runs offline with
-no API key and no spend. Files that benefit from a real model take `--live` and read
-`ANTHROPIC_API_KEY` or `OPENAI_API_KEY`.
+no API key and no spend. C01 also includes an opt-in live-client demonstration that
+reads `ANTHROPIC_API_KEY` or `OPENAI_API_KEY`; the chapter programs remain deterministic.
 
 Node's type stripping only erases types — it does not transform — so `enum`,
 `namespace`, decorators and parameter properties are unsupported. Every file avoids
