@@ -1,0 +1,24 @@
+{
+  "name": "build-an-ai-agent-from-scratch",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A 25-chapter course that builds an AI agent from scratch in TypeScript, plus the static site that teaches it.",
+  "engines": {
+    "node": ">=22.6"
+  },
+  "scripts": {
+    "build": "node --experimental-strip-types --no-warnings src/build.ts",
+    "serve": "node --experimental-strip-types --no-warnings scripts/serve.ts",
+    "dev": "npm run build && npm run serve",
+    "check": "tsc --noEmit",
+    "agent": "node --experimental-strip-types --no-warnings",
+    "sync": "node --experimental-strip-types --no-warnings scripts/sync-outputs.ts",
+    "check:code": "node --experimental-strip-types --no-warnings scripts/check-code.ts",
+    "verify": "npm run check:code && npm run build && npm run sync -- --check"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.3",
+    "typescript": "^5.6.0"
+  }
+}
