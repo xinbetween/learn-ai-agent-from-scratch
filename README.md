@@ -1,50 +1,173 @@
+<div align="center">
+
 # Build an AI Agent From Scratch
 
-A 25-chapter course that builds an AI agent from first principles in TypeScript —
-the ReAct loop, tools, context engineering, memory, planning, MCP, multi-agent
-systems, evals, security — plus the static site that teaches it.
+**Twenty-five chapters and two capstones. One `while` loop that becomes Claude Code.**
 
-Nothing is imported that you do not write. No LangChain, no agent SDK, no vector
-database, no schema library. Node's standard library and `fetch`.
+Read the diagram → break the simulator → run the file → take the quiz.
 
-```bash
-npm install        # only needed for `npm run check` — the site itself has no deps
-npm run dev        # build the site and serve it at http://localhost:4321
-npm run check      # type-check everything
-npm run verify     # run every code file, rebuild, assert the site's outputs are current
+[![CI](https://github.com/xinbetween/learn-ai-agent-from-scratch/actions/workflows/ci.yml/badge.svg)](https://github.com/xinbetween/learn-ai-agent-from-scratch/actions/workflows/ci.yml)
+[![Deploy](https://github.com/xinbetween/learn-ai-agent-from-scratch/actions/workflows/deploy.yml/badge.svg)](https://github.com/xinbetween/learn-ai-agent-from-scratch/actions/workflows/deploy.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-3b82f6.svg?style=flat-square)](LICENSE)
+[![Node 22.6+](https://img.shields.io/badge/node-22.6+-339933.svg?style=flat-square)](https://nodejs.org/)
+[![Dependencies: none](https://img.shields.io/badge/dependencies-none-16a34a.svg?style=flat-square)](code/)
+[![API key required: none](https://img.shields.io/badge/API_key_required-none-16a34a.svg?style=flat-square)](code/)
+[![Languages: EN · 中文](https://img.shields.io/badge/languages-EN%20·%20中文-f59e0b.svg?style=flat-square)](#-translating)
+
+[**Read it →**](https://xinbetween.github.io/learn-ai-agent-from-scratch/) &nbsp;·&nbsp;
+[**Star on GitHub**](https://github.com/xinbetween/learn-ai-agent-from-scratch) &nbsp;·&nbsp;
+[**Follow on X**](https://x.com/xinbetween)
+
+</div>
+
+---
+
+Everyone can call a model. Almost nobody can explain why their agent works in the
+demo and dies on Tuesday, or why the twelve-step task costs forty times what they
+estimated. Closing that gap is what this course is for.
+
+It starts with a `while` loop that calls a model. It ends with a context manager,
+a durable event log, a sandbox, a patch engine, an approval layer, a message-passing
+runtime, an eval harness and two complete agents. Each of those arrives **only after
+you have felt the specific pain that made it necessary.**
+
+```ts
+// Chapter 4. This is the entire agent.
+while (true) {
+  const reply = await model(messages, tools);   // the model decides
+  messages.push(reply);
+  if (reply.stop) return reply.text;            // it decided to stop
+  for (const call of reply.toolCalls) {         // it decided to act
+    messages.push(await runTool(tools, call));  // the world answers back
+  }
+}
 ```
 
-## What's here
+Twenty chapters later that loop is unrecognisable, and you will be able to point at
+any line of LangGraph, AutoGen or the Claude Agent SDK and say what it is for.
 
-| Path | What |
+**No framework. No API key. No vector database.** 6,191 lines of dependency-free
+TypeScript that run on a laptop in a few seconds.
+
+---
+
+## Who this is for
+
+| | |
 | --- | --- |
-| `code/` | 25 runnable chapter files. Start with `c04_agent_loop.ts`. |
-| `content/chapters/` | The 25 chapters, one TypeScript module each. |
-| `content/pages/` | Map, glossary, answers, Q&A, projects, setup, timeline, references. |
-| `content/zh/` | Chinese translations. Partial by design — see below. |
-| `src/` | The static-site generator (~700 lines, no dependencies). |
-| `static/` | The stylesheet and the client runtime for the simulators. |
-| `scripts/` | Output sync, code check, dev server. |
-| `dist/` | Generated site. |
+| **You used a framework and it felt like magic.** | Build the loop once and `StateGraph` and `RoutedAgent` stop being vocabulary. C04 is the whole idea in 120 lines. |
+| **Your agent works in the demo and not on Tuesday.** | C12 is the failure taxonomy, retries, loop detection and budget enforcement — the four things that separate a demo from a system. |
+| **You have to sign off on shipping one.** | C21 is prompt injection, the lethal trifecta, least privilege, egress control and an approval design that actually holds. |
+| **You learn by breaking things.** | Twenty-five simulators. Starve the context budget and watch the agent forget its goal. |
 
-## Running the course code
+Prerequisites: TypeScript or JavaScript, and having called an LLM API once. No
+machine learning background — nothing here trains a model.
 
-Node 22.6+ runs TypeScript directly:
+---
+
+## What makes it different
+
+|  | |
+| --- | --- |
+| 📊 **Diagrams of the mechanism** | Where tokens, latency, money and trust enter the path — not boxes and logos. |
+| 🎛 **Simulators you can break** | Real implementations running in the page. Overflow the context window, corrupt a tool result, push a tool registry to 50 and watch selection collapse. |
+| ✅ **150 quiz questions** | Six graded per chapter, each with an explanation naming the section to reread. |
+| 🟦 **Code that runs** | 27 self-contained TypeScript files. All 27 execute in CI on every push, offline, with a deterministic mock model. |
+| 📌 **Outputs that are real** | Every "run it" block is generated by executing that chapter's file. CI fails if one drifts. |
+| 🌏 **English and 中文** | C00–C04 translated; the rest falls back to English with an honest banner. |
+
+---
+
+## The curriculum
+
+<table>
+<tr><th align="left">Layer</th><th align="left">Chapters</th><th align="left">You learn</th></tr>
+<tr>
+<td><b>The Shape of the Thing</b></td>
+<td>C00</td>
+<td>Agent vs chain vs pipeline · the agency dial · blast radius · why the p99 is the number that matters</td>
+</tr>
+<tr>
+<td><b>The Model</b></td>
+<td>C01–C04</td>
+<td>The model call · structured output &amp; the repair ladder · tools &amp; dispatch · <b>the agent loop</b></td>
+</tr>
+<tr>
+<td><b>Context &amp; Memory</b></td>
+<td>C05–C08</td>
+<td>Context engineering · retrieval as a tool · memory &amp; contradiction · durable state and resume</td>
+</tr>
+<tr>
+<td><b>Reasoning &amp; Control</b></td>
+<td>C09–C12</td>
+<td>Planning · verification &amp; the reflection ladder · composition primitives · failure &amp; recovery</td>
+</tr>
+<tr>
+<td><b>The Environment</b></td>
+<td>C13–C16</td>
+<td>Code execution &amp; sandboxing · files, shell and <code>apply_patch</code> · MCP · human approval</td>
+</tr>
+<tr>
+<td><b>Systems &amp; Production</b></td>
+<td>C17–C22</td>
+<td>Multi-agent topology · the actor runtime · evals · tracing · security · the server</td>
+</tr>
+<tr>
+<td><b>Capstone I</b></td>
+<td>C23</td>
+<td>A deep-research agent — plans, searches, verifies claims against evidence spans, cites, surfaces conflicts</td>
+</tr>
+<tr>
+<td><b>Capstone II</b></td>
+<td>C24</td>
+<td>A coding agent — orients in a repo, patches, runs the tests, reads the failure, repairs</td>
+</tr>
+</table>
+
+Each layer answers a question the previous one created:
+
+0. An agent is a loop with a decision in it. **…which tells you what an agent is. Now build the smallest one that works. So:**
+1. The model, typed and tooled. **…which leaves you with an agent that works and forgets everything. So:**
+2. Context and memory. **…which gives the agent a past. It still has no plan. So:**
+3. Reasoning and control. **…which makes it reliable inside its own head. Now let it touch the world. So:**
+4. The environment. **…which is one capable agent. Production needs more than one, and needs proof. So:**
+5. Systems and production. **…which is everything the course has to teach. Now assemble it twice.**
+
+Read them in order the first time. The dependencies are real.
+
+---
+
+## Quickstart
 
 ```bash
-node --experimental-strip-types code/c04_agent_loop.ts    # 22.6 – 22.17
-node code/c04_agent_loop.ts                               # 22.18+ and Node 24
-npm run agent code/c04_agent_loop.ts                      # either
+git clone https://github.com/xinbetween/learn-ai-agent-from-scratch
+cd learn-ai-agent-from-scratch
+
+# --- the code (no dependencies, no key) ---
+node --experimental-strip-types code/c04_agent_loop.ts   # start here
+npm run check:code                                       # all 27 files
+
+# --- the site ---
+npm install            # only for `npm run check` — the site itself has no deps
+npm run dev            # http://localhost:4321
 ```
 
-Every file ships a deterministic mock model, so the whole course runs offline
-with no API key and no spend. Files that benefit from a real model take `--live`
-and read `ANTHROPIC_API_KEY` or `OPENAI_API_KEY`.
+Node 22.6+ runs TypeScript directly. On 22.18+ and Node 24 you can drop the flag:
+
+```bash
+node code/c04_agent_loop.ts
+npm run agent code/c04_agent_loop.ts    # either version
+```
+
+Every file ships a deterministic mock model, so the whole course runs offline with
+no API key and no spend. Files that benefit from a real model take `--live` and read
+`ANTHROPIC_API_KEY` or `OPENAI_API_KEY`.
 
 Node's type stripping only erases types — it does not transform — so `enum`,
-`namespace`, decorators and parameter properties (`constructor(private x: T)`)
-are unsupported. Every file avoids them, and `npm run check:code` proves it by
-executing all 27 of them.
+`namespace`, decorators and parameter properties are unsupported. Every file avoids
+them, and `npm run check:code` proves it by executing all 27.
+
+---
 
 ## The outputs on the site are real
 
@@ -52,60 +175,144 @@ Each chapter ends with a "run it" block. Those are not illustrative: they are
 generated by running that chapter's file and pasting what it printed.
 
 ```bash
-npm run sync              # re-run every code file, rewrite the chapter output blocks
-npm run sync -- --check   # fail if any block has drifted (CI)
+npm run sync              # re-run every code file, rewrite the output blocks
+npm run sync -- --check   # fail if any block has drifted (this runs in CI)
 ```
 
-## The curriculum
-
-| Layer | Chapters | |
-| --- | --- | --- |
-| The Shape of the Thing | C00 | What an agent is, and the agency dial |
-| The Model | C01–C04 | Model call, structured output, tools, **the agent loop** |
-| Context & Memory | C05–C08 | Context engineering, retrieval, memory, durability |
-| Reasoning & Control | C09–C12 | Planning, verification, control flow, failure |
-| The Environment | C13–C16 | Code execution, files & `apply_patch`, MCP, approvals |
-| Systems & Production | C17–C22 | Multi-agent, the runtime, evals, tracing, security, shipping |
-| The Capstones | C23–C24 | Deep research agent; coding agent |
-
-C00–C04 are the irreducible core. If you only have an afternoon, read those and
-run `code/c04_agent_loop.ts`.
-
-## Languages
-
-English is served from the root, Chinese from `/zh/`. The two are generated from
-the same build in one pass.
-
-Translation is **partial by design**: `content/zh/chapters/` holds the chapters
-that have been translated, and anything missing falls back to the English body
-with a banner saying so. That keeps `/zh/` complete and navigable at every point
-instead of shipping a half-built second site.
+`npm run verify` is the whole contract in one command — execute all 27 files,
+rebuild the site, and assert no output block has drifted:
 
 ```
-content/zh/index.ts        registry — add a chapter here to translate it
-content/zh/chapters/       c00–c04, the irreducible core
-src/i18n.ts                locales, URL shapes, UI strings, landing copy
+27/27 runnable files execute cleanly.
+built 25 chapters + 9 pages + 23 runnable files × 2 locales → dist/  (zh: 5/25 chapters translated)
 ```
 
-A translated chapter spreads the English one and overrides the text, so it
-inherits the diagrams and the runnable-file references rather than duplicating
-them. The build asserts that every translation keeps the original's shape —
-same section, exercise, Q&A and quiz counts, and the same quiz answer indices —
-so a translation cannot silently drift from the chapter it mirrors.
+The build refuses to ship an incomplete chapter: fewer than four sections, not
+exactly six quiz questions, a quiz answer index out of range, or a translation
+whose shape has drifted from the chapter it mirrors are all build failures, not
+review comments.
 
-Simulator sections are deliberately shared with the English chapter: their
-labels live inside the SVG and the client script, and splitting them would
-decouple the simulator from the `code/` file it mirrors.
+---
 
-## Deploying
+## Repo layout
 
-`npm run build` emits a fully static `dist/` — no server, no runtime
-dependencies. Point any static host at it.
+```
+code/                      ALL chapter code lives here
+  c00..c22_*.ts            one runnable file per chapter
+  c23_research/            Capstone I — the deep-research agent
+  c24_coder/               Capstone II — the coding agent
+content/
+  chapters/c00..c24.ts     chapter prose, exercises, Q&A, projects, quizzes
+  pages/                   map, glossary, answers, Q&A, projects, setup, timeline
+  zh/                      Chinese translations — see below
+src/
+  build.ts                 the generator: writes dist/ for every locale
+  render.ts                shell, nav, sidebar, rail, chapter and page renderers
+  landing.ts               the home page
+  i18n.ts                  locales, URL shapes, UI strings, landing copy
+  curriculum.ts            layers and site metadata
+  ui.ts                    code(), fig(), lab(), note(), table() — the HTML helpers
+  types.ts                 the content model everything is typed against
+static/                    styles.css, app.js, favicon.svg
+scripts/                   output sync, code check, dev server
+```
 
-## Acknowledgements
+The site is a static generator in about 1,500 lines with no dependencies. It builds
+to a folder of HTML you can host anywhere.
 
-The course reads production source rather than paraphrasing it. Particular debts
-to Anthropic's *Building Effective Agents*, OpenAI Codex's `apply_patch`,
-Microsoft's `autogen-core` runtime, the Model Context Protocol specification, and
-Simon Willison's writing on prompt injection and the lethal trifecta. Chapter
-references are on `/references/`.
+Every push to `main` builds and publishes to GitHub Pages via
+[`.github/workflows/deploy.yml`](.github/workflows/deploy.yml); no build output is
+committed. Two environment variables are the whole deployment configuration:
+
+| Variable | What it does |
+| --- | --- |
+| `SITE_URL` | Absolute origin baked into the sitemap, `robots.txt` and canonical URLs. |
+| `SITE_BASE_PATH` | The sub-path Pages serves from — `/<repo>` for project hosting, empty for a custom domain at its origin root. |
+
+Every internal URL goes through `url()` or `localePath()` in
+[`src/i18n.ts`](src/i18n.ts), so those two variables are the only things that have
+to know where the site lives. To move to a custom domain: clear `SITE_BASE_PATH`,
+point `SITE_URL` at the domain, and add a `CNAME` file to `static/` so it survives
+every deploy.
+
+---
+
+## 🌏 Translating
+
+Translation is **partial by design**. A chapter that has not been translated falls
+back to the English body with a banner saying so, which keeps `/zh/` complete and
+navigable at every point instead of shipping a half-built second site.
+
+**To add a language:**
+
+1. Add its code to `LOCALES` in [`src/i18n.ts`](src/i18n.ts) and fill in
+   `LOCALE_META`.
+2. Add a dictionary beside `en` and `zh` in the same file. That covers the site
+   chrome, the landing copy and the curriculum layer names:
+
+   | Where | What it holds |
+   | --- | --- |
+   | `CATALOGUE` | Nav, footer, rail, quiz UI, section labels, the fallback banner |
+   | `LANDING` | Home-page prose — hero, cards, curriculum intro, CTAs |
+   | `LAYER_TEXT` | Layer names, blurbs and the bridge sentence between layers |
+
+3. Translate chapters into `content/<code>/chapters/` and register them in
+   `content/<code>/index.ts`. A translated chapter spreads the English one and
+   overrides the text, so it inherits the diagrams and the runnable-file
+   references rather than duplicating them:
+
+   ```ts
+   import en, { DIAL_SVG } from "../../chapters/c00.ts";
+   const chapter: Chapter = { ...en, title: "智能体到底是什么", sections: [ /* … */ ] };
+   ```
+
+4. Run `npm run check`, then `npm run build`. The build asserts every translation
+   keeps the original's shape — same section, exercise, Q&A and quiz counts, and
+   identical quiz answer indices — so a translation cannot silently drift from the
+   chapter it mirrors.
+
+Simulator sections are deliberately shared with the English chapter. Their labels
+live inside the SVG and the client script, and splitting them would decouple the
+simulator from the `code/` file it mirrors.
+
+**Conventions.** Code identifiers (`stopReason`, `tool_use`, `apply_patch`), model
+and framework names, and paper titles stay in English — they are what the reader
+will type or search for. Everything else is translated.
+
+---
+
+## Contributing
+
+Issues and PRs welcome. Particularly useful:
+
+- **Corrections.** If a claim is wrong, open an issue with the evidence. This is
+  the most valuable contribution there is.
+- **Translations.** See above — the build will tell you exactly what is missing.
+- **Quiz questions.** Six per chapter; more good ones are always welcome.
+- **A chapter this course is missing.** Voice agents, computer use, RL-trained tool
+  use and cost-aware model routing are all absent and all interesting.
+
+---
+
+## Credits
+
+Built on the work of the people who actually solved these problems. Particular debts
+to Anthropic's *Building Effective Agents*, OpenAI Codex's `apply_patch`, Microsoft's
+`autogen-core` runtime, the Model Context Protocol specification, and Simon Willison's
+writing on prompt injection and the lethal trifecta. Chapter references are on the
+[references page](https://xinbetween.github.io/learn-ai-agent-from-scratch/references/).
+
+This is an educational reimplementation and is not affiliated with any of them.
+Production frameworks are the real thing; this teaches you how to read them.
+
+---
+
+<div align="center">
+
+**[Start with C00 →](https://xinbetween.github.io/learn-ai-agent-from-scratch/c00/)**
+
+If this helped, a ⭐ makes it findable for the next person.
+
+[GitHub](https://github.com/xinbetween/learn-ai-agent-from-scratch) · [X](https://x.com/xinbetween) · MIT licensed
+
+</div>

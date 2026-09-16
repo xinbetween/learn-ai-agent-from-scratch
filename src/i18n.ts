@@ -16,20 +16,45 @@ export const LOCALE_META: Record<Locale, { lang: string; label: string; name: st
   zh: { lang: "zh-Hans", label: "中", name: "简体中文" },
 };
 
-/** `/c04/` → `/zh/c04/` for non-default locales. */
-export function localePath(loc: Locale, path: string): string {
-  if (loc === DEFAULT_LOCALE) return path;
-  return path === "/" ? `/${loc}/` : `/${loc}${path}`;
+/** Sub-path the site is served from. Empty at a domain root; on GitHub Pages
+ *  project hosting it is `/<repo>`. Every internal URL goes through `url()`
+ *  or `localePath()`, so this is the only place that has to know. */
+export const BASE_PATH = (process.env.SITE_BASE_PATH ?? "").replace(/\/+$/, "");
+
+/** Prefix a root-absolute path with the base path. Locale-agnostic — for
+ *  assets and for the published `code/` tree. */
+export function url(path: string): string {
+  return path.startsWith("/") ? `${BASE_PATH}${path}` : path;
 }
 
-/** Strip a locale prefix back to the canonical path. */
+/** `/c04/` → `/zh/c04/` for non-default locales, base path included. */
+export function localePath(loc: Locale, path: string): string {
+  const p = loc === DEFAULT_LOCALE ? path : path === "/" ? `/${loc}/` : `/${loc}${path}`;
+  return url(p);
+}
+
+/** Strip the base path and any locale prefix, back to the canonical path. */
 export function stripLocale(path: string): string {
+  let p = BASE_PATH && path.startsWith(BASE_PATH) ? path.slice(BASE_PATH.length) || "/" : path;
   for (const loc of LOCALES) {
     if (loc === DEFAULT_LOCALE) continue;
-    if (path === `/${loc}/`) return "/";
-    if (path.startsWith(`/${loc}/`)) return path.slice(loc.length + 1);
+    if (p === `/${loc}/`) return "/";
+    if (p.startsWith(`/${loc}/`)) return p.slice(loc.length + 1);
   }
-  return path;
+  return p;
+}
+
+/** Rewrite the root-absolute links inside authored chapter/page HTML so they
+ *  point at the right locale and carry the base path. Content modules are
+ *  shared across locales and are written with plain `/c05/` hrefs, so this is
+ *  where a Chinese page stops linking into the English site. Asset and
+ *  `code/` links get the base path but never a locale. */
+export function localiseLinks(html: string, loc: Locale): string {
+  return html.replace(/href="(\/[^"]*)"/g, (m, p: string) => {
+    if (p.startsWith("//")) return m;                       // protocol-relative
+    const isAsset = /^\/code\//.test(p) || /\.[a-z0-9]{2,5}$/i.test(p);
+    return `href="${isAsset ? url(p) : localePath(loc, p)}"`;
+  });
 }
 
 type Dict = Record<string, string>;
@@ -109,6 +134,9 @@ const en: Dict = {
   "foot.references": "References",
   "foot.about":
     "{chapters} chapters and roughly {lines} lines of dependency-free {lang}, with diagrams, simulators, exercises and two capstones. An agent is a loop; this course is what goes inside it.",
+
+  "foot.note":
+    "An educational implementation, built to prepare you for the production source in LangGraph, AutoGen, the OpenAI Agents SDK, the Claude Agent SDK and the Model Context Protocol.",
 
   // fallback banner + 404
   "fallback.title": "Not translated yet",
@@ -196,6 +224,9 @@ const zh: Dict = {
   "foot.references": "参考资料",
   "foot.about":
     "{chapters} 章，约 {lines} 行零依赖 {lang} 代码，配有图解、可交互模拟器、练习和两个实战项目。智能体就是一个循环；这门课讲的是循环里面装什么。",
+
+  "foot.note":
+    "这是一份教学实现，目的是让你有能力去读 LangGraph、AutoGen、OpenAI Agents SDK、Claude Agent SDK 和 Model Context Protocol 的生产源码。",
 
   // fallback banner + 404
   "fallback.title": "尚未翻译",

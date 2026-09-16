@@ -9,12 +9,15 @@ import { renderChapter, renderPage, buildSearchIndex } from "./render.ts";
 import { renderLanding } from "./landing.ts";
 import { chapters } from "../content/chapters/index.ts";
 import { pages } from "../content/pages/index.ts";
-import { type Locale, LOCALES, DEFAULT_LOCALE, localePath, t } from "./i18n.ts";
+import { type Locale, LOCALES, DEFAULT_LOCALE, localePath, url, t } from "./i18n.ts";
 import { zhChapters, zhPageMeta, zhTranslatedPages } from "../content/zh/index.ts";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = join(ROOT, "dist");
-const BASE = "https://agents.example.com";
+/** Absolute origin used for the sitemap, robots.txt and canonical URLs.
+ *  Set SITE_URL in the deploy workflow; the default is the GitHub Pages
+ *  project URL, which is where an unconfigured fork will actually answer. */
+const BASE = (process.env.SITE_URL ?? "https://xinbetween.github.io/learn-ai-agent-from-scratch").replace(/\/+$/, "");
 
 function write(rel: string, body: string) {
   const file = join(OUT, rel);
@@ -22,14 +25,19 @@ function write(rel: string, body: string) {
   writeFileSync(file, body, "utf8");
 }
 
+/** The paths handed in already carry the base path, so compose them against
+ *  the origin alone — otherwise SITE_URL's own sub-path gets doubled. */
+const ORIGIN = new URL(BASE).origin;
+const HOME = localePath(DEFAULT_LOCALE, "/");
+
 function sitemap(urls: string[]): string {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls
   .map(
     (u) =>
-      `<url><loc>${BASE}${u}</loc><changefreq>monthly</changefreq><priority>${
-        u === "/" ? "1.0" : "0.8"
+      `<url><loc>${ORIGIN}${u}</loc><changefreq>monthly</changefreq><priority>${
+        u === HOME ? "1.0" : "0.8"
       }</priority></url>`
   )
   .join("\n")}
@@ -111,10 +119,10 @@ function main() {
   }
 
   write("sitemap.xml", sitemap(urls));
-  write("robots.txt", `User-agent: *\nAllow: /\nSitemap: ${BASE}/sitemap.xml\n`);
+  write("robots.txt", `User-agent: *\nAllow: /\nSitemap: ${ORIGIN}${localePath(DEFAULT_LOCALE, "/sitemap.xml")}\n`);
   write(
     "manifest.webmanifest",
-    JSON.stringify({ name: SITE.title, short_name: SITE.short, start_url: "/", display: "standalone", background_color: "#fbfaf8", theme_color: "#b4530a" }, null, 2)
+    JSON.stringify({ name: SITE.title, short_name: SITE.short, start_url: HOME, display: "standalone", background_color: "#fbfaf8", theme_color: "#b4530a", icons: [{ src: url("/favicon.svg"), sizes: "any", type: "image/svg+xml" }] }, null, 2)
   );
 
   const codeFiles = existsSync(join(ROOT, "code")) ? readdirSync(join(ROOT, "code")).filter((f) => f.endsWith(".ts")) : [];

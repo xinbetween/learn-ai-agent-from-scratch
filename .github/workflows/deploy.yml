@@ -1,0 +1,74 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# GITHUB_TOKEN needs to mint an id-token for the Pages deployment.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never let two deploys race. Queue instead of cancelling, so a push that lands
+# mid-deploy still ends up published rather than silently dropped.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build static site
+    runs-on: ubuntu-latest
+    env:
+      # Where the site actually answers. The sitemap, robots.txt and the
+      # canonical/OG URLs are absolute and baked in at build time, so this has
+      # to match reality or they point at a site that does not exist.
+      #
+      # SITE_BASE_PATH is the sub-path Pages serves from. Project hosting means
+      # /<repo>; a custom domain at its origin root means the empty string.
+      # Every internal URL goes through url()/localePath() in src/i18n.ts, so
+      # these two variables are the whole configuration.
+      #
+      # Moving to a custom domain: clear SITE_BASE_PATH, point SITE_URL at the
+      # domain, and add a CNAME file to static/ so it survives every deploy.
+      SITE_URL: https://xinbetween.github.io/learn-ai-agent-from-scratch
+      SITE_BASE_PATH: /learn-ai-agent-from-scratch
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - run: npm ci
+
+      - uses: actions/configure-pages@v5
+
+      # The site's own build. It asserts every chapter is complete and every
+      # translation matches the shape of the chapter it mirrors, so a broken
+      # content change fails here rather than shipping.
+      - name: Build
+        run: npm run build
+
+      # Pages serves the artifact as-is, but a stray Jekyll pass would eat any
+      # path it dislikes. One empty file makes that impossible.
+      - name: Disable Jekyll
+        run: touch dist/.nojekyll
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

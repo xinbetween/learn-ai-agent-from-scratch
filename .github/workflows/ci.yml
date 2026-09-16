@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Type-check, run every chapter, assert outputs are current
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - run: npm ci
+
+      - name: Type-check
+        run: npm run check
+
+      # `verify` is three things in one: it executes all 27 runnable files,
+      # rebuilds the site (which asserts chapter completeness and translation
+      # shape), then fails if any chapter's "run it" block has drifted from
+      # what its file actually prints. The last one is the point: the outputs
+      # on the site are generated, not transcribed, and this proves it.
+      - name: Verify
+        run: npm run verify

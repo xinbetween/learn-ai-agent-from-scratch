@@ -1,19 +1,19 @@
 import type { Chapter, Layer, Page } from "./types.ts";
 import { LAYERS, SITE } from "./curriculum.ts";
 import { esc } from "./ui.ts";
-import { type Locale, LOCALES, LOCALE_META, DEFAULT_LOCALE, localePath, stripLocale, t, layerFor } from "./i18n.ts";
+import { type Locale, LOCALES, LOCALE_META, DEFAULT_LOCALE, localePath, stripLocale, t, layerFor, url, localiseLinks } from "./i18n.ts";
 
 const NAV = [
   { href: "/map/", key: "nav.map" },
   { href: "/projects/", key: "nav.projects" },
-  { href: "/qa/", key: "nav.qa" },
-  { href: "/answers/", key: "nav.answers" },
   { href: "/glossary/", key: "nav.glossary" },
   { href: "/compare/", key: "nav.compare" },
 ];
 
 /** Inline icons for the top nav. Stroke icons inherit `currentColor`. */
 const ICON = {
+  /** The brand mark: a loop with a decision in it (C00's definition). */
+  mark: `<svg width="22" height="22" viewBox="0 0 64 64" aria-hidden="true" class="nav-mark"><rect width="64" height="64" rx="14" fill="#14120f"/><path d="M46 22a18 18 0 1 0 5 12" fill="none" stroke="#f0913f" stroke-width="5.5" stroke-linecap="round"/><polygon points="52 14 52 30 38 22" fill="#f0913f"/><circle cx="32" cy="34" r="5" fill="#4bc4cf"/></svg>`,
   menu: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>`,
   search: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16.2 16.2 3.6 3.6"/></svg>`,
   theme: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.4" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M12 3.6a8.4 8.4 0 0 1 0 16.8z" fill="currentColor"/></svg>`,
@@ -39,21 +39,22 @@ function topNav(path: string, loc: Locale): string {
   }).join("");
 
   return `<header class="nav">
-  <button class="icon-btn nav-toggle" id="nav-toggle" aria-label="${esc(t(loc, "nav.openChapters"))}">${ICON.menu}</button>
-  <a class="nav-brand" href="${L("/")}"><span class="nav-mark">A</span><span class="nav-name">${esc(SITE.short)}</span></a>
-  <nav class="nav-links">${NAV.map(
-    (n) => `<a href="${L(n.href)}"${canonical.startsWith(n.href) ? ' aria-current="page"' : ""}>${esc(t(loc, n.key))}</a>`
-  ).join("")}</nav>
-  <span class="nav-spacer"></span>
-  <div class="nav-actions">
-    <a class="nav-cta" href="${L("/c00/")}">${esc(t(loc, "nav.start"))} <span aria-hidden="true">→</span></a>
-    <button class="nav-search" id="search-btn" type="button" aria-label="${esc(t(loc, "nav.searchAria"))}">
-      ${ICON.search}<span class="nav-search-label">${esc(t(loc, "nav.search"))}</span><kbd>⌘K</kbd>
-    </button>
-    <div class="seg" role="group" aria-label="${esc(t(loc, "nav.language"))}">${langs}</div>
-    <button class="icon-btn box" id="theme-btn" aria-label="${esc(t(loc, "nav.themeAria"))}" title="${esc(t(loc, "nav.theme"))}">${ICON.theme}</button>
-    ${social(SITE.links.github, t(loc, "nav.github"), ICON.github, t(loc, "nav.linkUnset"))}
-    ${social(SITE.links.x, t(loc, "nav.x"), ICON.x, t(loc, "nav.linkUnset"))}
+  <div class="nav-in">
+    <button class="icon-btn nav-toggle" id="nav-toggle" aria-label="${esc(t(loc, "nav.openChapters"))}">${ICON.menu}</button>
+    <a class="nav-brand" href="${L("/")}">${ICON.mark}<span class="nav-name">${esc(SITE.title)}</span><span class="nav-name-sm">${esc(SITE.short)}</span></a>
+    <div class="nav-actions">
+      <nav class="nav-links">${NAV.map(
+        (n) => `<a href="${L(n.href)}"${canonical.startsWith(n.href) ? ' aria-current="page"' : ""}>${esc(t(loc, n.key))}</a>`
+      ).join("")}</nav>
+      <a class="nav-cta" href="${L("/c00/")}">${esc(t(loc, "nav.start"))} <span aria-hidden="true">→</span></a>
+      <button class="nav-search" id="search-btn" type="button" aria-label="${esc(t(loc, "nav.searchAria"))}">
+        ${ICON.search}<span class="nav-search-label">${esc(t(loc, "nav.search"))}</span><kbd>⌘K</kbd>
+      </button>
+      <div class="seg" role="group" aria-label="${esc(t(loc, "nav.language"))}">${langs}</div>
+      <button class="icon-btn box" id="theme-btn" aria-label="${esc(t(loc, "nav.themeAria"))}" title="${esc(t(loc, "nav.theme"))}">${ICON.theme}</button>
+      ${social(SITE.links.github, t(loc, "nav.github"), ICON.github, t(loc, "nav.linkUnset"))}
+      ${social(SITE.links.x, t(loc, "nav.x"), ICON.x, t(loc, "nav.linkUnset"))}
+    </div>
   </div>
 </header>
 <div class="scrim"></div>
@@ -70,14 +71,17 @@ function sidebar(chapters: Chapter[], loc: Locale, activeId?: string): string {
     const l = layerFor(loc, raw);
     const items = chapters.filter((c) => c.layer === l.id);
     if (!items.length) return "";
-    return `<div class="side-group"><h4>${esc(l.name)}</h4>${items
-      .map(
-        (c) =>
-          `<a class="side-link" data-ch="${c.id}" href="${localePath(loc, `/${c.id}/`)}"${
-            c.id === activeId ? ' aria-current="page"' : ""
-          }><span class="sid">${c.id.toUpperCase()}</span><span>${esc(c.title)}</span></a>`
-      )
-      .join("")}</div>`;
+    return `<div class="side-group" data-layer="${l.id}">
+  <div class="side-head"><span class="side-dot"></span><span>${esc(l.name)}</span></div>
+  <ul>${items
+    .map(
+      (c) =>
+        `<li><a class="side-link" data-ch="${c.id}" href="${localePath(loc, `/${c.id}/`)}"${
+          c.id === activeId ? ' aria-current="page"' : ""
+        }><span class="sid">${c.id.toUpperCase()}</span><span class="stt">${esc(c.title)}</span></a></li>`
+    )
+    .join("")}</ul>
+</div>`;
   }).join("");
   return `<aside class="sidebar" data-open="false"><nav>${groups}</nav></aside>`;
 }
@@ -105,31 +109,41 @@ function railFor(c: Chapter, chapters: Chapter[], loc: Locale): string {
 
 function footer(loc: Locale): string {
   const L = (p: string) => localePath(loc, p);
+  const col = (heading: string, links: Array<[string, string]>) =>
+    `<div><p class="foot-h">${esc(heading)}</p><ul>${links
+      .map(([href, label]) => `<li><a href="${L(href)}">${label}</a></li>`)
+      .join("")}</ul></div>`;
+
   return `<footer class="foot"><div class="foot-in">
-  <div>
-    <h5>${esc(SITE.title)}</h5>
-    <p class="about">${esc(
-      t(loc, "foot.about", {
-        chapters: SITE.chapters,
-        lines: SITE.lines.toLocaleString("en-US"),
-        lang: SITE.lang,
-      })
-    )}</p>
+  <div class="foot-top">
+    <div class="foot-about">
+      <p class="foot-h">${esc(SITE.title)}</p>
+      <p>${esc(
+        t(loc, "foot.about", {
+          chapters: SITE.chapters,
+          lines: SITE.lines.toLocaleString("en-US"),
+          lang: SITE.lang,
+        })
+      )}</p>
+    </div>
+    <div class="foot-cols">
+      ${col(t(loc, "foot.course"), [
+        ["/c00/", t(loc, "foot.startAt")],
+        ["/map/", t(loc, "foot.theMap")],
+        ["/projects/", t(loc, "foot.projects")],
+        ["/answers/", t(loc, "foot.answers")],
+        ["/setup/", t(loc, "foot.setup")],
+      ])}
+      ${col(t(loc, "foot.reference"), [
+        ["/qa/", t(loc, "foot.qa")],
+        ["/glossary/", t(loc, "foot.glossary")],
+        ["/compare/", t(loc, "foot.compare")],
+        ["/timeline/", t(loc, "foot.timeline")],
+        ["/references/", t(loc, "foot.references")],
+      ])}
+    </div>
   </div>
-  <div><h5>${esc(t(loc, "foot.course"))}</h5><ul>
-    <li><a href="${L("/c00/")}">${t(loc, "foot.startAt")}</a></li>
-    <li><a href="${L("/map/")}">${t(loc, "foot.theMap")}</a></li>
-    <li><a href="${L("/setup/")}">${t(loc, "foot.setup")}</a></li>
-    <li><a href="${L("/projects/")}">${t(loc, "foot.projects")}</a></li>
-  </ul></div>
-  <div><h5>${esc(t(loc, "foot.reference"))}</h5><ul>
-    <li><a href="${L("/answers/")}">${t(loc, "foot.answers")}</a></li>
-    <li><a href="${L("/qa/")}">${t(loc, "foot.qa")}</a></li>
-    <li><a href="${L("/glossary/")}">${t(loc, "foot.glossary")}</a></li>
-    <li><a href="${L("/compare/")}">${t(loc, "foot.compare")}</a></li>
-    <li><a href="${L("/timeline/")}">${t(loc, "foot.timeline")}</a></li>
-    <li><a href="${L("/references/")}">${t(loc, "foot.references")}</a></li>
-  </ul></div>
+  <p class="foot-note">${esc(t(loc, "foot.note"))}</p>
 </div></footer>`;
 }
 
@@ -164,8 +178,9 @@ ${opts.keywords?.length ? `<meta name="keywords" content="${esc(opts.keywords.jo
 <meta property="og:description" content="${esc(opts.desc)}">
 <meta property="og:type" content="website">
 ${alternates}
-<link rel="stylesheet" href="/styles.css">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23b4530a'/><text x='16' y='23' font-family='monospace' font-size='20' font-weight='700' fill='%23fbfaf8' text-anchor='middle'>A</text></svg>">
+<link rel="stylesheet" href="${url("/styles.css")}">
+<link rel="icon" href="${url("/favicon.svg")}" type="image/svg+xml">
+<link rel="apple-touch-icon" href="${url("/favicon.svg")}">
 <script>(function(){try{var t=JSON.parse(localStorage.getItem("agentcourse.theme")||'"system"');if(t!=="system")document.documentElement.setAttribute("data-theme",t);}catch(e){}})();</script>
 </head>
 <body${opts.chapterId ? ` data-chapter="${opts.chapterId}"` : ""}>
@@ -174,7 +189,7 @@ ${topNav(opts.path, loc)}
 ${opts.content}
 ${footer(loc)}
 <script>window.__SEARCH_INDEX__=${opts.searchIndex};</script>
-<script src="/app.js"></script>
+<script src="${url("/app.js")}"></script>
 </body>
 </html>`;
 }
@@ -194,12 +209,14 @@ export function renderChapter(
   const next = chapters[i + 1];
   const layer = layerFor(loc, LAYERS.find((l) => l.id === c.layer)!);
 
+  const LL = (html: string) => localiseLinks(html, loc);
+
   const sections = c.sections
     .map(
       (s) => `<section class="sec" id="${s.id}">
   <p class="kicker">${esc(s.kicker)}</p>
   <h2>${esc(s.title)}</h2>
-  ${s.html}
+  ${LL(s.html)}
 </section>`
     )
     .join("\n");
@@ -213,8 +230,8 @@ export function renderChapter(
       (e, n) => `<div class="ex-item">
     <span class="n">${n + 1}</span>
     <div>
-      <p>${e.prompt} <span class="ex-diff">${e.difficulty}</span></p>
-      <details class="ans"><summary>${esc(t(loc, "sec.answer"))}</summary><div class="inner">${e.answer}</div></details>
+      <p>${LL(e.prompt)} <span class="ex-diff">${e.difficulty}</span></p>
+      <details class="ans"><summary>${esc(t(loc, "sec.answer"))}</summary><div class="inner">${LL(e.answer)}</div></details>
     </div>
   </div>`
     )
@@ -226,7 +243,7 @@ export function renderChapter(
   <h2>${esc(t(loc, "sec.qaTitle"))}</h2>
   ${c.qa
     .map(
-      (x) => `<details class="qa"><summary>${esc(x.q)}</summary><div class="inner">${x.a}</div></details>`
+      (x) => `<details class="qa"><summary>${esc(x.q)}</summary><div class="inner">${LL(x.a)}</div></details>`
     )
     .join("")}
 </section>`;
@@ -234,12 +251,12 @@ export function renderChapter(
   const project = `<section class="sec" id="project">
   <p class="kicker">${esc(t(loc, "sec.project"))}</p>
   <h2>${esc(c.project.title)}</h2>
-  ${c.project.brief}
+  ${LL(c.project.brief)}
   <h3>${esc(t(loc, "sec.doneMeans"))}</h3>
-  <ul>${c.project.spec.map((s) => `<li>${s}</li>`).join("")}</ul>
+  <ul>${c.project.spec.map((s) => `<li>${LL(s)}</li>`).join("")}</ul>
   ${
     c.project.stretch?.length
-      ? `<h3>${esc(t(loc, "sec.ifYouWantMore"))}</h3><ul>${c.project.stretch.map((s) => `<li>${s}</li>`).join("")}</ul>`
+      ? `<h3>${esc(t(loc, "sec.ifYouWantMore"))}</h3><ul>${c.project.stretch.map((s) => `<li>${LL(s)}</li>`).join("")}</ul>`
       : ""
   }
 </section>`;
@@ -310,7 +327,7 @@ ${
   c.continues
     ? `<section class="sec"><p class="kicker">Continue</p><h2>${
         next ? esc(next.title) : "Where this goes"
-      }</h2>${c.continues}</section>`
+      }</h2>${LL(c.continues)}</section>`
     : ""
 }
 ${review}
@@ -352,7 +369,7 @@ ${sidebar(chapters, loc)}
     <h1>${esc(pg.title)}</h1>
     <p class="sub">${esc(pg.subtitle)}</p>
   </div>
-  ${pg.html}
+  ${localiseLinks(pg.html, loc)}
 </div></main>
 </div>`;
   return shell({
