@@ -182,6 +182,10 @@ ${alternates}
 <link rel="icon" href="${url("/favicon.svg")}" type="image/svg+xml">
 <link rel="apple-touch-icon" href="${url("/favicon.svg")}">
 <script>(function(){try{var t=JSON.parse(localStorage.getItem("agentcourse.theme")||'"system"');if(t!=="system")document.documentElement.setAttribute("data-theme",t);}catch(e){}})();</script>
+<!-- Chapters call registerLab() inline, mid-document, while app.js loads at the
+     end of body. Queue the registrations here so the call site never depends on
+     which script won the race; app.js drains __labs on boot. -->
+<script>window.registerLab=function(f){(window.__labs=window.__labs||[]).push(f);};</script>
 </head>
 <body${opts.chapterId ? ` data-chapter="${opts.chapterId}"` : ""}>
 <a class="skip" href="#main">${esc(t(loc, "nav.skip"))}</a>

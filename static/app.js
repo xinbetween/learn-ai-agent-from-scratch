@@ -248,7 +248,9 @@
   }
 
   /* ---------------- lab registry ---------------- */
-  var labs = [];
+  /* Adopt anything the head stub queued before this file arrived, then take
+     over registration. Same array either way, so initLabs() sees all of it. */
+  var labs = window.__labs || [];
   window.registerLab = function (fn) { labs.push(fn); };
   function initLabs() {
     labs.forEach(function (fn) { try { fn(); } catch (e) { console.error("lab failed", e); } });
