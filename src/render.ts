@@ -1,7 +1,25 @@
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
 import type { Chapter, Layer, Page } from "./types.ts";
 import { LAYERS, SITE } from "./curriculum.ts";
 import { esc } from "./ui.ts";
 import { type Locale, LOCALES, LOCALE_META, DEFAULT_LOCALE, localePath, stripLocale, t, layerFor, url, localiseLinks } from "./i18n.ts";
+
+/** Content hashes for the two unversioned assets.
+ *
+ *  styles.css and app.js keep stable names, and the CDN in front of the site
+ *  caches them for hours. Without a cache key tied to content, a deploy ships
+ *  new HTML against the previous JS — which is not merely stale, it is a
+ *  mismatched pair: the page can call into a script that does not have the
+ *  function yet, and fail silently. The hash makes every change a new URL. */
+const STATIC_DIR = join(dirname(fileURLToPath(import.meta.url)), "..", "static");
+const rev = (file: string): string =>
+  createHash("sha256").update(readFileSync(join(STATIC_DIR, file))).digest("hex").slice(0, 8);
+
+const ASSET = { css: `/styles.css?v=${rev("styles.css")}`, js: `/app.js?v=${rev("app.js")}` };
 
 const NAV = [
   { href: "/map/", key: "nav.map" },
@@ -178,7 +196,7 @@ ${opts.keywords?.length ? `<meta name="keywords" content="${esc(opts.keywords.jo
 <meta property="og:description" content="${esc(opts.desc)}">
 <meta property="og:type" content="website">
 ${alternates}
-<link rel="stylesheet" href="${url("/styles.css")}">
+<link rel="stylesheet" href="${url(ASSET.css)}">
 <link rel="icon" href="${url("/favicon.svg")}" type="image/svg+xml">
 <link rel="apple-touch-icon" href="${url("/favicon.svg")}">
 <script>(function(){try{var t=JSON.parse(localStorage.getItem("agentcourse.theme")||'"system"');if(t!=="system")document.documentElement.setAttribute("data-theme",t);}catch(e){}})();</script>
@@ -193,7 +211,7 @@ ${topNav(opts.path, loc)}
 ${opts.content}
 ${footer(loc)}
 <script>window.__SEARCH_INDEX__=${opts.searchIndex};</script>
-<script src="${url("/app.js")}"></script>
+<script src="${url(ASSET.js)}"></script>
 </body>
 </html>`;
 }
