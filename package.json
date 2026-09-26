@@ -15,9 +15,10 @@
     "agent": "node --experimental-strip-types --no-warnings",
     "sync": "node --experimental-strip-types --no-warnings scripts/sync-outputs.ts",
     "check:code": "node --experimental-strip-types --no-warnings scripts/check-code.ts",
-    "verify": "npm run check:code && npm run build && npm run sync -- --check && npm run check:i18n",
+    "verify": "npm run check:code && npm run build && npm run sync -- --check && npm run check:i18n && npm run check:console",
     "lock": "node --experimental-strip-types --no-warnings scripts/translation-lock.ts",
-    "check:i18n": "npm run lock -- --check"
+    "check:i18n": "npm run lock -- --check",
+    "check:console": "node --experimental-strip-types --no-warnings scripts/check-console.ts"
   },
   "devDependencies": {
     "@types/node": "^22.20.3",

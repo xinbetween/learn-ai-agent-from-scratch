@@ -32,4 +32,9 @@ jobs:
       # what its file actually prints. The last one is the point: the outputs
       # on the site are generated, not transcribed, and this proves it.
       - name: Verify
+        # CONSOLE_CHECK_REQUIRED makes the headless-browser pass fail rather
+        # than skip if no Chrome is found, so a missing browser on the runner
+        # cannot quietly turn that check off. ubuntu-latest ships one.
+        env:
+          CONSOLE_CHECK_REQUIRED: "1"
         run: npm run verify
