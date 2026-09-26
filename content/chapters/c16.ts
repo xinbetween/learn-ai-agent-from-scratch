@@ -323,6 +323,7 @@ interface ApprovalRecord {
     { id: "production", kicker: "Production notes", title: "Field notes",
       html:
         ul([
+          `<strong>pi gates a folder rather than an action.</strong> One prompt on first entry — trust this project? — which then permits loading its settings, installing its packages and running its extensions. It is coarser than the ladder above and answers a question the ladder does not ask: whether the workspace itself is allowed to configure the agent. The two compose; a per-action policy inside an untrusted workspace is a policy the workspace can rewrite.`,
           `<strong>Codex and Claude Code both separate the two axes</strong> — a sandbox setting and an approval setting, configurable independently, with a documented "dangerous" combination that organisations can forbid centrally. That last detail matters: the unsafe corner should be reachable, visible, and blockable by policy.`,
           `<strong>The MCP spec requires user consent before invoking a tool</strong> (${ch("c15", "C15")}). Implementations that connect a server and expose its tools with no consent flow are not following the spec, and the tool-poisoning attack is precisely what the requirement exists for.`,
           `<strong>LangGraph's interrupt</strong> combined with a checkpointer is the durable-approval pattern from ${ch("c08", "C08")}: the graph suspends, the process exits, and a decision resumes it. If you are on a framework, use its mechanism rather than blocking on a promise.`,

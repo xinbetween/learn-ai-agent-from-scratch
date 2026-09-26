@@ -234,10 +234,11 @@ const backoff = (n: number, cfg: { baseMs: number; capMs: number }) =>
       html:
         ul([
           `<strong>提示词缓存</strong>是智能体里最大的那根成本杠杆。各家服务商允许你把一段前缀标记为可缓存；后续共享这段完全相同前缀的调用，大约按十分之一计费。因为智能体每一轮都要重发固定的系统提示词加工具定义，缓存基本上是白捡的钱。代价是这段前缀必须<em>逐字节相同</em>：不能有时间戳，不能打乱工具顺序，系统提示词里不能有按轮插值的东西。在 ${ch("c05", "C05")} 里就按这个前提设计。`,
+          `<strong>缓存条目有寿命，而闲着的智能体活得比它久。</strong> 服务商把一段缓存前缀保留的时间是以分钟计的，不是小时。一个在等慢工具、等审批、或者等一个去吃午饭的用户的智能体，回来时面对的是一个已经凉掉的缓存，于是要为一段它已经买过的前缀再付一次全价。你可以在它过期之前发一个共享同一前缀的廉价请求来把它刷新，而这件事只有在预期节省超过刷新成本时才值得做——具体的算术在 ${ch("c05", "C05")}，因为被保温的那个上下文正是你在那一章里设计出来的。`,
           `<strong>token 计数接口</strong>之所以存在，是因为不同模型的分词器不一样，而 <code>text.length / 4</code> 在代码上会偏差 30%，在非拉丁文字上偏得更多。重要的预算用真正的计数器；UI 上用估算。`,
           `<strong>模型别名是会漂移的。</strong> <code>*-latest</code> 指向了新地方，就是你智能体里一次无声的行为变更。凡是你拿来做评测的地方都要钉死具体版本，并且把版本升级当成一次代码变更来对待，重跑 ${ch("c19", "C19")} 的那套用例。`,
           `<strong>限流通常是按 token 算的，不是按请求数。</strong> 一个上下文 40k token 的智能体，会在撞上每分钟请求数上限之前很久，就先撞上每分钟输入 token 上限——这就是为什么天真的"N 个智能体并发"扩容会在一个很反直觉的数字上失败。`,
-          `<strong>这东西在真实代码里长什么样：</strong> Anthropic 和 OpenAI 的 SDK 都把这个函数包了一层重试和流式；LangChain 管它叫 <code>BaseChatModel.invoke</code>；AutoGen 管它叫 <code>ChatCompletionClient.create</code>，而且值得注意的是，它让客户端自己累加用量——正是上面论证过的那个设计。`,
+          `<strong>这东西在真实代码里长什么样：</strong> pi 的 <code>packages/ai</code> 就是这一章的契约在生产规模上的样子，而且同样是 TypeScript，所以你读起来是同一套代码，而不是它的某种翻译；Anthropic 和 OpenAI 的 SDK 都把这个函数包了一层重试和流式；LangChain 管它叫 <code>BaseChatModel.invoke</code>；AutoGen 管它叫 <code>ChatCompletionClient.create</code>，而且值得注意的是，它让客户端自己累加用量——正是上面论证过的那个设计。`,
         ]),
     },
   ],

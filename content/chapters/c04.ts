@@ -381,6 +381,7 @@ reset();`,
       title: "The budget object",
       html:
         p(`The loop is short because the bookkeeping lives somewhere else. <code>Budget</code> is the piece worth getting right: it owns all three limits, the abort signal, and the usage ledger, so the loop asks one question instead of four.`) +
+        p(`One caveat on the limits themselves, because this course builds an unattended loop and not every agent is one. An interactive CLI can ship without a step budget: pi's agent loop is 898 lines and has no <code>maxSteps</code>, relying on an abort signal, a host-supplied stop hook, and a person watching the output scroll past. That is still external termination — the human is the budget. It stops being sufficient the moment the same loop runs on a schedule, in CI, or on behalf of a user who has closed the tab, which is why the version here carries all three limits. Build the guards; decide separately which ones your product can relax.`) +
         code({
           title: "code/c04_agent_loop.ts — Budget",
           src: `export class Budget {
@@ -494,6 +495,7 @@ reset();`,
           `<strong>LangGraph</strong> makes the loop a graph: <code>create_react_agent</code> wires an <code>agent</code> node to a <code>tools</code> node with a conditional edge on whether the last message had tool calls. Same loop, drawn as a state machine, with checkpointing attached to the edges (${ch("c08", "C08")}).`,
           `<strong>AutoGen</strong>'s <code>AssistantAgent</code> runs this inside <code>on_messages</code>, bounded by <code>max_tool_iterations</code>. Its interesting choice is that the loop is one actor's behaviour, so multi-agent work is message-passing between loops rather than a bigger loop (${ch("c18", "C18")}).`,
           `<strong>The OpenAI Agents SDK</strong> calls it <code>Runner.run</code>, with <code>max_turns</code>, guardrails on input and output, and handoffs modelled as tools that swap which agent owns the loop.`,
+          `<strong>pi's <code>agent-loop.ts</code></strong> is this chapter at production scale and in the same language, which makes it the most useful single file to read after finishing C04. Look at what it does differently: the branches this course writes inline are hooks the host supplies, and an outer loop drains user messages that arrived mid-run so a person can steer without restarting.`,
           `<strong>Claude Code and Codex</strong> run this loop with a large tool surface and a permission layer between the decision and the execution — the <code>authorize</code> box in ${ch("c03", "C03")}'s diagram, which is ${ch("c16", "C16")}.`,
           `<strong>What none of them decide for you:</strong> what the user gets when the budget runs out. Every framework has a max-iterations setting; almost none has an opinion about the partial work. That is the <code>degrade()</code> function, and it is yours.`,
         ]) +
