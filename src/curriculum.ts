@@ -4,8 +4,8 @@ export const SITE = {
   title: "Build an AI Agent From Scratch",
   short: "AI Agents",
   tagline:
-    "Build an AI agent from scratch in TypeScript: the ReAct loop, tools, context engineering, memory, planning, MCP, multi-agent systems, evals and security. 24 chapters, no framework.",
-  chapters: 25,
+    "Build an AI agent from scratch in TypeScript: the ReAct loop, tools, code actions, context engineering, memory, planning, MCP, multi-agent systems, evals and security. 27 chapters, no framework.",
+  chapters: 27,
   lines: 6191,
   lang: "TypeScript",
   /** Social links in the top nav. Empty string renders an inert placeholder. */
@@ -55,7 +55,7 @@ export const LAYERS: Layer[] = [
     from: "C13",
     to: "C16",
     desc:
-      "Code execution, files and the shell, the Model Context Protocol, and the human who has to approve the dangerous parts.",
+      "Code execution, what an action can even be, files and the shell, the Model Context Protocol, and the human who has to approve the dangerous parts.",
     bridge: "…which is one capable agent. Production needs more than one, and needs proof. So:",
   },
   {
