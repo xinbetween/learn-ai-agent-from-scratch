@@ -268,8 +268,28 @@ navigable at every point instead of shipping a half-built second site.
 
 4. Run `npm run check`, then `npm run build`. The build asserts every translation
    keeps the original's shape — same section, exercise, Q&A and quiz counts, and
-   identical quiz answer indices — so a translation cannot silently drift from the
-   chapter it mirrors.
+   identical quiz answer indices.
+
+Shape is not freshness, though, and the second one is what actually rots. Editing
+an English paragraph leaves its translation untouched and every check passing, so
+`content/zh/translation-lock.json` records a hash of the English behind each
+translated field:
+
+```bash
+npm run lock              # after re-translating, record what you translated from
+npm run check:i18n        # fail if any English source moved (runs inside `verify`)
+```
+
+It distinguishes the two kinds of section. A spread section (`{ ...explore }`) is
+byte-identical to the English, so edits flow through and nothing is locked. A
+section with its own prose is locked, and an edit to the English side fails the
+check naming the exact field:
+
+```
+Chinese translations are out of date with the English source.
+  The English changed; the translation did not:
+    - c00 · section.core-idea
+```
 
 Simulator sections are deliberately shared with the English chapter. Their labels
 live inside the SVG and the client script, and splitting them would decouple the
