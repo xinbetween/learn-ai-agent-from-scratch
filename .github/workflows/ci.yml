@@ -12,11 +12,11 @@ permissions:
 jobs:
   verify:
     name: Type-check, run every chapter, assert outputs are current
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: "22"
           cache: npm
@@ -34,7 +34,7 @@ jobs:
       - name: Verify
         # CONSOLE_CHECK_REQUIRED makes the headless-browser pass fail rather
         # than skip if no Chrome is found, so a missing browser on the runner
-        # cannot quietly turn that check off. ubuntu-latest ships one.
+        # cannot quietly turn that check off. The ubuntu-24.04 image ships one.
         env:
           CONSOLE_CHECK_REQUIRED: "1"
         run: npm run verify

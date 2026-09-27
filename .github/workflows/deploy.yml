@@ -20,7 +20,7 @@ concurrency:
 jobs:
   build:
     name: Build static site
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       # Where the site actually answers. The sitemap, robots.txt and the
       # canonical/OG URLs are absolute and baked in at build time, so this has
@@ -39,16 +39,16 @@ jobs:
       SITE_URL: https://agent.xinbetween.com
       SITE_BASE_PATH: ""
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: "22"
           cache: npm
 
       - run: npm ci
 
-      - uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v6
 
       # The site's own build. It asserts every chapter is complete and every
       # translation matches the shape of the chapter it mirrors, so a broken
@@ -61,17 +61,21 @@ jobs:
       - name: Disable Jekyll
         run: touch dist/.nojekyll
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: dist
+          # v5 excludes dotfiles by default (it tars with --exclude=.[^/]*), which
+          # would silently drop the .nojekyll written above — the one file in dist
+          # whose whole job is to be a dotfile.
+          include-hidden-files: true
 
   deploy:
     name: Deploy
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
