@@ -18,7 +18,7 @@ export const zhChapters: Record<string, Chapter> = { c00, c01, c02, c03, c04 };
  *  chapter set, so a translation only needs to restate the chrome strings
  *  the generator cannot derive. */
 export const zhPageMeta: Record<string, { title: string; subtitle: string; kicker: string }> = {
-  map: { title: "课程地图", kicker: "地图", subtitle: "二十五章如何串成一条线" },
+  map: { title: "课程地图", kicker: "地图", subtitle: "二十九章如何串成一条线" },
   setup: { title: "本地环境", kicker: "开始之前", subtitle: "Node 22.6+，没有别的依赖" },
   glossary: { title: "术语表", kicker: "参考", subtitle: "全课程用到的术语，按字母排序" },
   projects: { title: "项目", kicker: "动手", subtitle: "每章一个小项目，外加两个实战" },

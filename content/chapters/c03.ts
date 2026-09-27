@@ -31,7 +31,7 @@ export const DISPATCH_SVG = `
 
   <rect x="496" y="32" width="112" height="44" rx="6" class="d-box-p"/>
   <text x="552" y="52" class="d-text" text-anchor="middle">authorize</text>
-  <text x="552" y="68" class="d-mono" text-anchor="middle" fill="var(--fg-faint)">C16 approval</text>
+  <text x="552" y="68" class="d-mono" text-anchor="middle" fill="var(--fg-faint)">C19 approval</text>
 
   <path d="M552 80 L552 112" class="d-arrow" marker-end="url(#t3)"/>
 
@@ -107,8 +107,8 @@ const chapter: Chapter = {
   run: (input: I, ctx: ToolContext) => Promise<O>;
 
   // Metadata your loop needs, that the model never sees:
-  readOnly?: boolean;                 // safe to run in parallel, no approval (C16)
-  idempotent?: boolean;               // safe to retry after a timeout (C12)
+  readOnly?: boolean;                 // safe to run in parallel, no approval (C19)
+  idempotent?: boolean;               // safe to retry after a timeout (C13)
   timeoutMs?: number;
   maxResultTokens?: number;           // truncation budget
 }
@@ -120,7 +120,7 @@ export interface ToolContext {
   callId: string;
 }`,
         }) +
-        p(`The split matters. <code>name / description / input</code> go to the model; the rest never does. <code>readOnly</code> is not a hint to the model, it is how your loop decides whether it can run five tools concurrently and whether ${ch("c16", "C16")} needs to interrupt a human.`) +
+        p(`The split matters. <code>name / description / input</code> go to the model; the rest never does. <code>readOnly</code> is not a hint to the model, it is how your loop decides whether it can run five tools concurrently and whether ${ch("c19", "C19")} needs to interrupt a human.`) +
         `<h3>The description is a specification, and it has five jobs</h3>` +
         p(`Compare. Both are honest; one works.`) +
         code({
@@ -299,14 +299,14 @@ function upd() {
   document.getElementById("t3-rec").textContent = E ? ((effective - acc) * 100).toFixed(1) + "%" : "0%";
 
   var note = document.getElementById("t3-note");
-  if (N > 30 && acc < 0.8) note.innerHTML = "<b>Too many tools.</b> Past roughly 20–30 the registry itself is the problem. The fix is not better descriptions — it is <b>namespacing</b>: expose a small set of high-level tools and let a subagent (C17) or a two-stage selector own the long tail.";
+  if (N > 30 && acc < 0.8) note.innerHTML = "<b>Too many tools.</b> Past roughly 20–30 the registry itself is the problem. The fix is not better descriptions — it is <b>namespacing</b>: expose a small set of high-level tools and let a subagent (C20) or a two-stage selector own the long tail.";
   else if (OV > 0.5 && Q < 3) note.innerHTML = "<b>Overlap without disambiguation.</b> Your tools mean similar things and nothing tells the model which to prefer. Add the 'WHEN NOT TO USE — use X instead' clause; it is the single highest-yield line in a tool description.";
   else if (!E) note.innerHTML = "<b>Errors are throwing.</b> Every wrong pick kills the run instead of costing one step. Turn error-as-observation on and watch the 8-step completion bar move.";
   else note.innerHTML = "<b>Healthy.</b> Small registry, disjoint meanings, descriptions that say when not to use them, failures that come back as observations. Note the schema-token cost: quality tier 4 is worth it, and it is not free.";
 }
 [n, ov, q, errm].forEach(function (e) { e.addEventListener("input", upd); e.addEventListener("change", upd); });
 upd();`,
-          caption: `Set overlap to 70% and quality to tier 2, then move quality to tier 4 without touching anything else. That jump is the "when NOT to use" clause. Then set tools to 50 and observe that no description quality rescues it — that is the threshold where ${ch("c17", "C17")}'s subagents stop being architecture astronautics and start being necessary.`,
+          caption: `Set overlap to 70% and quality to tier 2, then move quality to tier 4 without touching anything else. That jump is the "when NOT to use" clause. Then set tools to 50 and observe that no description quality rescues it — that is the threshold where ${ch("c20", "C20")}'s subagents stop being architecture astronautics and start being necessary.`,
         }),
     },
     {
@@ -401,7 +401,7 @@ upd();`,
           `<strong>Tool schemas are billed every turn.</strong> Forty tools at 240 tokens each is 9,600 tokens on every single call. With prompt caching that is cheap; without it, it can be most of your bill. Measure it. It is the most commonly missed line item in agent cost models.`,
           `<strong>Do not expose your REST API as tools.</strong> An API is designed for a programmer with documentation and a debugger. A tool surface is designed for a reader with one shot. Collapse <code>GET /orders</code> + <code>GET /orders/:id</code> + <code>GET /orders/:id/tracking</code> into one <code>get_order_status</code> that returns what a human actually wanted to know. Fewer, richer, task-shaped tools beat a faithful mapping every time.`,
           `<strong>Return natural language, not just JSON.</strong> A tool result of <code>{"status":"D","eta_d":2}</code> makes the model guess. <code>"Dispatched 2 days ago, expected delivery Thursday 14 March (tracking 1Z…)."</code> does not. The token cost is similar and the accuracy difference is not.`,
-          `<strong>Anthropic's tool-use guidance, OpenAI's function-calling guide, and the MCP spec</strong> all converge on the same advice this chapter gives, which is reassuring: descriptive names, explicit "when not to use", rich returns, errors as content rather than exceptions. ${ch("c15", "C15")} is what happens when you standardise the wire format for all of this.`,
+          `<strong>Anthropic's tool-use guidance, OpenAI's function-calling guide, and the MCP spec</strong> all converge on the same advice this chapter gives, which is reassuring: descriptive names, explicit "when not to use", rich returns, errors as content rather than exceptions. ${ch("c17", "C17")} is what happens when you standardise the wire format for all of this.`,
           `<strong>Where to read real code:</strong> pi's <code>core/tools/</code> is the closest thing to this chapter in production TypeScript, including a dedicated <code>file-mutation-queue.ts</code> that serialises writes and a <code>truncate.ts</code> that caps by lines or bytes rather than estimated tokens; AutoGen's <code>FunctionTool</code> derives the schema from a Python signature and docstring; the OpenAI Agents SDK does the same from a decorated function; the Claude Agent SDK ships a filesystem and shell tool set worth studying as a design, especially the parts where they chose <em>not</em> to expose a primitive.`,
         ]),
     },
@@ -447,7 +447,7 @@ Before retrying, call list_sent_messages with to="alice@example.com" and
 since="2024-03-14T10:31:00Z" to check whether it went out.`,
         }) +
         p(`A timeout is <em>not</em> a failure. It is the absence of information about whether a side effect occurred. Treating it as failure and retrying converts an unknown into a duplicate, and for emails, payments or ticket creation a duplicate is a worse outcome than no action at all.`) +
-        p(`Three design consequences: (1) mark every tool <code>idempotent</code> or not, because the timeout message depends on it; (2) for any non-idempotent tool, ship a companion read tool that lets the agent check; (3) better still, make the tool idempotent with a client-supplied key — <code>send_email(idempotency_key: callId)</code> — and the whole class of problem disappears. ${ch("c12", "C12")} generalises this.`),
+        p(`Three design consequences: (1) mark every tool <code>idempotent</code> or not, because the timeout message depends on it; (2) for any non-idempotent tool, ship a companion read tool that lets the agent check; (3) better still, make the tool idempotent with a client-supplied key — <code>send_email(idempotency_key: callId)</code> — and the whole class of problem disappears. ${ch("c13", "C13")} generalises this.`),
     },
     {
       difficulty: "core",
@@ -490,11 +490,11 @@ since="2024-03-14T10:31:00Z" to check whether it went out.`,
           [
             ["<b>Namespaced facades</b>", "Expose 6 coarse tools (<code>orders.*</code>, <code>billing.*</code>); each takes an <code>operation</code> enum plus args, and returns its own sub-schema on an invalid operation", "One extra round trip when the model guesses the operation wrong", "Good — keeps everything in one context, cuts schema tokens ~80%"],
             ["<b>Two-stage selection</b>", "A cheap model picks the 5 relevant tools from a catalogue, then the real call is made with only those in the schema", "+1 small call per turn, and a new failure mode when stage 1 mis-selects", "Good when the catalogue is dynamic or user-specific"],
-            ["<b>Subagents</b>", "One specialist per service, each with 10 tools; the orchestrator sees 6 <em>agent</em> tools (C17)", "Context isolation is a feature and a bug — the orchestrator loses detail", "Best when the services are genuinely independent workstreams"],
+            ["<b>Subagents</b>", "One specialist per service, each with 10 tools; the orchestrator sees 6 <em>agent</em> tools (C20)", "Context isolation is a feature and a bug — the orchestrator loses detail", "Best when the services are genuinely independent workstreams"],
             ["<b>Retrieval over tools</b>", "Embed descriptions, inject top-k per turn", "Non-determinism in the tool surface itself; very hard to eval", "Avoid unless the catalogue is thousands"],
           ]
         ) +
-        p(`<strong>Pick: namespaced facades first.</strong> It is the least architecture for the most benefit, it is trivially testable, and it preserves a single linear trace. That matters more than it sounds, because ${ch("c20", "C20")} debugging across a subagent boundary is genuinely harder.`) +
+        p(`<strong>Pick: namespaced facades first.</strong> It is the least architecture for the most benefit, it is trivially testable, and it preserves a single linear trace. That matters more than it sounds, because ${ch("c23", "C23")} debugging across a subagent boundary is genuinely harder.`) +
         p(`Escalate to subagents only when a service's work is long enough that its intermediate observations are polluting the main context. That is the real trigger for multi-agent, and it is a <em>context</em> argument, not an organisational one.`),
     },
   ],
@@ -504,7 +504,7 @@ since="2024-03-14T10:31:00Z" to check whether it went out.`,
     { q: "Should the model see my internal IDs?", a: p(`Yes. Models handle opaque identifiers fine and round-trip them accurately. What they cannot do is <em>invent</em> a valid one, so any tool taking an ID must be reachable from a tool that returns IDs. A registry where <code>get_order(id)</code> exists but nothing produces an order ID is a dead end that looks like a capable agent.`) },
     { q: "Should tools return JSON or prose?", a: p(`Prose with structure. JSON for anything the model needs to quote back exactly (IDs, paths, amounts), prose for anything it needs to reason about. The worst option is minified JSON with abbreviated keys — you save 40 tokens and buy a misinterpretation. See the Codex and Claude Code file tools: their output is deliberately human-shaped.`) },
     { q: "Do I need a description if the tool name is obvious?", a: p(`Yes, because "obvious" is doing a lot of work there. <code>get_user</code> — by ID or email? Which fields? What about deleted users? Does it throw or return null? Every one of those is a guess the model will make, and it will make a different one on Tuesday.`) },
-    { q: "Can tools call other tools?", a: p(`They can, and it is usually the right move for a fixed sub-sequence: if the model always calls <code>find_file</code> then <code>read_file</code>, make one tool that does both. You are converting agency into a workflow exactly where agency was buying nothing, which is ${ch("c11", "C11")}'s whole argument. Keep the composite's description honest about what it does internally.`) },
+    { q: "Can tools call other tools?", a: p(`They can, and it is usually the right move for a fixed sub-sequence: if the model always calls <code>find_file</code> then <code>read_file</code>, make one tool that does both. You are converting agency into a workflow exactly where agency was buying nothing, which is ${ch("c12", "C12")}'s whole argument. Keep the composite's description honest about what it does internally.`) },
   ],
 
   project: {
@@ -522,7 +522,7 @@ since="2024-03-14T10:31:00Z" to check whether it went out.`,
     stretch: [
       "Add an idempotency key to the write tool and prove a duplicate call is a no-op.",
       "Instrument each tool with call count, p50/p99 latency, error rate and <em>result tokens</em>, then rank tools by tokens-caused (result size × turns remaining). The winner is usually a surprise.",
-      "Add a <code>dryRun</code> mode where write tools describe what they would do instead of doing it — the foundation of C16's approval UI.",
+      "Add a <code>dryRun</code> mode where write tools describe what they would do instead of doing it — the foundation of C19's approval UI.",
     ],
   },
 

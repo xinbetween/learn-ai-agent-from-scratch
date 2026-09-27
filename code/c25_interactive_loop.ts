@@ -1,8 +1,8 @@
 /**
- * C26 · The Interactive Loop — the C04 loop rebuilt as an async generator over
+ * C25 · The Interactive Loop — the C04 loop rebuilt as an async generator over
  * a concurrent message queue, so a person can steer it mid-run and interrupt
  * it mid-tool without losing what it already did.
- *   node --experimental-strip-types code/c26_interactive_loop.ts
+ *   node --experimental-strip-types code/c25_interactive_loop.ts
  *
  * The queue is the piece worth reading. Everything else in this file exists to
  * put it under the three conditions that matter: a message arriving while the
@@ -285,7 +285,7 @@ async function scenario(
 }
 
 async function main(): Promise<void> {
-  console.log(`\n  C26 · The interactive loop\n`);
+  console.log(`\n  C25 · The interactive loop\n`);
 
   // The queue's defining property, measured rather than asserted.
   const q = new MessageQueue<Inbound>();

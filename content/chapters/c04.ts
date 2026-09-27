@@ -61,7 +61,7 @@ export const LOOP_SVG = `
   <rect x="646" y="238" width="40" height="22" rx="4" class="d-box-a" opacity=".5"/><text x="666" y="253" class="d-mono" text-anchor="middle" opacity=".6">③…</text>
 
   <text x="14" y="284" class="d-mono" fill="var(--fg-faint)">there is no hidden state — no scratchpad, no variables, no plan object.</text>
-  <text x="14" y="302" class="d-mono" fill="var(--accent)">whatever is not in this array does not exist. that is the whole of C05–C08.</text>
+  <text x="14" y="302" class="d-mono" fill="var(--accent)">whatever is not in this array does not exist. that is the whole of C05–C09.</text>
   <text x="14" y="324" class="d-mono" fill="var(--fg-faint)">and every box is re-sent, every iteration, at full price.</text>
 </svg>`;
 
@@ -85,7 +85,7 @@ const chapter: Chapter = {
       html:
         p(`${ch("c01", "C01")} gave you a typed model call. ${ch("c02", "C02")} made its output a value you can branch on. ${ch("c03", "C03")} gave you functions the model can request without anything ever throwing. This chapter spends about forty lines joining them, and the result is an agent that genuinely works. It will book the meeting, find the bug, answer the layered question.`) +
         p(`Then it spends the rest of the chapter on the eighty lines that make it survivable, which is the part nobody puts in the tutorial: what stops it, what happens when it will not stop, and what you hand the user when the budget runs out mid-task.`) +
-        note("key", "Carry this file forward", p(`Every chapter from here modifies this loop rather than replacing it. C05 changes what goes into <code>messages</code>. C09 adds a plan to it. C12 hardens the guards. C17 makes the loop itself a tool. If you write one file in this course, write this one.`)),
+        note("key", "Carry this file forward", p(`Every chapter from here modifies this loop rather than replacing it. C05 changes what goes into <code>messages</code>. C10 adds a plan to it. C13 hardens the guards. C20 makes the loop itself a tool. If you write one file in this course, write this one.`)),
     },
     {
       id: "core-idea",
@@ -212,7 +212,7 @@ Answer:       Yes — the 14-day window does not apply because a fault was repor
   return { ok: false, reason, answer: textOf(res.content), messages, partial: true };
 }`,
         }) +
-        note("good", "Cheap, and it changes the product", p(`One extra model call turns "failed" into "here is 70% of your answer and precisely what is missing". It also makes the failure <em>resumable</em>: the report is a handoff note, which is exactly what ${ch("c08", "C08")} needs to restart the task without repeating the first seven steps.`)) +
+        note("good", "Cheap, and it changes the product", p(`One extra model call turns "failed" into "here is 70% of your answer and precisely what is missing". It also makes the failure <em>resumable</em>: the report is a handoff note, which is exactly what ${ch("c09", "C09")} needs to restart the task without repeating the first seven steps.`)) +
         `<h3>Loop detection: the three flavours</h3>` +
         ul([
           `<strong>Identical repeat</strong> — same tool, same arguments, same result. Hash <code>(name, canonical(args))</code>; three strikes and you intervene. Cheap and catches most of it.`,
@@ -497,11 +497,11 @@ reset();`,
       title: "The same loop, in other people's code",
       html:
         ul([
-          `<strong>LangGraph</strong> makes the loop a graph: <code>create_react_agent</code> wires an <code>agent</code> node to a <code>tools</code> node with a conditional edge on whether the last message had tool calls. Same loop, drawn as a state machine, with checkpointing attached to the edges (${ch("c08", "C08")}).`,
-          `<strong>AutoGen</strong>'s <code>AssistantAgent</code> runs this inside <code>on_messages</code>, bounded by <code>max_tool_iterations</code>. Its interesting choice is that the loop is one actor's behaviour, so multi-agent work is message-passing between loops rather than a bigger loop (${ch("c18", "C18")}).`,
+          `<strong>LangGraph</strong> makes the loop a graph: <code>create_react_agent</code> wires an <code>agent</code> node to a <code>tools</code> node with a conditional edge on whether the last message had tool calls. Same loop, drawn as a state machine, with checkpointing attached to the edges (${ch("c09", "C09")}).`,
+          `<strong>AutoGen</strong>'s <code>AssistantAgent</code> runs this inside <code>on_messages</code>, bounded by <code>max_tool_iterations</code>. Its interesting choice is that the loop is one actor's behaviour, so multi-agent work is message-passing between loops rather than a bigger loop (${ch("c21", "C21")}).`,
           `<strong>The OpenAI Agents SDK</strong> calls it <code>Runner.run</code>, with <code>max_turns</code>, guardrails on input and output, and handoffs modelled as tools that swap which agent owns the loop.`,
           `<strong>pi's <code>agent-loop.ts</code></strong> is this chapter at production scale and in the same language, which makes it the most useful single file to read after finishing C04. Look at what it does differently: the branches this course writes inline are hooks the host supplies, and an outer loop drains user messages that arrived mid-run so a person can steer without restarting.`,
-          `<strong>Claude Code and Codex</strong> run this loop with a large tool surface and a permission layer between the decision and the execution — the <code>authorize</code> box in ${ch("c03", "C03")}'s diagram, which is ${ch("c16", "C16")}.`,
+          `<strong>Claude Code and Codex</strong> run this loop with a large tool surface and a permission layer between the decision and the execution — the <code>authorize</code> box in ${ch("c03", "C03")}'s diagram, which is ${ch("c19", "C19")}.`,
           `<strong>What none of them decide for you:</strong> what the user gets when the budget runs out. Every framework has a max-iterations setting; almost none has an opinion about the partial work. That is the <code>degrade()</code> function, and it is yours.`,
         ]) +
         note("", "On temperature 0 in the loop", p(`Use 0 for the decision turns and let the final answer be written at a higher temperature if it is user-facing prose. Reruns during debugging then differ only where you want them to, which makes the difference between "I can reproduce this" and three days of ghost-hunting.`)),
@@ -584,7 +584,7 @@ try {
         ul([
           `<strong>The report must not use the aborted signal.</strong> Obvious in hindsight, and it is the bug everyone ships: <code>degrade()</code> inherits the cancelled controller and aborts instantly, so the user gets nothing after waiting.`,
           `<strong>An in-flight tool call is the hard case.</strong> Read-only tools: abort and discard. Write tools: you cannot un-send an email. Await the write to completion even while cancelling, record its result, and include it in the report. "I cancelled, but the email to Alice had already gone" is the only honest output.`,
-          `<strong>Cancellation is a terminal state, not an error.</strong> Log it separately in ${ch("c20", "C20")}; a spike in cancellations means your agent is too slow or visibly going wrong, which is a different problem from a spike in errors.`,
+          `<strong>Cancellation is a terminal state, not an error.</strong> Log it separately in ${ch("c23", "C23")}; a spike in cancellations means your agent is too slow or visibly going wrong, which is a different problem from a spike in errors.`,
         ]),
     },
     {
@@ -617,10 +617,10 @@ export async function* runAgentStream(goal: string, cfg: AgentConfig): AsyncGene
 
   qa: [
     { q: "Do I still need 'Thought:' prompting now that tool calling is native?", a: p(`Not as a parsing format. But asking the model to state its reasoning before acting still helps on hard multi-step tasks, and with native tool use you get it by permitting a text block alongside the tool_use block, or by adding a <code>reasoning</code> field to tool inputs. Extended-thinking modes make this explicit and are usually the better lever now.`) },
-    { q: "What is a sensible default for max steps?", a: p(`Start at 10 and instrument. The useful number comes out of your own data: the 95th percentile of steps taken by runs that <em>succeeded</em>, plus a margin. If successful runs take 4 steps at p95, a limit of 20 only means failures cost 5× more before you notice them. Setting the limit from success data is one of the highest-return things in ${ch("c20", "C20")}.`) },
+    { q: "What is a sensible default for max steps?", a: p(`Start at 10 and instrument. The useful number comes out of your own data: the 95th percentile of steps taken by runs that <em>succeeded</em>, plus a margin. If successful runs take 4 steps at p95, a limit of 20 only means failures cost 5× more before you notice them. Setting the limit from success data is one of the highest-return things in ${ch("c23", "C23")}.`) },
     { q: "Should the agent see its own step count?", a: p(`Yes, late. Injecting "you have 2 of 10 steps left" from the start makes models rush and skip verification. Injecting it only when fewer than about 30% remain produces genuinely better behaviour, because the model starts consolidating and prioritising. Treat it as a deadline warning, not a budget display.`) },
-    { q: "Why temperature 0 if it is not actually deterministic?", a: p(`For agreement, not reproducibility. At temperature 0 the same context usually produces the same tool choice, so when you rerun a failing case you are debugging your code rather than a different sample. You will still see occasional divergence from batching and routing effects (${ch("c01", "C01")}) — which is precisely why ${ch("c19", "C19")}'s evals score behaviour over many runs rather than diffing one.`) },
-    { q: "My agent stops too early and says it is done when it is not. Is that a loop bug?", a: p(`No — it is a verification problem, and it is the mirror image of not stopping. The loop terminates correctly on the model's signal; the signal is wrong. Fixes belong in ${ch("c10", "C10")}: an explicit completion checklist in the system prompt, a verification tool the model must call before answering, or a critic pass over the answer. Do not try to fix it by raising the step budget.`) },
+    { q: "Why temperature 0 if it is not actually deterministic?", a: p(`For agreement, not reproducibility. At temperature 0 the same context usually produces the same tool choice, so when you rerun a failing case you are debugging your code rather than a different sample. You will still see occasional divergence from batching and routing effects (${ch("c01", "C01")}) — which is precisely why ${ch("c22", "C22")}'s evals score behaviour over many runs rather than diffing one.`) },
+    { q: "My agent stops too early and says it is done when it is not. Is that a loop bug?", a: p(`No — it is a verification problem, and it is the mirror image of not stopping. The loop terminates correctly on the model's signal; the signal is wrong. Fixes belong in ${ch("c11", "C11")}: an explicit completion checklist in the system prompt, a verification tool the model must call before answering, or a critic pass over the answer. Do not try to fix it by raising the step budget.`) },
   ],
 
   project: {
@@ -674,7 +674,7 @@ export async function* runAgentStream(goal: string, cfg: AgentConfig): AsyncGene
         "Nothing — it should silently retry with a larger budget",
       ],
       answer: 0,
-      why: "One extra model call with tools disabled converts a failure into most of an answer, and the report doubles as a resumable handoff note for C08. Discarding seven steps of real work is the most common and most avoidable product failure in agent systems.",
+      why: "One extra model call with tools disabled converts a failure into most of an answer, and the report doubles as a resumable handoff note for C09. Discarding seven steps of real work is the most common and most avoidable product failure in agent systems.",
     },
     {
       q: "The repeat detector hashes `(toolName, arguments)`. What must happen to the arguments first?",

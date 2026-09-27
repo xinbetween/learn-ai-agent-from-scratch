@@ -13,7 +13,7 @@ const BUDGET_SVG = `
   <text x="24" y="89" class="d-mono">retrieved documents · 12K · REFRESHED per turn (C06)</text>
 
   <rect x="14" y="104" width="672" height="28" rx="5" class="d-box-p"/>
-  <text x="24" y="123" class="d-mono">memory + goal + plan · 3K · PINNED, never evicted (C07, C09)</text>
+  <text x="24" y="123" class="d-mono">memory + goal + plan · 3K · PINNED, never evicted (C08, C10)</text>
 
   <rect x="14" y="138" width="430" height="46" rx="5" class="d-box-t"/>
   <text x="24" y="157" class="d-mono">conversation + observations · GROWS every turn</text>
@@ -79,7 +79,7 @@ const chapter: Chapter = {
         p(`Three operations keep the rolling region in budget, in increasing order of information loss:`) +
         `<h3>1 · Offload — move it out, leave a pointer</h3>` +
         p(`The cheapest operation, and the most underused. A 40 KB file read does not need to live in the context; write it to a scratch directory and leave <code>"Wrote 40KB to /tmp/run/report.json (1,203 rows). Fields: id, status, total. Use read_lines to inspect."</code> The agent retains the <em>capability</em> to see it at a cost of 30 tokens instead of 10,000.`) +
-        p(`This is what makes long agent runs possible at all, and it is why filesystem tools (${ch("c14", "C14")}) matter far beyond coding agents: the filesystem is external memory with a well-understood API the model already knows.`) +
+        p(`This is what makes long agent runs possible at all, and it is why filesystem tools (${ch("c16", "C16")}) matter far beyond coding agents: the filesystem is external memory with a well-understood API the model already knows.`) +
         `<h3>2 · Compact — summarise the middle, keep the ends</h3>` +
         code({
           title: "the shape that works",
@@ -126,16 +126,16 @@ const chapter: Chapter = {
           `<strong>Instructions after data, for long data.</strong> With a 20,000-token document, "here is a document [doc] now do X" beats "do X to the following [doc]", because the instruction then sits in the recency region where it is attended most strongly.`,
         ]) +
         `<h3>Compaction is a checkpoint, not a cleanup</h3>` +
-        p(`The moment you compact, you have produced a self-contained description of the run's state. That artefact is worth keeping for its own sake: it is the resume point for ${ch("c08", "C08")}, the handoff note for ${ch("c17", "C17")}, and the audit record for ${ch("c20", "C20")}. Compact to a durable log, not into the void.`) +
+        p(`The moment you compact, you have produced a self-contained description of the run's state. That artefact is worth keeping for its own sake: it is the resume point for ${ch("c09", "C09")}, the handoff note for ${ch("c20", "C20")}, and the audit record for ${ch("c23", "C23")}. Compact to a durable log, not into the void.`) +
         `<h3>When to trigger</h3>` +
         table(
           ["Trigger", "Good for", "Watch out"],
           [
             ["Token threshold (e.g. 70% of window)", "Default. Predictable.", "Can fire mid-tool-sequence; wait for a turn boundary"],
-            ["Phase boundary (plan step complete)", "Cleanest summaries", "Requires an explicit plan (${C09})"],
+            ["Phase boundary (plan step complete)", "Cleanest summaries", "Requires an explicit plan (${C10})"],
             ["Model-requested (a <code>compact</code> tool)", "The model knows what it is done with", "It will forget to call it"],
             ["Every N turns", "Simple", "Compacts when nothing changed; wastes a call"],
-          ].map((r) => r.map((c) => c.replace("${C09}", `<a href="/c09/" class="mono">C09</a>`))) as string[][]
+          ].map((r) => r.map((c) => c.replace("${C10}", `<a href="/c10/" class="mono">C10</a>`))) as string[][]
         ) +
         note("bad", "The compaction death spiral", p(`Compaction needs a model call, and that call needs the oversized context as input. If you wait until 98% full, the compaction request itself does not fit, and you are stuck with no way out. Trigger at 70%, reserve headroom, and if compaction ever fails, fall back to <em>ordered eviction</em>, which needs no model call at all.`)),
     },
@@ -240,7 +240,7 @@ function upd() {
   if (strat === "none" && died) n.innerHTML = "<b>Hard failure at turn " + died + ".</b> The API rejects the request. Note the bars were already red before it died — quality was degrading for several turns before anything threw.";
   else if (strat === "fifo") n.innerHTML = "<b>FIFO is the trap.</b> It never exceeds the window, so it looks like it works. But it drops the oldest messages — which are the system prompt and the goal. The agent keeps running and stops knowing what it was doing.";
   else if (strat === "compact") n.innerHTML = "<b>Compaction works, and it is lossy.</b> Roughly a quarter of established facts do not survive each summary. Compare the fact-retention bar against 'offload + compact'.";
-  else n.innerHTML = "<b>Offload first, compact second.</b> Large results go to disk with a pointer left behind, so compaction has far less to destroy — and anything summarised away is still <i>on disk</i>, retrievable by path. This is why long-running agents need a filesystem (C14).";
+  else n.innerHTML = "<b>Offload first, compact second.</b> Large results go to disk with a pointer left behind, so compaction has far less to destroy — and anything summarised away is still <i>on disk</i>, retrievable by path. This is why long-running agents need a filesystem (C16).";
 }
 els.forEach(function (e) { e.addEventListener("input", upd); e.addEventListener("change", upd); });
 upd();`,
@@ -360,7 +360,7 @@ upd();`,
           `<strong>Codex and other coding agents offload aggressively</strong> by design: the repository is the memory. The agent reads a file, acts, and does not retain the file, because it can always read it again. Any agent with a durable external store can use this pattern, and most do not.`,
           `<strong>Compress a tool result at the boundary, not after it lands.</strong> ${ch("c03", "C03")} truncates a large result and this chapter compacts the transcript later, but there is a cheaper move between them: hand a verbose result to a small model with the query that produced it and store the summary instead. A search returning eight pages becomes four sentences that answer the question asked. It costs one cheap call and it is the difference between a tool that is expensive once and a tool that is expensive on every subsequent turn. Do it only where the raw result is genuinely not needed again — file contents the agent will edit are not a candidate, search results almost always are.`,
           `<strong>Prompt caching interacts with everything here.</strong> Compaction rewrites the middle of your array, invalidating the cache from that point. Compact at a turn boundary, keep the cached prefix intact, and you pay the rewrite once rather than continuously.`,
-          `<strong>The cache expires, and agents idle.</strong> A cached prefix survives minutes, not hours, and an agent spends much of its life waiting: on a slow tool, on an approval (${ch("c16", "C16")}), on a user who walked away. Come back after the TTL and the prefix you paid to write has to be written again. A <em>cache warmer</em> fixes it by sending a cheap request that shares the prefix shortly before it lapses. The decision is pure arithmetic, and it is worth doing deliberately rather than always: refresh costs one write; skipping costs one write plus the reads you lose. Refresh when <code>p(resume) × saving &gt; cost(refresh)</code>, and not otherwise. pi's warmer refreshes at 90% of the TTL, requires the expected saving to clear five cents, and — the part worth reading — uses a flat 15% resume probability with a comment recording that per-session estimates were no better than the constant. That is the right shape for this kind of optimisation: measure, and keep the simple version when the clever one does not win.`,
+          `<strong>The cache expires, and agents idle.</strong> A cached prefix survives minutes, not hours, and an agent spends much of its life waiting: on a slow tool, on an approval (${ch("c19", "C19")}), on a user who walked away. Come back after the TTL and the prefix you paid to write has to be written again. A <em>cache warmer</em> fixes it by sending a cheap request that shares the prefix shortly before it lapses. The decision is pure arithmetic, and it is worth doing deliberately rather than always: refresh costs one write; skipping costs one write plus the reads you lose. Refresh when <code>p(resume) × saving &gt; cost(refresh)</code>, and not otherwise. pi's warmer refreshes at 90% of the TTL, requires the expected saving to clear five cents, and — the part worth reading — uses a flat 15% resume probability with a comment recording that per-session estimates were no better than the constant. That is the right shape for this kind of optimisation: measure, and keep the simple version when the clever one does not win.`,
           `<strong>"Just use a bigger window" is not a plan.</strong> Bigger windows raise the hard limit, not the soft one. Attention over a very long context is still uneven, and cost scales with what you send. A 200K-token request is not eight times better than a 25K one. It is eight times more expensive and often worse.`,
           `<strong>Read the research:</strong> Liu et al., <em>Lost in the Middle</em> (2023) for the position effect; the various context-rot and long-context evaluation studies for how degradation varies by task. The practical upshot has been stable for years: shorter, better-ordered context beats longer context at equal relevance.`,
         ]),
@@ -449,16 +449,16 @@ Output under 1,500 tokens, in the section order given.`,
           `<strong>Confounds to control.</strong> (a) The restatement adds tokens, so also run a condition C that adds the same number of <em>irrelevant</em> tokens at the end — otherwise you are measuring "more tokens" not "goal position". (b) Prompt caching: the restatement sits after the cached prefix, so it does not invalidate the cache, but confirm that in your usage numbers. (c) Run order and time of day, since model backends change; interleave conditions rather than running A then B.`,
           `<strong>Sample size.</strong> To detect a 10-point difference in a success rate near 70% at 80% power you need roughly 300 runs per arm. That is usually unaffordable, so accept a larger detectable effect (20 points, ~80 runs per arm) and treat the result as directional. Report the confidence interval, not the point estimate.`,
         ]) +
-        p(`Two honest notes. The effect is <em>task-dependent</em>: large on long multi-hop tasks, near zero on short ones — so a null result on the wrong task set tells you nothing. And this is the smallest complete example of ${ch("c19", "C19")}: if you can run this experiment, you can evaluate any change to your agent, which is the more valuable capability.`),
+        p(`Two honest notes. The effect is <em>task-dependent</em>: large on long multi-hop tasks, near zero on short ones — so a null result on the wrong task set tells you nothing. And this is the smallest complete example of ${ch("c22", "C22")}: if you can run this experiment, you can evaluate any change to your agent, which is the more valuable capability.`),
     },
   ],
 
   qa: [
     { q: "Is context engineering just prompt engineering?", a: p(`Prompt engineering is choosing the words. Context engineering is choosing <em>what is in the request at all</em>, in what order, at what cost, refreshed how often. In an agent the second dominates: the system prompt is written once and the context is rebuilt every turn, which is where both the money and the quality live.`) },
     { q: "How lossy is compaction, really?", a: p(`Measurably. In the simulator's model roughly a quarter of established facts fail to survive a generic summary, and the real figure depends entirely on the prompt. A domain-specific one that names what to preserve does far better. The mitigation that actually works is <em>offloading first</em>, so the material still exists on disk and the summary only has to remember that it does.`) },
-    { q: "Should I compact or start a fresh subagent?", a: p(`Both are context resets; the difference is whether the parent keeps the detail. Compact when the work is one continuing thread and the summary is enough. Spawn a subagent (${ch("c17", "C17")}) when a sub-task will generate a lot of intermediate noise the parent genuinely does not need — a search sweep, a build-and-fix cycle. The subagent's context is discarded wholesale and only its conclusion returns, which is compaction with a much better compression ratio.`) },
+    { q: "Should I compact or start a fresh subagent?", a: p(`Both are context resets; the difference is whether the parent keeps the detail. Compact when the work is one continuing thread and the summary is enough. Spawn a subagent (${ch("c20", "C20")}) when a sub-task will generate a lot of intermediate noise the parent genuinely does not need — a search sweep, a build-and-fix cycle. The subagent's context is discarded wholesale and only its conclusion returns, which is compaction with a much better compression ratio.`) },
     { q: "Does prompt caching survive compaction?", a: p(`The prefix does, if you keep it intact. Compaction rewrites the middle, so everything from the first changed byte onwards is a cache miss on the next call: one expensive turn, then the new prefix caches. The failure mode to avoid is compacting frequently, or compacting in a way that touches the system prompt, which means you never get a cache hit at all.`) },
-    { q: "How do I know the goal is drifting before the user tells me?", a: p(`Log a one-line <em>goal-relevance</em> judgement per step — cheap model, or even a keyword overlap heuristic — and chart it across the run. A downward trend after step 8 is drift. This is a much earlier signal than task failure, and it is the metric that tells you whether your context strategy is working. ${ch("c20", "C20")} builds it.`) },
+    { q: "How do I know the goal is drifting before the user tells me?", a: p(`Log a one-line <em>goal-relevance</em> judgement per step — cheap model, or even a keyword overlap heuristic — and chart it across the run. A downward trend after step 8 is drift. This is a much earlier signal than task failure, and it is the metric that tells you whether your context strategy is working. ${ch("c23", "C23")} builds it.`) },
   ],
 
   project: {
@@ -475,7 +475,7 @@ Output under 1,500 tokens, in the section order given.`,
       "A 40-turn test proving the run completes and that a fact established at turn 3 is still recoverable at turn 38.",
     ],
     stretch: [
-      "Write each compaction to a durable log and add <code>resume(runId)</code> that rebuilds state from it — you have just built half of C08.",
+      "Write each compaction to a durable log and add <code>resume(runId)</code> that rebuilds state from it — you have just built half of C09.",
       "Measure it: run your agent over the same 20 long tasks with strategies none / fifo / compact / offload+compact, and report success rate, total input tokens and fact retention. Keep the harness.",
       "Implement the goal-relevance trace metric and chart it per step for a run that goes wrong.",
     ],

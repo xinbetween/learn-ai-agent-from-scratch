@@ -1,7 +1,7 @@
 /**
- * C28 · Multimodal Observations — what a screenshot costs once it is in the
+ * C07 · Multimodal Observations — what a screenshot costs once it is in the
  * transcript, and what delegating to a sub-model costs instead.
- *   node --experimental-strip-types code/c28_multimodal.ts
+ *   node --experimental-strip-types code/c07_multimodal.ts
  *
  * The token formulas are the published approximations, named where used. No
  * model is called: the point is the accounting, which is deterministic and is
@@ -63,7 +63,7 @@ export function inline(dim: Dim): Observation {
 
 /**
  * Hand the image to a sub-model with the question, and put only its answer in
- * the transcript. This is C17's context isolation applied to a pixel buffer.
+ * the transcript. This is C20's context isolation applied to a pixel buffer.
  */
 export function delegated(dim: Dim, answerTokens = 120): Observation {
   return {
@@ -113,7 +113,7 @@ const pad = (s: string, n: number) => s.padEnd(n);
 const num = (n: number, w: number) => String(n).padStart(w);
 
 function main(): void {
-  console.log(`\n  C28 · What an image costs in an agent transcript\n`);
+  console.log(`\n  C07 · What an image costs in an agent transcript\n`);
 
   console.log(`  ${pad("source", 24)} ${pad("pixels", 12)} ${pad("claude", 8)} ${pad("openai", 8)} ${pad("×8 turns", 10)}`);
   console.log(`  ${"-".repeat(24)} ${"-".repeat(12)} ${"-".repeat(8)} ${"-".repeat(8)} ${"-".repeat(10)}`);
@@ -158,7 +158,7 @@ function main(): void {
   console.log(`    present to model    ${inj.presentToModel}`);
   console.log(`\n    Text rendered into pixels is invisible to every filter that reads`);
   console.log(`    strings and perfectly legible to the model. An image is untrusted`);
-  console.log(`    content in C21's first circle, and it is the one that arrives`);
+  console.log(`    content in C24's first circle, and it is the one that arrives`);
   console.log(`    looking like data rather than like a document.\n`);
 }
 

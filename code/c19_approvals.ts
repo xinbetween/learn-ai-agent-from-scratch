@@ -1,7 +1,7 @@
 /**
- * C16 · Human in the Loop — two independent axes, scoped grants, durable
+ * C19 · Human in the Loop — two independent axes, scoped grants, durable
  * suspension, and the arithmetic of alert fatigue.
- *   node --experimental-strip-types code/c16_approvals.ts
+ *   node --experimental-strip-types code/c19_approvals.ts
  */
 
 export type SandboxMode = "read-only" | "workspace-write" | "danger-full-access";
@@ -135,7 +135,7 @@ function session(policy: { sandbox: SandboxMode; approval: ApprovalPolicy }, act
 /* ---------------- demo ---------------- */
 
 function main(): void {
-  console.log("\n  C16 · Human in the Loop\n");
+  console.log("\n  C19 · Human in the Loop\n");
 
   console.log("  the decision, per tool — reversibility outranks apparent severity\n");
   const policy = { sandbox: "workspace-write" as SandboxMode, approval: "irreversible-external" as ApprovalPolicy };

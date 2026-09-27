@@ -1,10 +1,10 @@
 /**
- * C23 · Capstone I — a deep research agent.
+ * C27 · Capstone I — a deep research agent.
  *
  * Scope → plan → parallel subagents → mechanical grounding → re-gather → report.
  * The product is not prose: it is a set of claims you can check.
  *
- *   node --experimental-strip-types code/c23_research/main.ts ["your question"]
+ *   node --experimental-strip-types code/c27_research/main.ts ["your question"]
  */
 
 import { Ledger } from "../c01_model_call.ts";
@@ -124,7 +124,7 @@ async function main(): Promise<void> {
   const question = process.argv.slice(2).join(" ") ||
     "Which vector database for 50M vectors, and what are the operational trade-offs?";
 
-  console.log("\n  C23 · Capstone I — Deep Research Agent\n");
+  console.log("\n  C27 · Capstone I — Deep Research Agent\n");
   console.log(`  question: ${question}\n`);
 
   const ledger = new Ledger("research run");

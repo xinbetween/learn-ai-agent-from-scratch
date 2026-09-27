@@ -1,549 +1,515 @@
 import type { Chapter } from "../../src/types.ts";
-import { code, fig, lab, note, table, p, ul, ch } from "../../src/ui.ts";
+import { code, fig, lab, note, table, p, ul, ol, ch } from "../../src/ui.ts";
 
-export const STEER_SVG = `
-<svg viewBox="0 0 700 330" width="100%" style="max-width:700px;display:block;margin:0 auto" role="img"
-     aria-label="A message queue beside the agent loop, delivering a user message between steps">
-  <defs>
-    <marker id="s26" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-      <path d="M0 0 L10 5 L0 10 z" fill="var(--border-strong)"/></marker>
-    <marker id="s26a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-      <path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker>
-  </defs>
+const SERVE_SVG = `
+<svg viewBox="0 0 700 300" width="100%" style="max-width:700px;display:block;margin:0 auto" role="img"
+     aria-label="Serving architecture: API, queue, workers, event log, and the SSE stream back">
+  <defs><marker id="s22" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M0 0 L10 5 L0 10 z" fill="var(--border-strong)"/></marker>
+  <marker id="s22a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker></defs>
 
-  <text x="14" y="20" class="d-label">TWO THINGS RUNNING AT ONCE</text>
+  <text x="14" y="18" class="d-label">THE REQUEST DOES NOT HOLD THE RUN — THAT IS THE WHOLE DESIGN</text>
 
-  <rect x="14" y="36" width="140" height="58" rx="6" class="d-box-m"/>
-  <text x="84" y="58" class="d-text" text-anchor="middle">keyboard</text>
-  <text x="84" y="76" class="d-mono" text-anchor="middle" fill="var(--fg-faint)">never blocks</text>
+  <rect x="14" y="34" width="84" height="40" rx="6" class="d-box"/>
+  <text x="56" y="58" class="d-mono" text-anchor="middle">client</text>
+  <path d="M102 48 L136 48" class="d-arrow" marker-end="url(#s22)"/>
+  <text x="119" y="40" class="d-mono" text-anchor="middle" fill="var(--fg-faint)">POST</text>
 
-  <path d="M158 65 L206 65" class="d-arrow-a" marker-end="url(#s26a)"/>
-  <text x="182" y="57" class="d-mono" text-anchor="middle" fill="var(--accent)">enqueue</text>
+  <rect x="140" y="34" width="96" height="40" rx="6" class="d-box-a"/>
+  <text x="188" y="52" class="d-mono" text-anchor="middle">API</text>
+  <text x="188" y="66" class="d-mono" text-anchor="middle" fill="var(--fg-faint)">returns runId</text>
 
-  <rect x="210" y="36" width="160" height="58" rx="6" class="d-box-a"/>
-  <text x="290" y="58" class="d-text" text-anchor="middle">MessageQueue</text>
-  <text x="290" y="76" class="d-mono" text-anchor="middle" fill="var(--fg-faint)">async iterator</text>
+  <path d="M240 54 L274 54" class="d-arrow" marker-end="url(#s22)"/>
+  <rect x="278" y="34" width="96" height="40" rx="6" class="d-box-p"/>
+  <text x="326" y="58" class="d-mono" text-anchor="middle">queue</text>
 
-  <path d="M290 98 L290 128" class="d-arrow-a" marker-end="url(#s26a)"/>
-  <text x="300" y="118" class="d-mono" fill="var(--accent)">direct handoff if a reader waits</text>
+  <path d="M378 54 L412 54" class="d-arrow" marker-end="url(#s22)"/>
+  <rect x="416" y="24" width="120" height="26" rx="4" class="d-box-t"/><text x="476" y="41" class="d-mono" text-anchor="middle">worker 1</text>
+  <rect x="416" y="54" width="120" height="26" rx="4" class="d-box-t"/><text x="476" y="71" class="d-mono" text-anchor="middle">worker 2</text>
+  <rect x="416" y="84" width="120" height="26" rx="4" class="d-box" stroke-dasharray="2 2"/><text x="476" y="101" class="d-mono" text-anchor="middle" fill="var(--fg-faint)">…scale on depth</text>
+
+  <path d="M540 54 L572 54" class="d-arrow-a" marker-end="url(#s22a)"/>
+  <rect x="576" y="34" width="110" height="40" rx="6" class="d-box-m"/>
+  <text x="631" y="52" class="d-mono" text-anchor="middle">event log</text>
+  <text x="631" y="66" class="d-mono" text-anchor="middle" fill="var(--fg-faint)">C09 · durable</text>
+
+  <path d="M631 78 L631 120 L188 120 L188 82" class="d-arrow-a" marker-end="url(#s22a)"/>
+  <text x="410" y="114" class="d-mono" text-anchor="middle" fill="var(--accent)">GET /runs/:id/events — SSE, resumable with Last-Event-ID</text>
+
+  <path d="M140 60 L106 60" class="d-arrow-a" marker-end="url(#s22a)"/>
 
   <line x1="14" y1="146" x2="686" y2="146" stroke="var(--border)"/>
-  <text x="14" y="170" class="d-label" fill="var(--fg-faint)">THE LOOP · ONE TURN</text>
+  <text x="14" y="168" class="d-label">WHY NOT JUST RUN IT IN THE REQUEST HANDLER</text>
+  <text x="14" y="190" class="d-mono" fill="var(--danger)">✗ a 4-minute run holds an HTTP connection · a deploy kills it · a dropped client loses the work</text>
+  <text x="14" y="208" class="d-mono" fill="var(--danger)">✗ an approval (C19) blocks a thread for 40 minutes · concurrency = connections, not capacity</text>
+  <text x="14" y="232" class="d-mono" fill="var(--ok)">✓ the run is a durable object with an id. the connection is a view of it, and may come and go.</text>
 
-  <rect x="14" y="184" width="104" height="52" rx="6" class="d-box"/>
-  <text x="66" y="206" class="d-mono" text-anchor="middle">drain()</text>
-  <text x="66" y="222" class="d-mono" text-anchor="middle" fill="var(--fg-faint)">steer in</text>
-
-  <path d="M122 210 L146 210" class="d-arrow" marker-end="url(#s26)"/>
-  <rect x="150" y="184" width="104" height="52" rx="6" class="d-box-m"/>
-  <text x="202" y="206" class="d-mono" text-anchor="middle">compact?</text>
-  <text x="202" y="222" class="d-mono" text-anchor="middle" fill="var(--fg-faint)">inline</text>
-
-  <path d="M258 210 L282 210" class="d-arrow" marker-end="url(#s26)"/>
-  <rect x="286" y="184" width="104" height="52" rx="6" class="d-box-a"/>
-  <text x="338" y="206" class="d-mono" text-anchor="middle">model</text>
-  <text x="338" y="222" class="d-mono" text-anchor="middle" fill="var(--fg-faint)">fallback ok</text>
-
-  <path d="M394 210 L418 210" class="d-arrow" marker-end="url(#s26)"/>
-  <rect x="422" y="184" width="130" height="52" rx="6" class="d-box-t"/>
-  <text x="487" y="206" class="d-mono" text-anchor="middle">tool</text>
-  <text x="487" y="222" class="d-mono" text-anchor="middle" fill="var(--fg-faint)">raced vs inbox</text>
-
-  <path d="M556 210 L580 210" class="d-arrow" marker-end="url(#s26)"/>
-  <rect x="584" y="184" width="102" height="52" rx="6" class="d-box"/>
-  <text x="635" y="206" class="d-mono" text-anchor="middle">yield</text>
-  <text x="635" y="222" class="d-mono" text-anchor="middle" fill="var(--fg-faint)">event out</text>
-
-  <path d="M635 240 L635 266 L66 266 L66 242" class="d-arrow" marker-end="url(#s26)" stroke-dasharray="4 3"/>
-  <text x="350" y="282" class="d-mono" text-anchor="middle" fill="var(--fg-faint)">next turn — anything typed since is already waiting in the queue</text>
-
-  <text x="14" y="314" class="d-mono" fill="var(--accent)">the loop never blocks on input, and input never waits for the loop</text>
+  <text x="14" y="264" class="d-label">THE FOUR ENDPOINTS</text>
+  <text x="14" y="284" class="d-mono">POST /runs · GET /runs/:id · GET /runs/:id/events (SSE) · POST /runs/:id/interrupt</text>
 </svg>`;
 
 const chapter: Chapter = {
   id: "c26",
   num: 26,
   layer: "systems",
-  title: "The Interactive Loop",
-  subtitle: "Steering, interrupting and compacting an agent that is already running",
+  title: "Shipping",
+  subtitle: "Sessions, streaming, concurrency, and the first week in production",
   blurb:
-    "C04's loop takes a goal and returns a result. A loop a person can work with is an async generator over a concurrent message queue: it emits events as it goes, accepts corrections between steps, and when interrupted mid-write knows what it finished.",
-  lines: 332,
-  file: "code/c26_interactive_loop.ts",
-  tags: ["steering", "async generator", "message queue", "interrupt", "cancellation", "compaction", "model fallback"],
+    "Putting the agent behind an API: why the run must outlive the request, resumable SSE, queue-based concurrency, rate-limit arithmetic, and the operational questions that appear the moment real users arrive.",
+  lines: 260,
+  file: "code/c26_serving.ts",
+  tags: ["SSE", "streaming", "sessions", "queues", "concurrency", "rate limits", "deploys", "multi-tenancy"],
 
   sections: [
-    {
-      id: "motivation",
-      kicker: "Motivation",
-      title: "The loop you built cannot be talked to",
+    { id: "motivation", kicker: "Motivation", title: "The request handler that ran an agent",
       html:
-        p(`${ch("c04", "C04")}'s loop has a signature like <code>run(goal) → Outcome</code>. You hand it a goal, it disappears for forty seconds, and it comes back with an answer. That is the correct shape for a job in a queue and the wrong shape for a person sitting in front of it.`) +
-        p(`Watch what a user actually does. Three steps in they see the agent reading the wrong file and want to say so — not cancel, not restart, just redirect. Or they realise they forgot a constraint and want to add it before the patch lands. ${ch("c16", "C16")} claimed steering mid-run is usually worth more than approving, because it happens while the work is still cheap to change. That chapter did not say how, because the loop it inherited had nowhere to put an incoming message.`) +
-        p(`This chapter changes the loop's shape. It becomes an async generator that emits events while it runs, reading from a queue that anyone can push into at any time. The mechanism is small — about sixty lines — and it is the difference between a batch job and a tool.`) +
-        note(
-          "key",
-          "What the shape buys",
-          p(`A generator that yields events lets the caller render progress without the loop knowing what a UI is (${ch("c22", "C22")}). A queue the loop polls between steps lets a person correct it without restarting. And because both are explicit, the interrupt case stops being an exception you handle and becomes a state you can reason about.`)
-        ),
-    },
-    {
-      id: "core-idea",
-      kicker: "Core idea",
-      title: "A queue whose reader never misses",
-      html:
-        p(`The whole chapter rests on one object: a queue you can push into, that the loop consumes as an async iterator. Its defining property is what happens when a message arrives while the loop is parked waiting for one.`) +
-        code({
-          title: "code/c26_interactive_loop.ts — the handoff",
-          src: `next(): Promise<IteratorResult<T>> {
-  if (this.buffer.length > 0) return Promise.resolve({ done: false, value: this.buffer.shift() as T });
-  if (this.failure !== undefined) return Promise.reject(this.failure);
-  if (this.finished) return Promise.resolve({ done: true, value: undefined });
-  // Nothing to give yet. Park, and remember how to wake up.
-  return new Promise((resolve, reject) => { this.waiting = { resolve, reject }; });
-}
+        p(`The obvious first server runs the agent inside the HTTP handler and streams tokens back. It works in development and breaks on contact with production, in four specific ways:`) +
+        ul([
+          `<strong>A four-minute run holds a connection.</strong> Load balancers time out, mobile clients drop, and your concurrency limit becomes "how many open sockets" rather than "how much work can we do".`,
+          `<strong>A deploy kills every run in flight.</strong> Rolling restarts are routine; losing every in-progress task on each one is not.`,
+          `<strong>A dropped client loses the work.</strong> The user closed the tab at step nine; the eight steps of progress and the money already spent evaporate.`,
+          `<strong>An approval blocks a thread.</strong> ${ch("c19", "C19")} asks a human, who is at lunch. You are now holding a request open for forty minutes.`,
+        ]) +
+        note("key", "The one architectural decision", p(`<strong>The run is a durable object with an id; the HTTP connection is a view of it.</strong> Clients attach, detach and reattach. ${ch("c09", "C09")} already built the durable part; this chapter is the plumbing around it.`)) },
 
-enqueue(value: T): void {
-  const w = this.waiting;
-  if (w) {
-    // Hand off directly. No buffer hop, no scheduler round trip.
-    this.waiting = undefined;
-    w.resolve({ done: false, value });
-    return;
+    { id: "core-idea", kicker: "Core idea", title: "Four endpoints",
+      html:
+        fig({ label: "Diagram", title: "API, queue, workers, event log", body: SERVE_SVG,
+          caption: `Every interesting property — resumability, surviving deploys, approvals that do not hold threads, scaling on queue depth — falls out of separating the run from the connection.` }) +
+        code({ title: "code/c26_serving.ts — the surface",
+          src: `// 1. Start. Returns immediately. Idempotent on a client-supplied key.
+POST /runs
+  { goal, sessionId?, idempotencyKey? }
+  → 202 { runId, status: "queued" }
+
+// 2. Poll. Cheap, cacheable, works everywhere SSE does not.
+GET /runs/:runId
+  → { status, terminalState?, answer?, usage, steps, createdAt }
+
+// 3. Stream. Resumable — the crucial property.
+GET /runs/:runId/events           Last-Event-ID: 42
+  → text/event-stream, replaying from event 43
+
+// 4. Interrupt. Stop, pause, steer, or decide an approval (C19).
+POST /runs/:runId/interrupt
+  { kind: "stop" | "pause" | "steer" | "approve", message?, callId?, approved? }
+  → 202`,
+        }) +
+        `<h3>Resumable streaming is the whole trick</h3>` +
+        code({ title: "SSE with an id on every event",
+          src: `app.get("/runs/:id/events", async (req, res) => {
+  const from = Number(req.headers["last-event-id"] ?? 0);
+
+  res.writeHead(200, {
+    "content-type": "text/event-stream",
+    "cache-control": "no-cache, no-transform",   // no-transform: proxies WILL buffer otherwise
+    "connection": "keep-alive",
+    "x-accel-buffering": "no",                   // nginx specifically
+  });
+
+  // 1. Replay what the client missed. This is why reconnection is seamless.
+  for (const e of await log.readFrom(req.params.id, from)) send(res, e);
+
+  // 2. Then follow live.
+  const unsub = bus.subscribe(req.params.id, (e) => send(res, e));
+
+  // 3. Heartbeat, or intermediaries close an idle connection at 30–60s —
+  //    and an agent thinking for 45 seconds produces no events.
+  const hb = setInterval(() => res.write(": ping\\n\\n"), 15_000);
+
+  req.on("close", () => { clearInterval(hb); unsub(); });
+});
+
+const send = (res: Response, e: StoredEvent) =>
+  res.write(\`id: \${e.seq}\\nevent: \${e.event.t}\\ndata: \${JSON.stringify(e.event)}\\n\\n\`);`,
+        }) +
+        p(`Three details that are each an afternoon of debugging if missed. <strong><code>id:</code> on every event</strong>, because that is what the browser sends back as <code>Last-Event-ID</code> and without it reconnection restarts from scratch. <strong>Heartbeats</strong>, because an agent thinking for 45 seconds looks identical to a dead connection to every proxy between you and the user. <strong><code>no-transform</code> and <code>x-accel-buffering</code></strong>, because a buffering proxy will hold your stream and deliver it all at the end, which looks exactly like "streaming is broken" and is not your code.`) +
+        `<h3>What to stream</h3>` +
+        table(["Event", "Content"], [
+          ["<code>step_started</code>", "Step number and a one-line human summary — \"Searching orders for 4471\""],
+          ["<code>tool_started</code> / <code>tool_finished</code>", "Tool name, the <em>summary</em>, duration, ok/error. Never raw arguments or raw results"],
+          ["<code>plan_updated</code>", "The rendered todo list (${C10}) — the best progress indicator there is"],
+          ["<code>text_delta</code>", "Token deltas, but only for the final answer"],
+          ["<code>approval_requested</code>", "The full request (${C19}) — the client renders the dialog"],
+          ["<code>done</code>", "Terminal state, answer, usage"],
+        ].map((r) => r.map((c) => c.replace("${C10}", `<a href="/c10/" class="mono">C10</a>`).replace("${C19}", `<a href="/c19/" class="mono">C19</a>`))) as string[][]) +
+        p(`Users track an agent through its <em>actions</em>, not its prose. A plan updating and tool activity scrolling by communicates progress far better than a token stream of reasoning, and streaming raw tool arguments leaks internal identifiers and file paths into a UI you do not control.`) },
+
+    { id: "mechanics", kicker: "Mechanics", title: "Concurrency, limits, and sessions",
+      html:
+        `<h3>Rate limits are token-based, and that changes the arithmetic</h3>` +
+        code({ title: "the capacity calculation people get wrong",
+          src: `// Providers limit input tokens per minute far more tightly than requests per minute.
+// An agent is an input-token workload (C01), so you hit the token ceiling first.
+//
+//   limit                 800,000 input tokens/min
+//   avg context per call   18,000 tokens
+//   → 44 model calls per minute, total, across every concurrent run
+//
+//   avg run = 6 calls, avg call = 1.4s of model time
+//   → ~7 runs started per minute, ~15 concurrent runs in flight
+//
+// Naively provisioning "100 concurrent agents" produces 429s at about 15.
+// Admission control belongs in front of the queue, not in the retry handler.
+
+export class TokenBudgetLimiter {
+  private window: Array<{ at: number; tokens: number }> = [];
+
+  async admit(estimatedTokens: number): Promise<boolean> {
+    const cutoff = Date.now() - 60_000;
+    this.window = this.window.filter((w) => w.at > cutoff);
+    const used = this.window.reduce((t, w) => t + w.tokens, 0);
+    if (used + estimatedTokens > this.limit * 0.85) return false;   // headroom for retries
+    this.window.push({ at: Date.now(), tokens: estimatedTokens });
+    return true;
   }
-  this.buffer.push(value);
 }`,
         }) +
-        p(`The branch in <code>enqueue</code> is the point. A naive queue pushes onto an array and lets the consumer find it on some later tick. This one checks whether a reader is already waiting and, if so, resolves that reader's promise with the value directly. The message skips the buffer entirely. In the runnable file the measured handoff is in the tens of microseconds, which is not impressive as a number and is entirely the point as a property: there is no polling interval to tune and no worst case to reason about.`) +
-        p(`This is reconstructed from the <code>h2A</code> class in Claude Code v1.0.33, and the small details in it are worth keeping. It refuses a second iteration — two consumers would each silently receive a subset of the messages, which is a bug you find three weeks later. It carries terminal <code>done</code> and <code>fail</code> states, so a closed queue wakes its reader rather than hanging it.`) +
-        `<h3>The loop becomes a generator</h3>` +
-        code({
-          title: "the shape change",
-          src: `// C04
-export async function run(goal: string, cfg: Config): Promise<Outcome>
+        `<h3>Fairness: one tenant must not starve the rest</h3>` +
+        code({ title: "per-tenant queues, weighted round-robin",
+          src: `// A single FIFO queue means one customer submitting 500 runs blocks everyone.
+class FairQueue {
+  private queues = new Map<string, Run[]>();
+  private cursor = 0;
 
-// C26
-export async function* runInteractive(cfg: LoopConfig): AsyncGenerator<AgentEvent>`,
+  next(): Run | null {
+    const tenants = [...this.queues.keys()];
+    for (let i = 0; i < tenants.length; i++) {
+      const t = tenants[(this.cursor + i) % tenants.length];
+      const q = this.queues.get(t)!;
+      if (q.length && this.inFlight(t) < this.maxPerTenant(t)) {
+        this.cursor = (this.cursor + i + 1) % tenants.length;
+        return q.shift()!;
+      }
+    }
+    return null;
+  }
+}
+// Plus a per-tenant concurrency cap and a per-tenant spend cap (C13). The spend cap
+// is the one that turns a pathological input into an alert instead of an invoice.`,
         }) +
-        p(`Everything the caller needs now arrives as it happens, and the loop stays ignorant of who is listening. A terminal renders the events as lines; ${ch("c22", "C22")}'s server turns them into SSE frames; a test collects them into an array and asserts on the sequence. ${ch("c04", "C04")}'s streaming exercise proposed this as an optional extra. It is not an extra — it is what makes the other two features in this chapter expressible.`),
-    },
-    {
-      id: "mechanics",
-      kicker: "Mechanics",
-      title: "Three things that now happen inside the loop",
-      html:
-        fig({
-          label: "Diagram",
-          title: "the queue beside the loop",
-          body: STEER_SVG,
-          caption: `The loop drains the queue at the top of every turn, so a correction typed during step two is applied before step three is decided rather than after the run ends.`,
+        `<h3>Sessions: a thread of runs, not a long-lived object</h3>` +
+        code({ title: "what carries forward, and what does not",
+          src: `interface Session {
+  id: string; userId: string; tenantId: string;
+  runIds: string[];
+  // Carried forward: the durable, small things.
+  memory: Memory[];                  // C08
+  summary: string;                   // a compacted account of prior runs (C05)
+  artifacts: Array<{ path: string; description: string }>;   // offloaded outputs
+  // NOT carried: the raw message arrays of previous runs. That is what compaction is for.
+}
+
+// A new run in a session starts from: system prompt + memory + session summary + goal.
+// Not from a concatenation of every prior transcript — that is how a session becomes
+// unusable by the fifth exchange.`,
         }) +
-        `<h3>1 · Steering between steps</h3>` +
-        p(`At the top of each turn the loop takes whatever is buffered and appends it to <code>messages</code>. A correction typed while a tool was running is therefore in context before the next decision is made. The user did not cancel and restart; they said "also add a regression test" and the agent carried on with one more constraint.`) +
-        p(`The reason to drain <em>between</em> steps rather than mid-step is coherence. Injecting a message into the middle of a tool result would leave the transcript in a state no API accepts and no model was trained on. The turn boundary is the natural seam, and it is close enough — a step is seconds, not minutes.`) +
-        `<h3>2 · Compaction as a loop concern</h3>` +
-        p(`${ch("c05", "C05")} treated compaction as something you do to a context. In an interactive loop it has to be something the loop does <em>to itself</em>, on whatever turn the transcript crosses the threshold, because the next model call is the one that would fail. Claude Code does this inline and emits a telemetry event when it fires; the runnable file does the same and yields a <code>compacted</code> event so the UI can say so.`) +
-        note(
-          "",
-          "Tell the user it happened",
-          p(`A silent lossy transformation of the agent's memory is exactly the kind of thing a person should be told about, particularly one who is steering. If the agent forgets a constraint you gave it twenty turns ago, you want to know that a compaction is why — otherwise the agent just looks like it stopped listening.`)
-        ) +
-        `<h3>3 · Model fallback without the caller noticing</h3>` +
-        p(`A 529 from the primary model is a routine Tuesday. The loop switches to a fallback and continues, emitting an event so the change is visible rather than mysterious. ${ch("c12", "C12")}'s degradation ladder is the general form; this is the one rung that belongs in the loop itself, because the alternative is failing a run the user is watching.`) +
-        `<h3>The interrupt case, which is the hard one</h3>` +
-        table(
-          ["Tool in flight", "On interrupt", "Why"],
-          [
-            ["Read-only", "Abandon it", "Nothing happened outside the sandbox; the result is worthless now"],
-            ["Write, not yet started", "Never start it", "Cheapest possible outcome"],
-            ["<b>Write, in flight</b>", "<b>Await it, then report it</b>", "You cannot un-send it — and waiting is what lets you say it landed instead of that it might have"],
-          ]
-        ) +
-        p(`That third row is the one people get wrong, and the wrong version is seductive because it is faster. Abandon an in-flight write and the interrupt returns instantly; you have simply moved the cost onto the user, who now has a workspace in a state nobody recorded. Waiting costs a few hundred milliseconds and converts a permanent unknown into a line in the report.`),
-    },
-    {
-      id: "explore",
-      kicker: "Explore",
-      title: "Find out what a delayed queue costs",
+        note("warn", "The deploy question", p(`Workers must drain, not die. On <code>SIGTERM</code>: stop accepting from the queue, let in-flight runs reach the next checkpoint, release leases, and exit. Runs then resume on a new worker via ${ch("c09", "C09")}'s replay. Without this, every deploy is an incident for whoever was mid-task, and you deploy more often than you think.`)) +
+        `<h3>Idempotency at the edge</h3>` +
+        code({ title: "double-submit is the normal case, not the edge case",
+          src: `// Mobile retries, users double-click, load balancers replay. An agent run is expensive
+// and may have side effects, so the POST must be idempotent.
+const existing = await runs.byIdempotencyKey(tenantId, body.idempotencyKey);
+if (existing) return res.status(202).json({ runId: existing.id, status: existing.status });
+// Key scoped per tenant, TTL 24h. Same key + different body = 409, not a silent overwrite.`,
+        }) },
+
+    { id: "explore", kicker: "Explore", title: "Size the system",
       html:
-        p(`Steering only helps if the message lands before the decision it was meant to change. Move the poll interval and the step duration and watch how often a correction arrives too late to matter.`) +
-        lab({
-          label: "Simulator",
-          title: "steering latency",
+        p(`Set your traffic and limits, and find where the system actually saturates. It is rarely where people expect.`) +
+        lab({ label: "Simulator", title: "capacity and queueing",
           body: `
 <div class="controls">
-  <div class="ctl"><label>queue poll interval</label>
-    <input type="range" id="s26-poll" min="0" max="3000" step="50" value="0">
-    <span class="val" id="s26-poll-v">0ms · direct handoff</span></div>
-  <div class="ctl"><label>step duration</label>
-    <input type="range" id="s26-step" min="200" max="8000" step="100" value="2000">
-    <span class="val" id="s26-step-v">2.0s</span></div>
-  <div class="ctl"><label>steps in the run</label>
-    <input type="range" id="s26-steps" min="2" max="20" step="1" value="8">
-    <span class="val" id="s26-steps-v">8</span></div>
-  <div class="ctl"><label>drain point</label>
-    <input type="range" id="s26-drain" min="0" max="1" step="1" value="0">
-    <span class="val" id="s26-drain-v">between steps</span></div>
+  <div class="ctl"><label>runs started / min</label><input type="range" id="p22-r" min="1" max="120" step="1" value="20"><span class="val" id="p22-r-v">20</span></div>
+  <div class="ctl"><label>avg model calls / run</label><input type="range" id="p22-c" min="2" max="20" step="1" value="6"><span class="val" id="p22-c-v">6</span></div>
+  <div class="ctl"><label>avg context / call</label><input type="range" id="p22-t" min="2000" max="60000" step="1000" value="18000"><span class="val" id="p22-t-v">18,000 tok</span></div>
+  <div class="ctl"><label>provider limit</label><select id="p22-l"><option value="400000">400K tok/min</option><option value="800000" selected>800K tok/min</option><option value="2000000">2M tok/min</option></select></div>
+  <div class="ctl"><label>workers</label><input type="range" id="p22-w" min="1" max="60" step="1" value="16"><span class="val" id="p22-w-v">16</span></div>
 </div>
-<div id="s26-verdict" class="note" style="margin-top:0"></div>
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:1rem;margin-top:1rem">
-  <div>
-    <div class="pt" style="font:600 .6875rem var(--font-mono);color:var(--fg-faint);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.3rem">steer applied in time</div>
-    <div class="meter"><i id="s26-hit" style="width:0%"></i></div>
-    <div class="mono small muted" id="s26-hit-v">—</div>
-  </div>
-  <div>
-    <div class="pt" style="font:600 .6875rem var(--font-mono);color:var(--fg-faint);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.3rem">wasted work after the steer</div>
-    <div class="meter"><i id="s26-waste" style="width:0%;background:var(--danger)"></i></div>
-    <div class="mono small muted" id="s26-waste-v">—</div>
-  </div>
-</div>
+<div id="p22-rows" style="margin-top:.5rem"></div>
 <div class="stats">
-  <div class="stat"><b id="s26-lat">—</b><span>median latency</span></div>
-  <div class="stat"><b id="s26-p95">—</b><span>p95 latency</span></div>
-  <div class="stat"><b id="s26-lost">—</b><span>steers too late</span></div>
-  <div class="stat"><b id="s26-run">—</b><span>run length</span></div>
-</div>`,
+  <div class="stat"><b id="p22-bind">—</b><span>binding constraint</span></div>
+  <div class="stat"><b id="p22-wait">—</b><span>queue wait p50</span></div>
+  <div class="stat"><b id="p22-429">—</b><span>429 rate</span></div>
+  <div class="stat"><b id="p22-cost">—</b><span>$ / hour</span></div>
+</div>
+<div class="note" id="p22-note" style="margin-top:1rem"></div>`,
           script: `
-var poll = document.getElementById("s26-poll"), step = document.getElementById("s26-step");
-var nsteps = document.getElementById("s26-steps"), drain = document.getElementById("s26-drain");
+function upd() {
+  var R = +document.getElementById("p22-r").value, C = +document.getElementById("p22-c").value,
+      T = +document.getElementById("p22-t").value, L = +document.getElementById("p22-l").value,
+      W = +document.getElementById("p22-w").value;
+  document.getElementById("p22-r-v").textContent = R;
+  document.getElementById("p22-c-v").textContent = C;
+  document.getElementById("p22-t-v").textContent = T.toLocaleString() + " tok";
+  document.getElementById("p22-w-v").textContent = W;
 
-function run() {
-  var P = +poll.value, S = +step.value, N = +nsteps.value, D = +drain.value;
-  document.getElementById("s26-poll-v").textContent = P === 0 ? "0ms · direct handoff" : P + "ms";
-  document.getElementById("s26-step-v").textContent = (S / 1000).toFixed(1) + "s";
-  document.getElementById("s26-steps-v").textContent = N;
-  document.getElementById("s26-drain-v").textContent = D === 0 ? "between steps" : "end of run only";
+  var tokensNeeded = R * C * T;                       // per minute
+  var tokenCap = L * 0.85;                            // usable, keeping headroom
+  var callsPerMin = tokenCap / T;
+  var runsFromTokens = callsPerMin / C;
 
-  var rnd = mulberry32(11);
-  var TRIALS = 400, lats = [], late = 0, wasted = 0;
-  var runMs = N * S;
+  var runSeconds = C * 1.5 + C * 0.9;                 // model + tool time
+  var runsFromWorkers = (W * 60) / runSeconds;
 
-  for (var i = 0; i < TRIALS; i++) {
-    var at = rnd() * runMs;                      // when the user types
-    var stepIdx = Math.floor(at / S);
-    var lat;
-    if (D === 1) {
-      lat = runMs - at;                          // only read when the run ends
-    } else {
-      var nextBoundary = (stepIdx + 1) * S;      // drained at the next turn top
-      lat = (nextBoundary - at) + (P > 0 ? rnd() * P : 0);
-    }
-    lats.push(lat);
-    // A steer is "in time" if it lands before the run finishes with steps left
-    // to influence; wasted work is whatever ran between typing and landing.
-    if (at + lat >= runMs) late++;
-    else wasted += lat;
-  }
+  var capacity = Math.min(runsFromTokens, runsFromWorkers);
+  var util = R / capacity;
+  // M/M/c-ish queueing blow-up near saturation
+  var wait = util < 1 ? (util * util) / (1 - util) * runSeconds : 999;
+  var r429 = tokensNeeded > L ? Math.min(0.9, (tokensNeeded - L) / tokensNeeded) : 0;
 
-  lats.sort(function (a, b) { return a - b; });
-  var med = lats[Math.floor(lats.length / 2)];
-  var p95 = lats[Math.floor(lats.length * 0.95)];
-  var hit = Math.round((1 - late / TRIALS) * 100);
-  var wastePct = Math.min(100, Math.round((wasted / TRIALS) / runMs * 100));
+  var rows = [
+    ["provider token limit", runsFromTokens],
+    ["worker capacity", runsFromWorkers],
+    ["offered load", R]
+  ];
+  var mx = Math.max.apply(null, rows.map(function (x) { return x[1]; }));
+  document.getElementById("p22-rows").innerHTML = rows.map(function (x) {
+    var isBind = x[1] === capacity && x[0] !== "offered load";
+    var col = x[0] === "offered load" ? (util > 1 ? "var(--danger)" : "var(--accent)") : isBind ? "var(--danger)" : "var(--ok)";
+    return '<div style="display:flex;gap:.6rem;align-items:center;margin:.3rem 0">' +
+      '<span class="mono small" style="width:12rem;color:var(--fg-muted)">' + x[0] + '</span>' +
+      '<span class="meter" style="flex:1"><i style="width:' + Math.min(100, x[1] / mx * 100) + '%;background:' + col + '"></i></span>' +
+      '<span class="mono small" style="width:7rem;text-align:right">' + x[1].toFixed(1) + ' runs/min</span></div>';
+  }).join("");
 
-  document.getElementById("s26-lat").textContent = (med / 1000).toFixed(1) + "s";
-  document.getElementById("s26-p95").textContent = (p95 / 1000).toFixed(1) + "s";
-  document.getElementById("s26-lost").textContent = late + " / " + TRIALS;
-  document.getElementById("s26-run").textContent = (runMs / 1000).toFixed(0) + "s";
-  document.getElementById("s26-hit").style.width = hit + "%";
-  document.getElementById("s26-hit-v").textContent = hit + "% landed with work left to change";
-  document.getElementById("s26-waste").style.width = wastePct + "%";
-  document.getElementById("s26-waste-v").textContent = wastePct + "% of the run ran after the user had already corrected it";
+  document.getElementById("p22-bind").textContent = runsFromTokens < runsFromWorkers ? "provider tokens" : "workers";
+  document.getElementById("p22-wait").textContent = util >= 1 ? "unbounded" : wait.toFixed(1) + "s";
+  document.getElementById("p22-429").textContent = Math.round(r429 * 100) + "%";
+  document.getElementById("p22-cost").textContent = "$" + (Math.min(R, capacity) * 60 * C * T * 3 / 1e6).toFixed(0);
 
-  var v = document.getElementById("s26-verdict");
-  if (D === 1) v.innerHTML = "<b>This is C04's loop.</b> Input is read only when the run ends, so a correction is never a correction — it is the first message of the next run, after the agent has finished doing the wrong thing. Everything else on this panel is the cost of that one design choice.";
-  else if (P === 0 && S <= 1500) v.innerHTML = "<b>The good configuration.</b> Direct handoff and short steps: a correction lands at the next turn boundary, which is about half a step away. The remaining latency is the step itself, not the queue.";
-  else if (P === 0) v.innerHTML = "<b>Latency is the step, not the queue.</b> The handoff is instant; you are waiting for the current tool to finish. If this is too slow, shorten the steps or race the tool against the inbox — do not speed up the queue, it is not the bottleneck.";
-  else if (P >= 1500) v.innerHTML = "<b>The poll interval is now the problem.</b> Look at p95 — a user who types just after a poll waits most of an interval on top of the step. This is the failure a direct handoff exists to remove, and it costs nothing to remove it.";
-  else v.innerHTML = "<b>Polling adds latency for no benefit.</b> Compare p95 against poll interval 0. There is no configuration where a timer beats waking the pending reader directly.";
+  var n = document.getElementById("p22-note");
+  if (util >= 1) n.innerHTML = "<b>Saturated.</b> Offered load exceeds capacity, so the queue grows without bound and wait time goes to infinity. Admission control — rejecting or shedding at the edge — is the only correct response; retries make it worse.";
+  else if (runsFromTokens < runsFromWorkers) n.innerHTML = "<b>Token-limited, not worker-limited.</b> Adding workers does nothing: you would generate more calls against the same provider ceiling and convert queue wait into 429s. The levers are context size (C05), prompt caching, and a higher limit.";
+  else if (util > .8) n.innerHTML = "<b>Above 80% utilisation.</b> Note the queue wait — it is quadratic near saturation, so the last 20% of capacity costs disproportionate latency. Target 60–70% and scale on queue depth.";
+  else n.innerHTML = "<b>Comfortable.</b> Worker-limited with headroom. Scale workers on queue depth, and watch the token figure as context grows — a context-size regression silently converts this into the token-limited case.";
 }
-[poll, step, nsteps, drain].forEach(function (el) { el.addEventListener("input", run); });
-run();`,
-          caption: `Set <em>drain point</em> to "end of run only" first. That is ${ch("c04", "C04")}'s loop, and the panel shows what it costs: every correction arrives after the agent has finished doing the thing you were trying to stop. Then set it back and raise the poll interval — the p95 is where a timer-based queue hurts, and it buys nothing.`,
-        }),
-    },
-    {
-      id: "build",
-      kicker: "Build it",
-      title: "Four scenarios over one loop",
+["p22-r","p22-c","p22-t","p22-l","p22-w"].forEach(function (i) {
+  document.getElementById(i).addEventListener("input", upd); document.getElementById(i).addEventListener("change", upd); });
+upd();`,
+          caption: `Push "avg context per call" from 18K to 40K without changing anything else. Capacity halves. Context size is a capacity decision as much as a cost one, which is the operational argument for ${ch("c05", "C05")}.`,
+        }) },
+
+    { id: "build", kicker: "Build it", title: "The worker loop",
       html:
-        p(`The runnable file puts the same scripted plan under four conditions. The plan never changes; only what arrives while it runs does.`) +
-        code({
-          title: "the top of a turn",
-          src: `// 1. Take anything typed while the last step ran. Steering lands before the
-//    next decision, not after the run finishes.
-yield* applySteer(cfg.inbox.drain());
-if (cancelled) break;
+        code({ title: "code/c26_serving.ts — lease, run, checkpoint, drain",
+          src: `export async function worker(queue: Queue, log: EventLog, cfg: AgentConfig) {
+  let draining = false;
+  process.on("SIGTERM", () => { draining = true; });     // stop taking work, finish what we have
 
-// 2. Compaction lives inside the loop, not beside it — the transcript can
-//    cross the threshold on any turn, and the next model call is the one
-//    that would fail.
-if (estimate(messages) > cfg.compactAbove) { /* … */ yield { type: "compacted", … }; }
+  while (!draining) {
+    const job = await queue.claim({ leaseMs: 30_000 });   // lease + fencing token (C09)
+    if (!job) { await sleep(250); continue; }
 
-// 3. A degraded primary is a routine Tuesday; switch and say so.
-if (failing && model === "primary") { model = "fallback"; yield { type: "model_fallback", … }; }`,
-        }) +
-        p(`Then the tool runs, raced against the inbox, and the interrupt path is the part worth reading twice.`) +
-        code({
-          title: "the interrupt path",
-          src: `const finished = await raceToolAgainstInbox(step.tool.ms, cfg.inbox);
+    const heartbeat = setInterval(() => queue.renew(job).catch(() => ctrl.abort()), 10_000);
+    const ctrl = new AbortController();
 
-if (finished.interruptedBy) {
-  // A write already in flight is not abandoned. You cannot un-send it, so it
-  // is awaited, and because it was awaited the outcome is known rather than
-  // guessed — which is the whole reason to wait.
-  if (step.tool.write) {
-    established.push(\`\${step.tool.summary} — completed before the interrupt\`);
-    inFlightWrite = undefined;
+    try {
+      const result = await runAgent(job.runId, log, {
+        ...cfg,
+        signal: ctrl.signal,
+        emit: (e) => { void log.append(job.runId, [e]); bus.publish(job.runId, e); },
+        onSuspend: async (reason) => {                    // approval, or a drain
+          await queue.release(job, { resumeOn: reason });
+          return "suspended";
+        },
+      });
+      await queue.complete(job, result);
+    } catch (e) {
+      // Retryable → back on the queue with backoff. Terminal → record and stop.
+      await (isRetryable(e) ? queue.retry(job, backoff(job.attempts)) : queue.fail(job, e));
+    } finally {
+      clearInterval(heartbeat);
+    }
   }
-  yield* applySteer(finished.interruptedBy);
-  if (cancelled) break;
-  continue;
+
+  await queue.releaseAll();                               // let another worker resume them
+  process.exit(0);
 }`,
         }) +
-        code({
-          title: "run it",
-          lang: "bash",
-          plain: true,
-          src: `node --experimental-strip-types code/c26_interactive_loop.ts
+        p(`The <code>onSuspend</code> callback is what makes approvals free: the run releases its lease and leaves the queue entirely. When a human decides, the decision is appended to the log and the run is re-queued, and a completely different worker picks it up and replays. No thread was held, and a deploy in between changes nothing.`) +
+        `<h3>The client, which is simpler than people expect</h3>` +
+        code({ title: "start, stream, reconnect",
+          src: `export async function* runAgentRemote(goal: string, opts: { sessionId?: string } = {}) {
+  const { runId } = await post("/runs", { goal, ...opts, idempotencyKey: crypto.randomUUID() });
 
-#   C26 · The interactive loop
-#
-#   handoff to a waiting reader: 11µs — no buffer hop
-#
-#
-#   1 · uninterrupted
-#   -----------------
-#     think   I need the failing test first.
-#     tool    running the suite
-#     think   Now the file it points at.
-#     tool    reading src/session.ts
-#     think   The expiry check is inverted. Patching.
-#     tool    patching src/session.ts
-#     think   Re-running to confirm.
-#     tool    running the suite
-#     think   Green. Writing it up.
-#     answer  The expiry comparison in src/session.ts was inverted; fixed and the suite is green.
-#     stop    answered
-#
-#   2 · steered mid-run
-#   -------------------
-#     think   I need the failing test first.
-#     tool    running the suite
-#     think   Now the file it points at.
-#     tool    reading src/session.ts
-#     ◀ user  "also add a regression test"
-#     think   The expiry check is inverted. Patching.
-#     tool    patching src/session.ts
-#     think   Re-running to confirm.
-#     tool    running the suite
-#     think   Green. Writing it up.
-#     answer  The expiry comparison in src/session.ts was inverted; fixed and the suite is green.
-# …
-#   exchange for never knowing what is on disk.`,
+  let lastId = 0;
+  for (;;) {
+    const es = new EventSource(\`/runs/\${runId}/events\`);   // browser resends Last-Event-ID
+    try {
+      for await (const e of events(es)) {
+        lastId = Number(e.lastEventId) || lastId;
+        yield JSON.parse(e.data);
+        if (e.type === "done") return;
+      }
+    } catch { /* network blip */ }
+    es.close();
+    await sleep(500);                                       // reconnect; the server replays
+  }
+}`,
         }) +
-        note(
-          "good",
-          "The report is the deliverable",
-          p(`Scenario 4 cancels while the patch is being written. Because the loop waited, the report says <em>patching src/session.ts — completed before the interrupt</em> rather than leaving the user to guess. ${ch("c12", "C12")} argued that a partial report is what an interrupted agent owes you; this is where the loop earns the right to produce an accurate one.`)
-        ),
-    },
-    {
-      id: "production",
-      kicker: "Production notes",
-      title: "Field notes",
+        code({ title: "run it", lang: "bash", plain: true,
+          src: `node --experimental-strip-types code/c26_serving.ts
+
+#   C26 · Shipping
+#
+#   resumable SSE — a 20-second dropout
+#
+#     before the drop:  received events 1, 2
+#     during the drop:  2 events published to the durable log
+#     on reconnect:     Last-Event-ID: 2 → replayed 3, 4
+#
+#     Seamless, because every event carried an id: and was persisted before publish.
+#     content-type: text/event-stream
+#     cache-control: no-cache, no-transform
+#     connection: keep-alive
+#     x-accel-buffering: no
+#
+#   leases and fencing tokens — two workers, one run
+#
+#     worker A claims r_1 with token 1, lease until t=30000
+#     worker A pauses (GC / network partition). t=40000, lease expired.
+#     reaper released 1 expired lease(s)
+#     worker B claims r_1 with token 2
+#     worker A wakes and tries to write → fenced: token 1 < 2 (another worker took over)
+#
+#     A TTL alone is not enough: a paused worker believes it still holds the lease.
+#
+#   fair queueing — one tenant submitting 500 runs must not block the rest
+#
+#     claim order: noisy-tenant → quiet-tenant → noisy-tenant → other-tenant
+#     The quiet tenants were served within the first few claims despite being
+#     submitted last, and the noisy tenant is capped at 2 concurrent runs.
+#
+#   capacity — the arithmetic people get wrong
+#
+# …
+#     object with an id and the connection was only ever a view of it.`,
+        }) },
+
+    { id: "production", kicker: "Production notes", title: "The first week",
       html:
         ul([
-          `<strong>Read the reconstruction this chapter is built from.</strong> The <code>h2A</code> queue, the <code>nO</code> async-generator main loop and the abort propagation in Claude Code v1.0.33 are documented in <a href="https://github.com/blessdyb/analysis_claude_code" target="_blank" rel="noopener noreferrer">analysis_claude_code</a>. It is a reverse-engineering study of an obfuscated build, so treat specific identifiers as evidence of a design rather than as an API — the shapes are what transfer.`,
-          `<strong>pi solves the same problem with the same move.</strong> Its agent loop has an outer <code>while (true)</code> that continues when queued follow-up messages arrive after the agent would have stopped, and it polls for messages the user typed while it was working. Two independent harnesses converging on a queue beside the loop is a reasonable signal that the shape is right.`,
-          `<strong>Backpressure is a real question once the producer is not a keyboard.</strong> A human types a few messages a minute and the queue never grows. Wire the same queue to a webhook or another agent (${ch("c18", "C18")}) and you need a bound and a policy for what to drop. The version in this chapter is deliberately unbounded because its producer is a person; do not copy that into a machine-to-machine path.`,
-          `<strong>Emit events even when nothing is listening.</strong> The generator costs nothing when the consumer ignores events, and the moment you want a UI, a trace (${ch("c20", "C20")}) or a test that asserts on a sequence, they are already there. Retrofitting events into a loop that returns a value is the refactor this chapter exists to save you.`,
-          `<strong>Steering is a security surface.</strong> A steer is untrusted input appended to the context mid-run, which is ${ch("c21", "C21")}'s first circle. That is fine when the producer is the user at the keyboard, and it is not fine when it is anything else. If a steering message can originate anywhere but a human you have authenticated, it deserves the same treatment as a fetched web page.`,
-        ]),
-    },
+          `<strong>The first incident is almost always rate limits.</strong> Token-per-minute, hit at a concurrency number far below what anyone estimated. Admission control in front of the queue, plus context-size discipline, is the fix; more workers is not.`,
+          `<strong>The second is a runaway loop on one tenant.</strong> Per-tenant spend caps with alerts (${ch("c13", "C13")}) turn it into a page instead of an invoice.`,
+          `<strong>Buffering proxies will eat your stream.</strong> nginx, some CDNs, and a few corporate proxies buffer <code>text/event-stream</code> by default. Set <code>no-transform</code> and <code>x-accel-buffering: no</code>, and test through the real edge rather than against localhost.`,
+          `<strong>Long runs need a progress contract.</strong> If nothing is emitted for 30 seconds, users assume it has hung. Emit something — even "still working: reading 40 files" — on a timer.`,
+          `<strong>Version your agent like an API.</strong> Record the prompt version, tool versions and model id on every run. When behaviour changes, the first question is what deployed, and it should be answerable from the run record rather than from git archaeology.`,
+          `<strong>Warm the cache deliberately.</strong> A cold prompt cache after a deploy makes the first minutes expensive and slow. If your system prompt is large, send a warming request per worker on startup.`,
+        ]) },
   ],
 
   exercises: [
-    {
-      difficulty: "warm-up",
-      prompt: `The queue throws if you iterate it twice. Write the bug that guard prevents, and say why it would be hard to find.`,
-      answer:
-        p(`Two consumers each call <code>next()</code>. Each call either takes the buffered head or parks as <code>this.waiting</code> — and there is only one <code>waiting</code> slot, so the second reader overwrites the first. Every message is then delivered to exactly one consumer, chosen by timing.`) +
-        p(`It is hard to find because nothing fails. No exception, no dropped message from the queue's point of view: each one was delivered. The symptom is that a UI renderer and a trace writer, both iterating the same stream, each see a plausible-looking subset — so you get a UI missing a step, a trace missing a different step, and no reason to suspect the queue. The guard converts a silent split-brain into a loud error at the second <code>[Symbol.asyncIterator]()</code> call.`),
-    },
-    {
-      difficulty: "core",
-      prompt: `Steering appends the user's message to <code>messages</code> at the top of the turn. Name three ways that can go wrong, and how you would handle each.`,
-      answer:
-        p(`The turn boundary is the right seam, but appending raw text into a live transcript has sharp edges.`) +
-        ul([
-          `<strong>It contradicts the original goal.</strong> "Actually, don't touch the tests" arrives after the agent already patched one. The model now holds two instructions and no guidance about precedence. Mark steering messages explicitly — <em>the user has revised the task; later instructions take precedence</em> — and put the revision <em>after</em> the transcript so recency works for you (${ch("c05", "C05")}).`,
-          `<strong>It arrives mid-tool-call-pair.</strong> If a <code>tool_use</code> block has been emitted and its <code>tool_result</code> has not yet been appended, inserting a user message produces a transcript most APIs reject outright (${ch("c01", "C01")}). Always drain at the top of a turn, never between a call and its result — which is what the runnable file does and why.`,
-          `<strong>It floods.</strong> A user who gets impatient sends five corrections in ten seconds. Appending all five bloats the context and leaves the model to reconcile them. Coalesce consecutive steers from the same source into one message before appending, keeping the last as authoritative and the earlier ones as context.`,
-        ]),
-    },
-    {
-      difficulty: "core",
-      prompt: `Compaction fires mid-run while the user is steering. The user then refers to something that was compacted away. Design the handling.`,
-      answer:
-        p(`This is the collision the chapter's note points at, and it is worth designing for because it is guaranteed rather than unlikely: a long run is exactly the one where a user both steers and triggers compaction.`) +
-        ul([
-          `<strong>Announce it.</strong> The <code>compacted</code> event exists so the UI can show a marker in the transcript. A user who sees "context compacted" understands why the agent no longer remembers the file it read twenty turns ago; one who does not see it concludes the agent stopped listening.`,
-          `<strong>Pin the steering messages.</strong> Corrections are cheap and high-value — they are the user telling you what actually matters. Put them in ${ch("c05", "C05")}'s pinned region rather than the rolling one, so compaction never eats them. A run's accumulated steers are usually a few hundred tokens and are the best summary of intent you have.`,
-          `<strong>Make the summary name what was dropped.</strong> "Read and summarised 14 files; details compacted" lets the agent answer a follow-up with "I no longer have that in context, re-reading" rather than confabulating. ${ch("c10", "C10")}'s point, applied to the agent's own memory.`,
-        ]) +
-        p(`The general rule: compaction is lossy and the user cannot see your context, so any loss that could change what the agent does must be visible in the transcript the user <em>can</em> see.`),
-    },
-    {
-      difficulty: "stretch",
-      prompt: `Extend the loop so a steering message can arrive during a <em>model call</em> rather than a tool call, and the in-flight call is abandoned rather than awaited. Say what that changes about cost, correctness and the transcript.`,
-      answer:
-        p(`A model call is the one long operation with no side effect, which makes it the one place abandoning is clearly correct — the opposite of the write case.`) +
-        code({
-          title: "composing the run signal with a per-turn one",
-          src: `const turnAbort = new AbortController();
-const signal = AbortSignal.any([cfg.runSignal, turnAbort.signal]);
+    { difficulty: "warm-up",
+      prompt: `A user's browser reconnects to an SSE stream after a 20-second dropout. What must the server do for the experience to be seamless, and what breaks if you skip it?`,
+      answer: p(`The server must read <code>Last-Event-ID</code>, replay every event after that sequence number from the durable log, and then follow live. That is possible only because every event carried an <code>id:</code> field and every event was persisted before being published.`) +
+        p(`Skip the <code>id:</code> and the browser sends nothing on reconnect, so the server starts from live. The user misses everything that happened during the dropout, and the UI shows a plan that jumps or an answer with a hole in it. Skip the persistence and there is nothing to replay from.`) +
+        p(`The third thing to get right: publish to the bus <em>after</em> appending to the log, never before. Otherwise a client can receive an event that is not yet durable, and a crash makes the client's view diverge from the run's actual history.`) },
 
-const steerArrived = inbox.waitForNext();          // resolves on enqueue
-const response = cfg.model(messages, { signal });
+    { difficulty: "core",
+      prompt: `Design the session model for an agent used by the same person across days. What carries forward, what does not, and where does it go wrong?`,
+      answer: table(["Carry forward", "Why", "Where it lives"], [
+        ["Semantic memories about the user", "Preferences and facts stay true", "Memory store (${C08})"],
+        ["A rolling session summary", "Continuity without the transcript", "Compacted after each run (${C05})"],
+        ["Artifact pointers", "Files and reports produced earlier", "Paths plus one-line descriptions"],
+        ["Open threads", "\"You asked me to follow up on X\"", "Explicit, small, list"],
+      ].map((r) => r.map((c) => c.replace("${C08}", `<a href="/c08/" class="mono">C08</a>`).replace("${C05}", `<a href="/c05/" class="mono">C05</a>`))) as string[][]) +
+      p(`<strong>Does not carry forward:</strong> raw message arrays from previous runs. Concatenating them makes the fifth exchange unaffordable and the tenth impossible, and it buries the current goal under a week of scrollback.`) +
+      p(`<strong>Where it goes wrong, in order of likelihood:</strong>`) +
+      ul([
+        `<strong>The summary becomes lossy in a compounding way.</strong> Summarising a summary of a summary loses specifics fast. Summarise from the <em>original</em> run records each time rather than re-summarising the previous summary.`,
+        `<strong>Stale context asserted confidently.</strong> "You are working on the auth migration" three weeks after it shipped. Timestamp everything carried forward and decay it (${ch("c08", "C08")}).`,
+        `<strong>Privacy across a shared session.</strong> If a session can be handed to a colleague, memories written during it must be scoped so the second person does not inherit the first's private context.`,
+        `<strong>Unbounded growth of "open threads".</strong> Cap it, and expire items nobody has touched.`,
+      ]) },
 
-const winner = await Promise.race([response, steerArrived]);
-if (winner === steerArrived) {
-  turnAbort.abort();                                // stop the tokens
-  // Nothing is appended: a half-streamed assistant turn is not a turn.
-  yield* applySteer(inbox.drain());
-  continue;                                         // re-decide with the steer in context
-}`,
-        }) +
-        ul([
-          `<strong>Cost.</strong> You pay for the tokens generated before the abort and throw them away. That is the right trade — the alternative is paying for the remainder <em>and</em> acting on a decision the user has already corrected.`,
-          `<strong>Correctness.</strong> The discarded response must not be appended. A partially streamed assistant turn is ${ch("c01", "C01")}'s truncation case wearing a different hat: it parses, it looks like a decision, and acting on it means acting on half a thought. Drop it entirely and re-decide.`,
-          `<strong>The transcript.</strong> The user saw text stream and then vanish, which reads as a bug unless you name it. Emit an event and render it — <em>interrupted; re-planning with your correction</em> — so the disappearance is explained rather than mysterious.`,
+    { difficulty: "core",
+      prompt: `Your provider limit is 800K input tokens/min. Average context per call is 22K and runs average 7 calls. How many concurrent runs can you support, and what are the three levers if you need double?`,
+      answer: p(`Usable capacity at 85% headroom is 680,000 tokens/min ÷ 22,000 = <strong>~31 model calls/min</strong>. At 7 calls per run that is <strong>~4.4 runs started per minute</strong>. With a run taking roughly 17 seconds of model-plus-tool time, in-flight concurrency is about <strong>1.3 runs</strong>, dramatically lower than intuition suggests, and the reason "we'll run 50 agents in parallel" fails immediately.`) +
+        p(`<strong>Three levers, in order of value:</strong>`) +
+        ol([
+          `<strong>Cut context per call.</strong> 22K → 11K exactly doubles capacity. Offloading large tool results (${ch("c05", "C05")}) and capping chatty tools (${ch("c03", "C03")}) is usually worth this on its own, and it halves cost at the same time.`,
+          `<strong>Prompt caching.</strong> Cached input tokens often count differently against limits as well as costing less — check your provider's accounting, because if cached reads are discounted against the quota this is close to free capacity.`,
+          `<strong>Cut calls per run.</strong> 7 → 4 by promoting a fixed tool sequence into a chain (${ch("c12", "C12")}) is a 75% capacity increase, and it reduces latency too.`,
         ]) +
-        p(`The asymmetry is the lesson. Abandon anything whose only cost is tokens; wait for anything whose effect outlives the process.`),
-    },
+        p(`A raised provider limit is the fourth lever and the one to ask for last, because the first three also reduce cost and latency while a higher limit only removes a ceiling.`) },
+
+    { difficulty: "stretch",
+      prompt: `Write the operational runbook for the first week: launch checklist, the three most likely incidents with their diagnosis and fix, and the rollback plan.`,
+      answer: p(`<strong>Launch checklist</strong>`) +
+        ul([
+          `Per-tenant concurrency and spend caps configured, with alerts wired to a human.`,
+          `Admission control in front of the queue, sized from the token arithmetic, not from worker count.`,
+          `Graceful drain verified — kill a worker under load and confirm zero lost runs and zero duplicate side effects.`,
+          `SSE verified through the real edge (CDN, load balancer, corporate proxy), not localhost.`,
+          `Four dashboard numbers live (${ch("c23", "C23")}): terminal-state distribution, p95 steps among successes, cost per successful run, caused-token ranking.`,
+          `Eval suite green, with the per-tag gate (${ch("c22", "C22")}).`,
+          `Run id surfaced in the UI and included in every support path.`,
+          `Kill switch: a flag that stops new runs while letting in-flight ones finish.`,
+        ]) +
+        p(`<strong>Incident 1 — 429 storm.</strong> <em>Diagnosis:</em> provider 429 rate rising, queue depth rising, worker CPU low. <em>Fix now:</em> reduce admission rate; do not add workers. <em>Fix properly:</em> measure context per call, find the tool inflating it, cap it.`) +
+        p(`<strong>Incident 2 — one tenant consuming everything.</strong> <em>Diagnosis:</em> spend by tenant is skewed, fair-queue cursor stuck, other tenants' wait times climbing. <em>Fix now:</em> drop that tenant's concurrency cap. <em>Fix properly:</em> find the pathological input, add it as an eval case, cap the loop that ran away.`) +
+        p(`<strong>Incident 3 — "the agent got worse after the deploy".</strong> <em>Diagnosis:</em> compare the four numbers before and after; check the prompt/model/tool versions recorded on runs; run the eval suite against both versions paired. <em>Fix now:</em> roll back. <em>Fix properly:</em> the change that regressed should have been caught by a per-tag gate — add the case that would have caught it.`) +
+        p(`<strong>Rollback plan.</strong> Agent behaviour is defined by prompt version + model id + tool versions, all recorded per run, all deployable independently of the binary. Rolling back is a config change, not a redeploy. In-flight runs finish on the old version. Do not migrate a run's configuration mid-flight, or you get behaviour neither version was tested with (${ch("c09", "C09")}'s log-version rule).`) },
   ],
 
   qa: [
-    {
-      q: "Why drain at the top of the turn instead of the moment a message arrives?",
-      a: p(`Because the transcript has to stay in a shape the API accepts. Between a <code>tool_use</code> block and its matching <code>tool_result</code> there is no legal place to insert a user message, and a model has never seen one there in training. The turn boundary is the nearest seam where the transcript is coherent, and a step is seconds rather than minutes, so the latency you pay for that coherence is small. The simulator makes that trade visible.`),
-    },
-    {
-      q: "Is an async generator worth it if I only have a CLI?",
-      a: p(`Yes, and the CLI is the easy case rather than the reason. The generator is what lets the same loop serve a terminal, an SSE endpoint (${ch("c22", "C22")}), a trace writer (${ch("c20", "C20")}) and a test that asserts on the event sequence, without any of them knowing about the others. The cost is one keyword and a type; retrofitting it into a loop that returns a value means touching every branch.`),
-    },
-    {
-      q: "What stops a steering message from being used as an injection vector?",
-      a: p(`Nothing intrinsic, which is why the producer matters more than the mechanism. A steer is untrusted text appended mid-run — ${ch("c21", "C21")}'s first circle exactly. When it comes from the authenticated human at the keyboard that is the same trust level as the original goal and no new risk. The moment a steer can originate from a webhook, another agent (${ch("c18", "C18")}) or anything automated, treat it like a fetched web page: it does not get to issue instructions, only to supply data.`),
-    },
-    {
-      q: "Should the loop stop to ask about an interrupt, or just stop?",
-      a: p(`Just stop, and report. An interrupt is the user exercising control; asking them to confirm it is asking twice and adds latency to the one operation that should feel immediate. The exception is an in-flight write, and even there you do not ask — you wait for it, record it, and say so in the report. The question you are tempted to ask ("cancel anyway?") is answered better by the report the user reads two seconds later.`),
-    },
-    {
-      q: "How does this interact with C08's durable log?",
-      a: p(`Steering messages and interrupts are events like any other and belong in the log — <code>steer_received</code>, <code>run_cancelled</code> — because a resumed run that has lost a correction will cheerfully redo the thing the user stopped. The interesting case is resuming <em>into</em> an interrupt: the log says a write was in flight and was awaited, so replay must not repeat it. That is ${ch("c08", "C08")}'s started/finished pairing doing exactly the job it was designed for.`),
-    },
+    { q: "SSE or WebSockets?", a: p(`SSE, almost always. It is one-directional, which matches the shape (the server streams, the client occasionally POSTs an interrupt), it reconnects and replays natively via <code>Last-Event-ID</code>, and it survives proxies better. WebSockets are worth it only for genuinely bidirectional, low-latency interaction such as voice.`) },
+    { q: "Do I need a queue for low volume?", a: p(`Not for volume — for <em>durability</em>. The queue is what lets a run outlive a request, survive a deploy, and suspend for an approval. Even at one run a minute, an in-handler agent loses work on every restart. A database table with a lease works fine as a queue.`) },
+    { q: "How do I handle a client that never reconnects?", a: p(`Let the run finish and store the result. Agent work is usually valuable independently of whether anyone is watching, and the durable log means the user can retrieve it later from another device. Cancel only if the run is expensive and clearly abandoned, and make that a policy decision with a timeout rather than an implicit consequence of a socket closing.`) },
+    { q: "Should the same server handle chat and agent runs?", a: p(`Separate them. Chat is sub-second and latency-sensitive; agent runs are minutes and throughput-sensitive. Sharing a worker pool means a burst of agent runs adds seconds to every chat response. Different pools, different scaling signals, possibly different provider quotas.`) },
+    { q: "How do I test all this locally?", a: p(`An in-memory queue and event bus behind the same interfaces, a mock model (${ch("c01", "C01")}), and a chaos switch that kills workers at random. The load and chaos results in this chapter came from exactly that setup. It runs offline, it is deterministic under a seed, and it catches the drain and resume bugs that only appear under restart.`) },
   ],
 
   project: {
-    title: "Project · Make your agent steerable",
-    brief:
-      p(`Convert the agent from ${ch("c04", "C04")} into an async generator over a message queue, then prove the three behaviours with tests rather than by trying it once by hand.`),
+    title: "Project · Put your agent behind an API",
+    brief: p(`Ship the agent as a service. The bar is a chaos test: kill a worker mid-run under load and have zero lost runs, zero duplicate side effects, and no visible user impact.`),
     spec: [
-      "A <code>MessageQueue</code> with direct handoff to a waiting reader, a single-iteration guard, and terminal done/fail states.",
-      "<code>runInteractive()</code> as an <code>AsyncGenerator&lt;AgentEvent&gt;</code>, with the C04 guards intact.",
-      "Steering drained at the top of each turn, never between a tool call and its result, with steers marked as revisions that take precedence.",
-      "Compaction inside the loop, emitting an event, with steering messages pinned so compaction cannot eat them.",
-      "Interrupt handling that abandons reads, never starts unstarted writes, and awaits in-flight writes before reporting them.",
-      "Tests for: a message enqueued while the reader waits arriving without a tick delay; a steer applied before the next decision; a cancel during a write producing a report that names the write as completed.",
+      "The four endpoints, with <code>POST /runs</code> idempotent on a client key scoped per tenant.",
+      "Resumable SSE: <code>id:</code> on every event, replay from <code>Last-Event-ID</code>, heartbeats, and anti-buffering headers.",
+      "A queue with leases and fencing tokens (C09), workers that drain on SIGTERM, and runs that resume on another worker.",
+      "Suspension for approvals that releases the lease entirely — no thread held while a human decides.",
+      "Token-based admission control sized from the real arithmetic, plus per-tenant concurrency and spend caps.",
+      "A fair queue that prevents one tenant starving the rest.",
+      "A session model carrying memory, a summary and artifact pointers — never raw transcripts.",
+      "A chaos test: kill workers randomly under load and assert the three properties above.",
     ],
     stretch: [
-      "Abandon an in-flight model call on steer, discarding the partial response, and confirm nothing malformed reaches the transcript.",
-      "Bound the queue and add a drop policy, then wire a second producer that is not a human and watch what the bound saves you.",
-      "Render the event stream two ways from one run — a terminal view and an SSE endpoint — with no change to the loop.",
+      "Add the capacity calculator to your dashboard, computing the binding constraint from live token usage.",
+      "Record prompt version, model id and tool versions on every run, and make rollback a config change.",
+      "Run a load test at 60%, 80% and 95% of capacity and chart queue wait — then explain the curve to someone.",
     ],
   },
 
   quiz: [
-    {
-      q: "What does `enqueue` do differently from pushing onto an array?",
-      options: [
-        "If a reader is already parked in `next()`, it resolves that reader's promise directly instead of buffering",
-        "It compresses the message before storing it",
-        "It guarantees messages are delivered in priority order",
-        "It blocks the producer until the consumer is ready",
-      ],
+    { q: "Why must an agent run outlive the HTTP request that started it?",
+      options: ["Runs take minutes, deploys restart processes, clients drop, and approvals wait on humans — a held connection loses all of it", "HTTP has a hard 60-second limit", "Streaming requires a separate connection", "It reduces token usage"],
       answer: 0,
-      why:
-        "The branch on `this.waiting` is the whole mechanism. A buffered push means the consumer finds the value on some later tick; a direct handoff wakes the pending promise with it. There is no polling interval to tune and no worst case, which is why the simulator's poll-interval slider only ever makes things worse.",
-    },
-    {
-      q: "Why does the queue refuse to be iterated twice?",
-      options: [
-        "Two consumers would each silently receive a subset of messages, since there is one waiting slot",
-        "Async iterators cannot be shared in JavaScript",
-        "It would double memory usage",
-        "The second consumer would receive duplicates",
-      ],
+      why: "The run becomes a durable object with an id and the connection becomes a view of it. Resumability, surviving deploys, and non-blocking approvals all fall out of that one separation." },
+    { q: "What makes an SSE stream resumable?",
+      options: ["An `id:` on every event plus a durable log to replay from, so `Last-Event-ID` can be honoured", "Keeping the TCP connection alive", "Buffering events in server memory", "Using WebSockets instead"],
       answer: 0,
-      why:
-        "Each `next()` either takes the buffered head or parks in the single `waiting` slot, so a second reader overwrites the first. Every message is still delivered — to exactly one consumer, chosen by timing. Nothing throws, which is what makes it expensive to find. The guard turns a split-brain into a loud error.",
-    },
-    {
-      q: "An interrupt arrives while a write tool is in flight. What should the loop do?",
-      options: [
-        "Await the write, record that it completed, and say so in the report",
-        "Abandon it immediately so the interrupt feels responsive",
-        "Roll the write back automatically",
-        "Ask the user whether to continue",
-      ],
+      why: "The browser resends the last id it saw. Without ids it sends nothing and the client silently misses everything that happened during the dropout; without persistence there is nothing to replay." },
+    { q: "Why do heartbeats matter on an agent's event stream?",
+      options: ["An agent can think for 45 seconds with no events, which is indistinguishable from a dead connection to every proxy in between", "They keep the model warm", "They measure latency", "They are required by the SSE specification"],
       answer: 0,
-      why:
-        "You cannot un-send it, and waiting is what converts a permanent unknown into a fact. Abandoning is faster and moves the cost onto the user, who is left with a workspace in a state nobody recorded. Reads are the opposite case: abandon them, since their only cost is tokens.",
-    },
-    {
-      q: "Why must compaction happen inside the loop rather than between runs?",
-      options: [
-        "The transcript can cross the threshold on any turn, and the next model call is the one that would fail",
-        "Compaction requires the abort signal",
-        "It is cheaper to compact while tools are running",
-        "The user cannot see the transcript otherwise",
-      ],
+      why: "Intermediaries close idle connections at 30–60 seconds. A comment line every 15 seconds keeps it open. The related trap is buffering proxies, which need `no-transform` and `x-accel-buffering: no`." },
+    { q: "Your provider limit is token-based. What happens if you add workers?",
+      options: ["More calls against the same ceiling — queue wait becomes 429s, and capacity does not improve", "Capacity scales linearly with workers", "Latency improves but cost rises", "Nothing, since workers are cheap"],
       answer: 0,
-      why:
-        "An interactive run has no natural break at which to compact from outside. C05 treated compaction as something done to a context; an interactive loop has to do it to itself, on whichever turn the threshold is crossed — and emit an event, because a silent lossy edit to the agent's memory looks to the user like it stopped listening.",
-    },
-    {
-      q: "Steering messages are drained at the top of a turn. Why not the instant they arrive?",
-      options: [
-        "Inserting a user message between a tool_use block and its tool_result produces a transcript most APIs reject",
-        "Draining more often would overload the queue",
-        "The model needs a fixed number of messages per turn",
-        "Arrival order cannot be determined mid-step",
-      ],
+      why: "Agents are input-token workloads, so the token ceiling binds first. The real levers are smaller context per call, prompt caching, and fewer calls per run, each of which also reduces cost." },
+    { q: "How should an approval be handled at the serving layer?",
+      options: ["The run releases its lease and leaves the queue; the decision is appended to the log and re-queues it for any worker", "A worker blocks on a promise until the human responds", "The request handler holds the connection open", "The run is cancelled and restarted after approval"],
       answer: 0,
-      why:
-        "The turn boundary is the nearest seam at which the transcript is coherent. Mid-pair insertion is malformed by C01's rules and unlike anything the model saw in training. Since a step is seconds, the latency bought for that coherence is small — which the simulator shows directly.",
-    },
-    {
-      q: "What is the strongest argument for the loop emitting events even when nothing consumes them?",
-      options: [
-        "The same loop then serves a terminal, an SSE endpoint, a trace and a test with no change and no knowledge of any of them",
-        "Events make the loop run faster",
-        "The model performs better when its output is streamed",
-        "It is required for cancellation to work",
-      ],
+      why: "Humans take minutes to hours. Suspending to durable state means no thread is held, a deploy in between is harmless, and a different worker resumes by replaying, which is C09's design paying off." },
+    { q: "What must a worker do on SIGTERM?",
+      options: ["Stop claiming work, let in-flight runs reach a checkpoint, release leases, then exit — so runs resume elsewhere", "Exit immediately to speed the deploy", "Finish every in-flight run to completion regardless of duration", "Cancel in-flight runs and notify the users"],
       answer: 0,
-      why:
-        "A loop that returns a value has to be rewritten to gain any of those; a generator has them already, at the cost of one keyword. It is also what makes steering and interrupts expressible, since both need the caller to see progress while the loop is still running.",
-    },
+      why: "Exiting immediately makes every deploy an incident for whoever was mid-task. Draining to the queue with released leases means another worker replays and continues, with no visible impact." },
   ],
 
-  continues:
-    p(`The loop can now be watched, corrected and stopped by someone sitting in front of it. ${ch("c22", "C22")} is what happens when they are not sitting in front of it: the run has to outlive the HTTP connection that started it, survive a deploy, and let a client reattach to a stream it dropped halfway through.`),
+  continues: p(`Every mechanism in the course now exists. The last two chapters assemble them into complete systems: a deep-research agent that plans, searches, verifies and cites, and a coding agent that reads, patches and tests your files. ${ch("c27", "C27")} builds the first, and it is the chapter where the earlier chapters stop being separate ideas.`),
 };
 
 export default chapter;

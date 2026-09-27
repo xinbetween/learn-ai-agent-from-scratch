@@ -1,7 +1,7 @@
 /**
- * C22 · Shipping — a run that outlives its request: durable queue with leases,
+ * C26 · Shipping — a run that outlives its request: durable queue with leases,
  * resumable SSE, token-based admission control, fair queueing, and a chaos test.
- *   node --experimental-strip-types code/c22_serving.ts
+ *   node --experimental-strip-types code/c26_serving.ts
  */
 
 /* ---------------- resumable SSE ---------------- */
@@ -140,7 +140,7 @@ export function capacity(limitPerMin: number, contextPerCall: number, callsPerRu
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 async function main(): Promise<void> {
-  console.log("\n  C22 · Shipping\n");
+  console.log("\n  C26 · Shipping\n");
 
   // Resumable streaming.
   const bus = new EventBus();

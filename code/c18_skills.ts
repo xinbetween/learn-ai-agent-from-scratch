@@ -1,7 +1,7 @@
 /**
- * C27 · Skills — what a capability costs before it is used, and what
+ * C18 · Skills — what a capability costs before it is used, and what
  * progressive disclosure does to that number.
- *   node --experimental-strip-types code/c27_skills.ts
+ *   node --experimental-strip-types code/c18_skills.ts
  *
  * Three ways to give an agent forty capabilities: put every tool schema in the
  * context, name them and let it ask, or name them and let it read a file. The
@@ -133,7 +133,7 @@ const num = (n: number, w: number) => String(n).padStart(w);
 
 function main(): void {
   const TURNS = 12;
-  console.log(`\n  C27 · ${SKILLS.length} skills, three ways to offer them\n`);
+  console.log(`\n  C18 · ${SKILLS.length} skills, three ways to offer them\n`);
 
   console.log(`  ${pad("strategy", 24)} ${pad("resident", 10)} ${pad("on use", 8)} ${pad("×12 turns", 11)} select`);
   console.log(`  ${"-".repeat(24)} ${"-".repeat(10)} ${"-".repeat(8)} ${"-".repeat(11)} ${"-".repeat(6)}`);

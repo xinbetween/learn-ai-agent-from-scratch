@@ -1,6 +1,6 @@
 /**
- * C07 · Memory — extraction, contradiction resolution, decay, and a 180-day run.
- *   node --experimental-strip-types code/c07_memory.ts
+ * C08 · Memory — extraction, contradiction resolution, decay, and a 180-day run.
+ *   node --experimental-strip-types code/c08_memory.ts
  */
 
 export type MemoryType = "semantic" | "procedural" | "episodic";
@@ -172,7 +172,7 @@ function simulate(p: Policy, days = 180, runsPerDay = 8) {
 }
 
 function main(): void {
-  console.log("\n  C07 · Memory — 180 days, 8 runs/day\n");
+  console.log("\n  C08 · Memory — 180 days, 8 runs/day\n");
 
   const policies: Policy[] = [
     { name: "greedy, append-only", greedy: true, threshold: 0, supersede: false, prune: false },

@@ -1,10 +1,10 @@
 /**
- * C14 · apply_patch
+ * C16 · apply_patch
  *
  * A line-oriented patch format with context-addressed hunks: no line numbers to
  * miscount, no JSON string to escape. Parser, matching ladder, atomic applier.
  *
- *   node --experimental-strip-types code/c14_apply_patch.ts
+ *   node --experimental-strip-types code/c16_apply_patch.ts
  */
 
 /* ------------------------------------------------------------------ grammar */
@@ -298,7 +298,7 @@ export class SessionStore {
 `;
 
 function main(): void {
-  console.log("\n  C14 · apply_patch\n");
+  console.log("\n  C16 · apply_patch\n");
 
   const files = new Map<string, string>([["src/session.ts", FILE]]);
   const read = (p: string) => files.get(p) ?? null;

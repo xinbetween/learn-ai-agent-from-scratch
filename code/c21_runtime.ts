@@ -1,7 +1,7 @@
 /**
- * C18 · The Agent Runtime — AgentId, TopicId, TypeSubscription, RoutedAgent and
+ * C21 · The Agent Runtime — AgentId, TopicId, TypeSubscription, RoutedAgent and
  * a single-threaded runtime with ordered per-instance mailboxes.
- *   node --experimental-strip-types code/c18_runtime.ts
+ *   node --experimental-strip-types code/c21_runtime.ts
  */
 
 export interface AgentId { type: string; key: string }
@@ -209,7 +209,7 @@ function build(alwaysReject = false): Runtime {
 /* ---------------- demo ---------------- */
 
 async function main(): Promise<void> {
-  console.log("\n  C18 · The Agent Runtime\n");
+  console.log("\n  C21 · The Agent Runtime\n");
 
   const rt = build();
   rt.publish({ type: "IssueOpened" }, topicId("issue_opened", "issue-41"));

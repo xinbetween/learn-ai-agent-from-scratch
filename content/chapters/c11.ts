@@ -1,455 +1,449 @@
 import type { Chapter } from "../../src/types.ts";
 import { code, fig, lab, note, table, p, ul, ol, ch } from "../../src/ui.ts";
 
-const PATTERNS_SVG = `
-<svg viewBox="0 0 700 320" width="100%" style="max-width:700px;display:block;margin:0 auto" role="img"
-     aria-label="Five composition patterns from chaining to autonomous agent">
-  <defs><marker id="c11" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-    <path d="M0 0 L10 5 L0 10 z" fill="var(--border-strong)"/></marker></defs>
+const VERIFY_SVG = `
+<svg viewBox="0 0 700 280" width="100%" style="max-width:700px;display:block;margin:0 auto" role="img"
+     aria-label="The verification ladder from ground truth to self-critique">
+  <text x="14" y="18" class="d-label">ORDERED BY HOW MUCH THE CHECK KNOWS THAT THE AUTHOR DID NOT</text>
 
-  <text x="14" y="16" class="d-label">CHAINING — fixed order, each output feeds the next</text>
-  <g><rect x="14" y="24" width="60" height="24" rx="4" class="d-box"/><text x="44" y="40" class="d-mono" text-anchor="middle">draft</text>
-  <path d="M78 36 L94 36" class="d-arrow" marker-end="url(#c11)"/>
-  <rect x="98" y="24" width="60" height="24" rx="4" class="d-box"/><text x="128" y="40" class="d-mono" text-anchor="middle">check</text>
-  <path d="M162 36 L178 36" class="d-arrow" marker-end="url(#c11)"/>
-  <rect x="182" y="24" width="60" height="24" rx="4" class="d-box"/><text x="212" y="40" class="d-mono" text-anchor="middle">polish</text></g>
-  <text x="260" y="40" class="d-mono" fill="var(--fg-faint)">use when the steps never change and each is easier alone</text>
+  <rect x="14" y="30" width="672" height="42" rx="6" class="d-box-t"/>
+  <text x="28" y="48" class="d-text">1 · ground truth</text>
+  <text x="28" y="64" class="d-mono" fill="var(--fg-faint)">run the test · compile it · call the API and read the status · diff the file — independent of the model</text>
 
-  <text x="14" y="76" class="d-label">ROUTING — one classification, then a specialised path</text>
-  <g><rect x="14" y="84" width="60" height="24" rx="4" class="d-box-p"/><text x="44" y="100" class="d-mono" text-anchor="middle">classify</text>
-  <path d="M78 96 L96 84" class="d-arrow" marker-end="url(#c11)"/><path d="M78 96 L96 96" class="d-arrow" marker-end="url(#c11)"/><path d="M78 96 L96 108" class="d-arrow" marker-end="url(#c11)"/>
-  <rect x="100" y="74" width="74" height="18" rx="3" class="d-box"/><text x="137" y="87" class="d-mono" text-anchor="middle">refund</text>
-  <rect x="100" y="87" width="74" height="18" rx="3" class="d-box"/><text x="137" y="100" class="d-mono" text-anchor="middle">tracking</text>
-  <rect x="100" y="100" width="74" height="18" rx="3" class="d-box"/><text x="137" y="113" class="d-mono" text-anchor="middle">escalate</text></g>
-  <text x="194" y="100" class="d-mono" fill="var(--fg-faint)">cheap, testable, each path gets its own prompt and eval set</text>
+  <rect x="14" y="78" width="672" height="42" rx="6" class="d-box-p"/>
+  <text x="28" y="96" class="d-text">2 · rules you wrote</text>
+  <text x="28" y="112" class="d-mono" fill="var(--fg-faint)">schema validity · invariants · "critical ⇒ needsHuman" · cited source actually contains the claim</text>
 
-  <text x="14" y="146" class="d-label">PARALLEL — independent work, then merge</text>
-  <g><rect x="14" y="154" width="54" height="24" rx="4" class="d-box"/><text x="41" y="170" class="d-mono" text-anchor="middle">split</text>
-  <rect x="86" y="146" width="66" height="16" rx="3" class="d-box-t"/><rect x="86" y="164" width="66" height="16" rx="3" class="d-box-t"/><rect x="86" y="182" width="66" height="16" rx="3" class="d-box-t"/>
-  <text x="119" y="158" class="d-mono" text-anchor="middle">a</text><text x="119" y="176" class="d-mono" text-anchor="middle">b</text><text x="119" y="194" class="d-mono" text-anchor="middle">c</text>
-  <path d="M156 170 L172 170" class="d-arrow" marker-end="url(#c11)"/>
-  <rect x="176" y="158" width="60" height="24" rx="4" class="d-box"/><text x="206" y="174" class="d-mono" text-anchor="middle">merge</text></g>
-  <text x="252" y="174" class="d-mono" fill="var(--fg-faint)">latency win, and independent votes on the same question</text>
+  <rect x="14" y="126" width="672" height="42" rx="6" class="d-box-a"/>
+  <text x="28" y="144" class="d-text">3 · an independent critic</text>
+  <text x="28" y="160" class="d-mono" fill="var(--fg-faint)">fresh context, sees the output not the reasoning, given a rubric and permission to fail it</text>
 
-  <text x="14" y="222" class="d-label">ORCHESTRATOR — model decides which workers, workers are fixed</text>
-  <g><rect x="14" y="230" width="78" height="24" rx="4" class="d-box-a"/><text x="53" y="246" class="d-mono" text-anchor="middle">orchestr.</text>
-  <path d="M96 242 L116 230" class="d-arrow" marker-end="url(#c11)"/><path d="M96 242 L116 242" class="d-arrow" marker-end="url(#c11)"/><path d="M96 242 L116 254" class="d-arrow" marker-end="url(#c11)"/>
-  <rect x="120" y="222" width="60" height="16" rx="3" class="d-box-t"/><rect x="120" y="238" width="60" height="16" rx="3" class="d-box-t"/><rect x="120" y="254" width="60" height="16" rx="3" class="d-box-t"/>
-  <path d="M184 246 L200 246" class="d-arrow" marker-end="url(#c11)"/>
-  <rect x="204" y="234" width="58" height="24" rx="4" class="d-box"/><text x="233" y="250" class="d-mono" text-anchor="middle">synth</text></g>
-  <text x="278" y="246" class="d-mono" fill="var(--fg-faint)">C17 — agency in selection only, not in the workers</text>
+  <rect x="14" y="174" width="672" height="42" rx="6" class="d-box" stroke="var(--danger)" stroke-dasharray="4 3"/>
+  <text x="28" y="192" class="d-text" fill="var(--danger)">4 · self-critique in the same context</text>
+  <text x="28" y="208" class="d-mono" fill="var(--fg-faint)">"are you sure?" — the author reviewing its own work with all its assumptions still loaded</text>
 
-  <text x="14" y="292" class="d-label">AGENT — model owns order, tool choice and stopping</text>
-  <rect x="14" y="300" width="250" height="16" rx="3" class="d-box-a"/>
-  <text x="139" y="312" class="d-mono" text-anchor="middle">loop until it decides to stop  (C04)</text>
-  <text x="278" y="312" class="d-mono" fill="var(--danger)">most expensive, least predictable — earn it</text>
+  <line x1="14" y1="232" x2="686" y2="232" stroke="var(--border)"/>
+  <text x="14" y="254" class="d-mono" fill="var(--ok)">rung 1 catches the errors that matter and cannot be argued with.</text>
+  <text x="14" y="272" class="d-mono" fill="var(--danger)">rung 4 mostly produces confident agreement. it is not a verification strategy.</text>
 </svg>`;
 
 const chapter: Chapter = {
   id: "c11",
   num: 11,
   layer: "reasoning",
-  title: "Control Flow",
-  subtitle: "Where to put the `if` statement",
+  title: "Reflection & Verification",
+  subtitle: "Checking the work, and why 'are you sure?' does almost nothing",
   blurb:
-    "Five composition patterns and a decision procedure for choosing between them. The most valuable architectural skill in agent engineering is noticing which decisions never needed a model at all.",
-  lines: 153,
-  file: "code/c11_control_flow.ts",
-  tags: ["workflows", "routing", "chaining", "parallelisation", "orchestrator", "agency dial", "determinism"],
+    "Models are over-confident about their own output. The verification ladder, critic loops that actually converge, when reflection helps and when it just burns tokens, and the one design rule: the checker must know something the author did not.",
+  lines: 213,
+  file: "code/c11_reflection.ts",
+  tags: ["self-critique", "LLM-as-judge", "verification", "critic loop", "grounding", "over-confidence"],
 
   sections: [
-    { id: "motivation", kicker: "Motivation", title: "The most expensive `if` in your system",
+    { id: "motivation", kicker: "Motivation", title: "The agent that was sure",
       html:
-        p(`Your agent has a tool called <code>get_weather</code>. On every run where the user mentions a city, the model decides to call it. That decision costs a model call, adds a round trip, and could go the other way on an unlucky sample.`) +
-        p(`It is also not a decision. The rule is <em>"if the request mentions a place and a time, fetch the weather"</em> — three lines of code, zero tokens, zero variance, and a unit test. You gave a stochastic process a job that a deterministic one does better.`) +
-        p(`This chapter is about spotting that pattern, which is everywhere once you look. ${ch("c00", "C00")} introduced the dial; this is how to actually choose a position, at the level of individual decisions rather than whole systems.`) +
-        note("key", "The question to keep asking", p(`For every decision your agent makes: <strong>could I have written this rule down?</strong> If yes, write it down. Model calls are for decisions you cannot enumerate. Everything else is paying a premium for nondeterminism you did not want.`)) },
+        p(`Your agent finishes: <em>"I've updated all six call sites and the tests pass."</em> Four call sites were updated. The tests were not run. Nothing is lying. The model genuinely believes this, because from inside its context it made six edits and the last observation was a successful write.`) +
+        p(`The reflex is to add <em>"double-check your work before answering"</em> to the system prompt. Measured effect: small, and sometimes negative, because a model asked to re-examine its own reasoning in the same context produces a fluent justification of what it already concluded. Its assumptions are still loaded; that is precisely the problem.`) +
+        note("key", "The one rule in this chapter", p(`A verification step is only worth its cost if <strong>the checker knows something the author did not</strong>. A test result. A rule you wrote. A fresh context with no memory of the reasoning. If the check has exactly the same information as the thing being checked, it will mostly agree, and you have paid for a second opinion from the same person.`)) },
 
-    { id: "core-idea", kicker: "Core idea", title: "Five patterns",
+    { id: "core-idea", kicker: "Core idea", title: "The verification ladder",
       html:
-        fig({ label: "Diagram", title: "composition patterns, cheapest first", body: PATTERNS_SVG,
-          caption: `These compose: a routing step whose branches are chains, one of which ends in an agent. Most good production systems are exactly that — a deterministic skeleton with agency in the two places that need it.` }) +
-        table(["Pattern", "Who decides", "Cost", "Reach for it when"], [
-          ["<b>Chaining</b>", "You", "N calls, fixed", "The steps never change and each is easier in isolation"],
-          ["<b>Routing</b>", "Model picks 1 of N", "1 + branch", "Inputs fall into distinct kinds needing different handling"],
-          ["<b>Parallel</b>", "You", "N calls, 1 wall-clock", "Independent subtasks, or several votes on one question"],
-          ["<b>Orchestrator</b>", "Model picks workers", "1 + k + 1", "Which subtasks are needed depends on the input"],
-          ["<b>Agent</b>", "Model, every step", "unbounded", "The next step depends on what the last one returned"],
-        ]) +
-        `<h3>Routing is the most underrated</h3>` +
-        p(`A single cheap classification into three or four branches buys most of what people build agents for, at a fraction of the cost, and each branch gets a focused prompt, a small tool set, and its own eval set. That last point matters more than the cost: <em>you can measure a branch</em>. "Refund requests succeed 94% of the time, tracking 99%, escalations 87%" is an actionable dashboard. "The agent succeeds 93% of the time" is not.`) +
-        code({ title: "code/c11_control_flow.ts — a router with a real escape hatch",
-          src: `const ROUTES = {
-  refund:   { system: REFUND_PROMPT,   tools: [orders, policies, issueRefund], maxSteps: 6 },
-  tracking: { system: TRACKING_PROMPT, tools: [orders, carrier],               maxSteps: 3 },
-  policy:   { system: POLICY_PROMPT,   tools: [searchDocs],                    maxSteps: 4 },
-  other:    { system: GENERAL_PROMPT,  tools: ALL_TOOLS,                       maxSteps: 12 },
-} as const;
+        fig({ label: "Diagram", title: "four rungs, by independence", body: VERIFY_SVG,
+          caption: `Spend effort at the top. Most teams spend it at the bottom, because rung 4 is one line of prompt and rung 1 is engineering.` }) +
+        `<h3>1 · Ground truth, wherever it exists</h3>` +
+        p(`The most valuable thing you can give an agent is a way to find out it was wrong that does not involve asking a model. This is why coding agents work as well as they do: the compiler and the test suite are ground truth, they are cheap, and they are not persuadable.`) +
+        code({ title: "make the verifier a tool, and make the loop use it",
+          src: `const runTests = defineTool({
+  name: "run_tests",
+  description: \`Run the test suite. Returns pass/fail counts and the first 3 failures with
+their assertion messages. CALL THIS before claiming any code change works.\`,
+  readOnly: false, idempotent: true, timeoutMs: 300_000,
+  input: obj({ pattern: opt(str({ description: "test file glob; omit to run all" })) }),
+  run: async ({ pattern }, ctx) => summarise(await exec("npm", ["test", ...(pattern ? ["--", pattern] : [])], ctx)),
+});
 
-export async function handle(request: string, model: Model) {
-  const { route, confidence } = await structured(model, [{ role: "user", content: ROUTE_PROMPT + request }],
-    obj({ route: enumOf(["refund", "tracking", "policy", "other"] as const),
-          confidence: num({ min: 0, max: 1 }) }),
-    { model: "small" });                       // classification does not need the big model
-
-  // Low confidence falls back to the general agent rather than guessing a branch.
-  // Without this, an unusual request gets a specialist that cannot help it.
-  const cfg = confidence < 0.7 ? ROUTES.other : ROUTES[route];
-  return runAgent(request, cfg);
+// And the part that matters more than the tool: the agent is not permitted to
+// finish without it.
+function canFinish(state: RunState): string | null {
+  if (state.filesChanged.length && !state.toolsUsed.has("run_tests"))
+    return "You changed files but never ran the tests. Run them before answering.";
+  if (state.lastTestResult?.failed)
+    return \`\${state.lastTestResult.failed} tests are failing. Fix them or explain why they are unrelated.\`;
+  return null;
 }`,
         }) +
-        p(`Two design points. The classifier uses a small model, because routing is the archetypal cheap-model task. And the <code>other</code> branch is a real agent, not an error: a router without a general fallback fails on exactly the inputs that motivated building an agent in the first place.`) +
-        `<h3>Parallel has two different uses</h3>` +
+        p(`That <code>canFinish</code> gate is a <em>structural</em> verification: it lives in your loop, not in a prompt, so the model cannot talk its way past it. Where you can express a completion condition in code, do. It is free, deterministic, and it never has a bad day.`) +
+        `<h3>2 · Rules you wrote</h3>` +
+        p(`Cheap invariants catch a surprising share of nonsense. Schema validity (${ch("c02", "C02")}), cross-field consistency, and one that is specific to agents and underused: <strong>citation grounding</strong> — check mechanically that every quoted claim appears in a document that was actually retrieved.`) +
+        code({ title: "grounding without a model",
+          src: `export function ungrounded(answer: string, sources: Chunk[]): string[] {
+  const corpus = sources.map((s) => normalise(s.text)).join(" ");
+  return extractClaims(answer)                       // sentences containing a number, name, or quote
+    .filter((c) => {
+      // A claim is grounded if a long-enough shingle of it appears in the sources.
+      const grams = shingle(normalise(c), 6);
+      return ![...grams].some((g) => corpus.includes(g));
+    });
+}
+// Catches the specific failure that damages trust most: a fabricated figure or
+// quotation presented with a real citation next to it.`,
+        }) +
+        `<h3>3 · An independent critic</h3>` +
+        p(`A second model call, though the design matters more than the existence:`) +
         ul([
-          `<strong>Sectioning</strong> — genuinely independent subtasks run concurrently. A latency win, and the win is large: five 2-second calls become one 2-second wave.`,
-          `<strong>Voting</strong> — the same question asked several ways, then aggregated. Buys accuracy on high-stakes judgements, and is the honest version of ${ch("c10", "C10")}'s self-consistency: three independent samples with a majority rule beat one sample plus "are you sure?".`,
-        ]) },
+          `<strong>Fresh context.</strong> The critic sees the task and the output, not the reasoning that produced it. Including the reasoning is the single most common mistake, and it converts an independent check into agreement.`,
+          `<strong>A rubric, not "is this good".</strong> Specific criteria produce specific findings; open-ended judging produces prose.`,
+          `<strong>Permission to pass.</strong> A critic asked to "find problems" will find problems in flawless work. That is instruction-following, not judgement. Ask it to score against criteria and explicitly allow "no issues".`,
+          `<strong>Position bias is real.</strong> When comparing two candidates, order affects the verdict. Evaluate both orders and discard disagreements, or you are measuring position.`,
+        ]) +
+        `<h3>4 · Self-critique</h3>` +
+        p(`Worth roughly what it costs, which is not much. It catches arithmetic slips and format violations. It does not catch "I thought I edited six files". Use it as a cheap last pass, never as the verification strategy.`) },
 
-    { id: "mechanics", kicker: "Mechanics", title: "The decision procedure",
+    { id: "mechanics", kicker: "Mechanics", title: "Critic loops that terminate",
       html:
-        p(`Apply this per <em>decision</em>, not per system. Most systems land in several places at once, which is correct.`) +
-        code({ title: "five questions, in order", lang: "text", plain: true,
-          src: `1. Can I write this rule down?
-   yes → write code. No model call. (This eliminates more decisions than you expect.)
+        code({ title: "code/c11_reflection.ts — generate, critique, revise",
+          src: `export async function withCritic<T>(
+  generate: (feedback?: Critique) => Promise<T>,
+  critique: (candidate: T) => Promise<Critique>,
+  opts = { maxRounds: 3, acceptAt: 0.8 },
+): Promise<{ value: T; rounds: number; history: Critique[] }> {
+  let candidate = await generate();
+  const history: Critique[] = [];
 
-2. Is it a classification into a fixed, known set?
-   yes → routing, with a small model and a confidence threshold.
+  for (let round = 1; round <= opts.maxRounds; round++) {
+    const c = await critique(candidate);
+    history.push(c);
 
-3. Do I know the full sequence of steps before I start?
-   yes → chaining. Parallelise any steps that do not depend on each other.
+    if (c.score >= opts.acceptAt) return { value: candidate, rounds: round, history };
 
-4. Does the SET of steps depend on the input, but each step is itself well-defined?
-   yes → orchestrator: the model picks which workers to run, the workers are fixed.
+    // Guard 1: no improvement means the critic has nothing more to offer.
+    const prev = history.at(-2);
+    if (prev && c.score <= prev.score + 0.02) return { value: best(candidate, history), rounds: round, history };
 
-5. Does step N+1 depend on the CONTENT returned by step N, in ways you cannot enumerate?
-   yes → agent. This is the only question whose "yes" earns the loop.
-   no  → you are at 1–4. Go back.`,
-        }) +
-        p(`Question 5 is the real test, and it has a precise reading. "Search, then summarise" is a chain: the second step needs the first step's <em>output</em>, but you always knew it was coming. "Search, and if the results contradict the policy, search the policy index instead, and if that is ambiguous, ask the user" is an agent, because the branch structure is a function of content you have not seen.`) +
-        `<h3>The hybrid that most production systems converge on</h3>` +
-        code({ title: "deterministic skeleton, agency in two places",
-          src: `export async function handleTicket(ticket: Ticket) {
-  // 1. RULES. No model. Free, instant, testable, auditable.
-  if (ticket.priority === "P0") return escalateToHuman(ticket);
-  if (isDuplicate(ticket)) return linkToExisting(ticket);
-  if (ticket.body.length < 20) return askForDetail(ticket);
+    // Guard 2: the same complaint twice means the generator cannot act on it.
+    if (prev && sameIssues(prev, c)) return { value: candidate, rounds: round, history };
 
-  // 2. ROUTE. One small-model call.
-  const { route, confidence } = await classify(ticket);
-
-  // 3. FIXED CHAIN for the common, well-understood case — 70% of traffic.
-  if (route === "tracking" && confidence > 0.85) {
-    const order = await lookupOrder(ticket.orderId);          // deterministic
-    const status = await carrier.track(order.tracking);       // deterministic
-    return writeReply(TRACKING_TEMPLATE, { order, status });  // one model call for prose
+    candidate = await generate(c);
   }
-
-  // 4. AGENT for the long tail — 30% of traffic, 90% of the difficulty.
-  return runAgent(ticket.body, ROUTES[route]);
+  return { value: candidate, rounds: opts.maxRounds, history };
 }`,
         }) +
-        note("good", "The shape to aim for", p(`Seventy per cent of traffic takes a path with one cheap model call and predictable latency. Thirty per cent gets the full agent. Cost drops by roughly an order of magnitude, p50 latency by more, and the agent's eval set is now the hard cases only, which makes it far easier to improve.`)) +
-        `<h3>Do not confuse "the model is involved" with "this is an agent"</h3>` +
-        p(`Step 3 above makes a model call. It is not an agent: the model writes prose into a fixed shape, and the control flow is yours. That distinction is what makes the branch testable, cheap, and explainable to whoever signs off on it.`) },
+        p(`Both guards exist because critic loops oscillate. Round 1 finds three real problems. Round 2 finds two smaller ones. Round 3 finds stylistic preferences, the generator "fixes" them, and the output gets worse. The measured pattern is consistent: <strong>round 1 is worth a lot, round 2 a little, round 3 usually nothing</strong>. Cap at two revisions unless you have data saying otherwise.`) +
+        note("warn", "Keep the best, not the last", p(`If scores go 0.6 → 0.78 → 0.71, returning the final candidate returns the worse one. Track candidates alongside scores and return the maximum. This is a three-line change that a surprising number of implementations miss.`)) +
+        `<h3>Spend verification where it pays</h3>` +
+        p(`Verifying everything doubles cost and latency. Verify by <em>stakes</em> × <em>uncertainty</em>:`) +
+        table(["Signal", "How to get it", "Action"], [
+          ["Irreversible action", "Tool metadata — <code>readOnly</code>, write scope", "Always verify (and see ${C19})"],
+          ["Self-consistency", "Sample twice at temp 0.3; do they agree?", "Verify only on disagreement"],
+          ["Low retrieval score", "Best chunk below threshold", "Verify, and consider searching again"],
+          ["Long chain", "Steps since last ground-truth check", "Verify at intervals, not only at the end"],
+          ["Historical failure", "This task type fails 12% of the time (${C22})", "Always verify"],
+        ].map((r) => r.map((c) => c.replace("${C19}", `<a href="/c19/" class="mono">C19</a>`).replace("${C22}", `<a href="/c22/" class="mono">C22</a>`))) as string[][]) +
+        p(`Self-consistency is the best value of these: two samples at moderate temperature, verify only when they differ. It concentrates spend on the genuinely ambiguous cases, which are usually 5–15% of traffic, rather than taxing all of it.`) },
 
-    { id: "explore", kicker: "Explore", title: "Architect a system under a traffic mix",
+    { id: "explore", kicker: "Explore", title: "Buy accuracy at various prices",
       html:
-        p(`Set your traffic mix and assign each class a pattern. Watch cost, p50, p99, and the share of traffic whose behaviour you can actually predict.`) +
-        lab({ label: "Simulator", title: "pattern assignment under load",
+        p(`Each strategy has a cost and a catch rate that depends on the error type. Find the combination that catches the errors you actually have.`) +
+        lab({ label: "Simulator", title: "verification strategies vs error types",
           body: `
 <div class="controls">
-  <div class="ctl"><label>simple &amp; routine</label><input type="range" id="f11-a" min="0" max="100" step="5" value="55"><span class="val" id="f11-a-v">55%</span></div>
-  <div class="ctl"><label>needs a branch</label><input type="range" id="f11-b" min="0" max="100" step="5" value="25"><span class="val" id="f11-b-v">25%</span></div>
-  <div class="ctl"><label>genuinely open-ended</label><span class="val" id="f11-c-v">20%</span></div>
+  <div class="ctl"><label>strategies</label>
+    <div style="display:flex;flex-direction:column;gap:.15rem;font-size:.8125rem">
+      <label><input type="checkbox" id="v10-gt"> ground truth (tests/compiler)</label>
+      <label><input type="checkbox" id="v10-rule" checked> rules + grounding check</label>
+      <label><input type="checkbox" id="v10-critic"> independent critic (fresh ctx)</label>
+      <label><input type="checkbox" id="v10-self" checked> self-critique ("are you sure?")</label>
+      <label><input type="checkbox" id="v10-cons"> self-consistency gate (2 samples)</label>
+    </div></div>
+  <div class="ctl"><label>base error rate</label>
+    <input type="range" id="v10-err" min="2" max="40" step="1" value="14"><span class="val" id="v10-err-v">14%</span></div>
+  <div class="ctl"><label>critic sees reasoning</label>
+    <select id="v10-leak"><option value="0" selected>no (fresh context)</option><option value="1">yes (same thread)</option></select></div>
 </div>
-<div class="controls" style="border-top:1px solid var(--border);padding-top:.75rem">
-  <div class="ctl"><label>pattern for simple</label><select id="f11-pa"><option value="rule">rules (no model)</option><option value="chain" selected>fixed chain</option><option value="agent">agent</option></select></div>
-  <div class="ctl"><label>pattern for branching</label><select id="f11-pb"><option value="chain">fixed chain</option><option value="route" selected>routing</option><option value="agent">agent</option></select></div>
-  <div class="ctl"><label>pattern for open-ended</label><select id="f11-pc"><option value="route">routing</option><option value="orch">orchestrator</option><option value="agent" selected>agent</option></select></div>
-  <div class="ctl"><label>volume / day</label><input type="range" id="f11-v" min="100" max="100000" step="100" value="10000"><span class="val" id="f11-v-v">10,000</span></div>
-</div>
-<div id="f11-rows" style="margin-top:.5rem"></div>
+<div id="v10-rows" style="margin-top:.5rem"></div>
 <div class="stats">
-  <div class="stat"><b id="f11-cost">—</b><span>$ / day</span></div>
-  <div class="stat"><b id="f11-p50">—</b><span>p50 latency</span></div>
-  <div class="stat"><b id="f11-p99">—</b><span>p99 latency</span></div>
-  <div class="stat"><b id="f11-succ">—</b><span>overall success</span></div>
-  <div class="stat"><b id="f11-pred">—</b><span>predictable traffic</span></div>
+  <div class="stat"><b id="v10-caught">—</b><span>errors caught</span></div>
+  <div class="stat"><b id="v10-fp">—</b><span>false alarms</span></div>
+  <div class="stat"><b id="v10-cost">—</b><span>cost multiplier</span></div>
+  <div class="stat"><b id="v10-lat">—</b><span>added latency</span></div>
 </div>
-<div class="note" id="f11-note" style="margin-top:1rem"></div>`,
+<div class="note" id="v10-note" style="margin-top:1rem"></div>`,
           script: `
-var P = {
-  rule:  { cost: 0,      p50: 30,   p99: 60,    det: 1,   fit: { simple: .97, branch: .55, open: .12 } },
-  chain: { cost: .0022,  p50: 1400, p99: 2600,  det: 1,   fit: { simple: .95, branch: .74, open: .34 } },
-  route: { cost: .0035,  p50: 1900, p99: 4200,  det: .9,  fit: { simple: .95, branch: .93, open: .55 } },
-  orch:  { cost: .0180,  p50: 5200, p99: 15000, det: .35, fit: { simple: .93, branch: .90, open: .82 } },
-  agent: { cost: .0290,  p50: 7400, p99: 31000, det: 0,   fit: { simple: .91, branch: .89, open: .90 } }
-};
+var ERRS = [
+  { k: "code does not compile / test fails", w: 22, gt: .99, rule: .10, critic: .45, self: .30, cons: .35 },
+  { k: "claimed work that was not done",     w: 19, gt: .92, rule: .55, critic: .60, self: .08, cons: .20 },
+  { k: "fabricated fact or citation",        w: 17, gt: .05, rule: .78, critic: .62, self: .12, cons: .55 },
+  { k: "wrong tool / wrong approach",        w: 14, gt: .30, rule: .12, critic: .58, self: .22, cons: .48 },
+  { k: "arithmetic / unit slip",             w: 12, gt: .60, rule: .70, critic: .50, self: .45, cons: .62 },
+  { k: "misread the requirement",            w: 10, gt: .15, rule: .08, critic: .55, self: .15, cons: .30 },
+  { k: "output format violation",            w:  6, gt: .20, rule: .96, critic: .40, self: .55, cons: .25 }
+];
 function upd() {
-  var a = +document.getElementById("f11-a").value, b = +document.getElementById("f11-b").value;
-  if (a + b > 100) b = 100 - a;
-  document.getElementById("f11-b").value = b;
-  var c = 100 - a - b;
-  document.getElementById("f11-a-v").textContent = a + "%";
-  document.getElementById("f11-b-v").textContent = b + "%";
-  document.getElementById("f11-c-v").textContent = c + "%";
-  var V = +document.getElementById("f11-v").value;
-  document.getElementById("f11-v-v").textContent = V.toLocaleString();
+  var on = { gt: document.getElementById("v10-gt").checked, rule: document.getElementById("v10-rule").checked,
+             critic: document.getElementById("v10-critic").checked, self: document.getElementById("v10-self").checked,
+             cons: document.getElementById("v10-cons").checked };
+  var leak = document.getElementById("v10-leak").value === "1";
+  var base = +document.getElementById("v10-err").value / 100;
+  document.getElementById("v10-err-v").textContent = (base * 100) + "%";
 
-  var mix = [
-    { k: "simple & routine",     share: a / 100, kind: "simple", pat: document.getElementById("f11-pa").value },
-    { k: "needs a branch",       share: b / 100, kind: "branch", pat: document.getElementById("f11-pb").value },
-    { k: "genuinely open-ended", share: c / 100, kind: "open",   pat: document.getElementById("f11-pc").value }
-  ];
-  var cost = 0, succ = 0, det = 0, lat = [];
-  document.getElementById("f11-rows").innerHTML = mix.map(function (m) {
-    var p = P[m.pat], s = p.fit[m.kind];
-    cost += m.share * V * p.cost; succ += m.share * s; det += m.share * p.det;
-    lat.push({ w: m.share, p50: p.p50, p99: p.p99 });
-    var col = s > .9 ? "var(--ok)" : s > .7 ? "var(--accent)" : "var(--danger)";
+  var totW = ERRS.reduce(function (a, e) { return a + e.w; }, 0), caught = 0, rows = [];
+  ERRS.forEach(function (e) {
+    var miss = 1;
+    if (on.gt) miss *= (1 - e.gt);
+    if (on.rule) miss *= (1 - e.rule);
+    if (on.critic) miss *= (1 - e.critic * (leak ? 0.35 : 1));   // leaking reasoning guts the critic
+    if (on.self) miss *= (1 - e.self * 0.45);                    // same-context critique is weak
+    if (on.cons) miss *= (1 - e.cons);
+    var share = e.w / totW;
+    caught += share * (1 - miss);
+    rows.push([e.k, 1 - miss, share]);
+  });
+  document.getElementById("v10-rows").innerHTML = rows.map(function (r) {
+    var col = r[1] > .8 ? "var(--ok)" : r[1] > .5 ? "var(--accent)" : "var(--danger)";
     return '<div style="display:flex;gap:.6rem;align-items:center;margin:.3rem 0">' +
-      '<span class="mono small" style="width:12rem;color:var(--fg-muted)">' + m.k + ' · ' + Math.round(m.share * 100) + '%</span>' +
-      '<span class="mono small" style="width:5rem;color:var(--accent)">' + m.pat + '</span>' +
-      '<span class="meter" style="flex:1"><i style="width:' + (s * 100) + '%;background:' + col + '"></i></span>' +
-      '<span class="mono small" style="width:3rem;text-align:right">' + Math.round(s * 100) + '%</span></div>';
+      '<span class="mono small" style="width:16rem;color:var(--fg-muted)">' + r[0] + '</span>' +
+      '<span class="meter" style="flex:1"><i style="width:' + (r[1] * 100) + '%;background:' + col + '"></i></span>' +
+      '<span class="mono small" style="width:3rem;text-align:right">' + Math.round(r[1] * 100) + '%</span></div>';
   }).join("");
 
-  var p50 = lat.reduce(function (t, x) { return t + x.w * x.p50; }, 0);
-  var p99 = Math.max.apply(null, lat.filter(function (x) { return x.w > .05; }).map(function (x) { return x.p99; }));
-  document.getElementById("f11-cost").textContent = "$" + cost.toFixed(0);
-  document.getElementById("f11-p50").textContent = (p50 / 1000).toFixed(1) + "s";
-  document.getElementById("f11-p99").textContent = (p99 / 1000).toFixed(1) + "s";
-  document.getElementById("f11-succ").textContent = Math.round(succ * 100) + "%";
-  document.getElementById("f11-pred").textContent = Math.round(det * 100) + "%";
+  var cost = 1 + (on.critic ? .55 : 0) + (on.self ? .25 : 0) + (on.cons ? .9 : 0) + (on.gt ? .05 : 0);
+  var lat = (on.critic ? 900 : 0) + (on.self ? 500 : 0) + (on.cons ? 950 : 0) + (on.gt ? 4000 : 0);
+  var fp = (on.critic ? 6 : 0) + (on.self ? 3 : 0) + (on.rule ? 1 : 0);
+  document.getElementById("v10-caught").textContent = Math.round(caught * 100) + "%";
+  document.getElementById("v10-fp").textContent = fp + "%";
+  document.getElementById("v10-cost").textContent = cost.toFixed(2) + "×";
+  document.getElementById("v10-lat").textContent = lat < 1000 ? lat + " ms" : (lat / 1000).toFixed(1) + " s";
 
-  var allAgent = mix.every(function (m) { return m.pat === "agent"; });
-  var n = document.getElementById("f11-note");
-  if (allAgent) n.innerHTML = "<b>Everything is an agent.</b> Success is fine and you are paying roughly 10× for it, with a p99 measured in half-minutes and 0% of traffic whose behaviour you can predict. This is the most common architecture in a first production release.";
-  else if (mix[0].pat === "rule") n.innerHTML = "<b>Rules on the routine path.</b> Zero cost, 30ms, fully testable — for the majority of traffic. Check the success bar for that row: if it is above 95%, those requests genuinely did not need a model, and you just removed most of your bill.";
-  else if (mix[2].pat !== "agent" && c > 15) n.innerHTML = "<b>Open-ended traffic is being forced down a fixed path.</b> Look at its success row. This is the mirror-image mistake: agency is expensive, and refusing to pay for it where it is genuinely needed shows up as a fifth of your users being quietly failed.";
-  else n.innerHTML = "<b>A sensible allocation.</b> Deterministic where the rules are writable, routing where the kinds are known, and an agent only for the genuinely open tail. Note the predictable-traffic figure — that is the share you can test, explain and put an SLA on.";
+  var n = document.getElementById("v10-note");
+  if (leak && on.critic) n.innerHTML = "<b>The critic is reading the reasoning.</b> Catch rates collapse across the board. A critic that sees how the answer was produced tends to be persuaded by it — which is the whole reason independence is the design requirement, not a nicety.";
+  else if (on.self && !on.gt && !on.critic && !on.cons) n.innerHTML = "<b>Self-critique alone.</b> Look at 'claimed work that was not done': 4%. The model has no way to know it did not do something it believes it did. This is the configuration most teams actually ship.";
+  else if (on.gt && on.rule) n.innerHTML = "<b>The good configuration.</b> Ground truth plus rules costs almost nothing per run and catches the two most damaging classes. Note that fabricated facts still need the grounding check — a compiler has no opinion about citations.";
+  else if (on.cons && on.critic) n.innerHTML = "<b>Expensive and effective.</b> 2.4× cost for broad coverage. Worth it for irreversible actions; wasteful as a blanket policy. Gate it on stakes × uncertainty rather than running it every time.";
+  else n.innerHTML = "<b>Try ground truth.</b> It is the only rung that cannot be argued with, and for code it is nearly free. The rows it cannot help with — fabricated citations, misread requirements — are exactly where the other rungs earn their place.";
 }
-["f11-a","f11-b","f11-v","f11-pa","f11-pb","f11-pc"].forEach(function (i) {
+["v10-gt","v10-rule","v10-critic","v10-self","v10-cons","v10-err","v10-leak"].forEach(function (i) {
   document.getElementById(i).addEventListener("input", upd); document.getElementById(i).addEventListener("change", upd); });
 upd();`,
-          caption: `Set all three to "agent" and read the cost and p99. Then set simple to "rules" and branching to "routing". The success number barely moves and everything else improves by an order of magnitude, which is the entire argument of this chapter in one interaction.`,
+          caption: `Tick only self-critique — the most commonly shipped configuration — and read the "claimed work that was not done" row. Then add ground truth. The gap between those two states is most of what this chapter is for.`,
         }) },
 
-    { id: "build", kicker: "Build it", title: "One interface for every pattern",
+    { id: "build", kicker: "Build it", title: "A critic worth its call",
       html:
-        p(`If every pattern has the same signature, you can change a decision's position on the dial without rewriting its call sites, and you can A/B two positions against the same eval set.`) +
-        code({ title: "code/c11_control_flow.ts — patterns as values",
-          src: `export type Handler<I, O> = (input: I, ctx: Ctx) => Promise<O>;
+        code({ title: "code/c11_reflection.ts — independence by construction",
+          src: `export async function critique(
+  task: string, output: string, rubric: Criterion[], model: Model,
+): Promise<Critique> {
+  // Note what is NOT passed: the agent's messages, its reasoning, its tool trace.
+  // The critic evaluates the artefact, not the process that produced it.
+  return structured(model, [{ role: "user", content:
+\`Evaluate this output against the criteria. You are reviewing work produced by
+someone else. You have no information about how it was produced.
 
-export const chain = <I, O>(...steps: Handler<any, any>[]): Handler<I, O> =>
-  async (input, ctx) => {
-    let v: any = input;
-    for (const s of steps) v = await s(v, ctx);
-    return v;
-  };
+TASK GIVEN:
+\${task}
 
-export const route = <I, O>(
-  classify: Handler<I, { route: string; confidence: number }>,
-  routes: Record<string, Handler<I, O>>,
-  fallback: Handler<I, O>,
-  minConfidence = 0.7,
-): Handler<I, O> =>
-  async (input, ctx) => {
-    const { route: r, confidence } = await classify(input, ctx);
-    ctx.log("route", { route: r, confidence });            // routing decisions are eval gold
-    return (confidence >= minConfidence && routes[r] ? routes[r] : fallback)(input, ctx);
-  };
+OUTPUT:
+\${output}
 
-export const parallel = <I, O, R>(
-  branches: Handler<I, O>[], merge: (results: O[], input: I) => Promise<R>,
-): Handler<I, R> =>
-  async (input, ctx) => {
-    const settled = await Promise.allSettled(branches.map((b) => b(input, ctx)));
-    const ok = settled.filter(isFulfilled).map((s) => s.value);
-    if (!ok.length) throw new AggregateError(settled.map((s) => (s as any).reason));
-    return merge(ok, input);                                // partial results still merge
-  };
+CRITERIA:
+\${rubric.map((c, i) => \`\${i + 1}. \${c.name}: \${c.description}\`).join("\\n")}
 
-export const agent = (cfg: AgentConfig): Handler<string, AgentResult> =>
-  (goal, ctx) => runAgent(goal, { ...cfg, ctx });
-
-// Composition is just application:
-const support = route(classify, {
-  tracking: chain(lookupOrder, trackShipment, writeReply),
-  refund:   agent(REFUND_CFG),
-  policy:   chain(searchPolicies, writeAnswer),
-}, agent(GENERAL_CFG));`,
+For each criterion give pass/fail and one sentence of justification citing the
+specific part of the output. If the output satisfies every criterion, say so —
+do not invent problems. Then give an overall score from 0 to 1.\` }],
+    obj({
+      criteria: arr(obj({ name: str(), pass: bool(), why: str(), quote: opt(str()) })),
+      score: num({ min: 0, max: 1 }),
+      blocking: arr(str({ description: "issues that must be fixed; empty if none" })),
+    }), { temperature: 0 });
+}`,
         }) +
-        p(`<code>ctx.log("route", …)</code> is small and important: routing decisions with their confidence are the highest-value thing you can log. They tell you which branch is misfiring, where the confidence threshold should sit, and whether a new category has appeared in your traffic.`) +
-        code({ title: "run it", lang: "bash", plain: true,
-          src: `node --experimental-strip-types code/c11_control_flow.ts
+        p(`The same move works for reflection as for planning (${ch("c10", "C10")}): make it a tool rather than a phase. A <code>reflection(analysis, need_replan)</code> the model calls after a surprising observation puts the decision about <em>when</em> to reflect where the information is, instead of in a rule you wrote in advance. A fixed "critique every answer" pass taxes the ninety percent of turns that were fine; a tool the model reaches for when something did not work concentrates the spend on the cases that earn it. The cost is that it is now optional, so measure how often it fires — a model that never calls it needs the instruction sharpened, and one that calls it every turn has found a way to procrastinate.`) +
+        p(`Three specifics. <strong>"Produced by someone else"</strong> measurably reduces agreement bias. <strong>The quote field</strong> forces the critic to point at the text. A criticism that cannot cite the output is usually invented. <strong>The explicit permission to pass</strong> prevents the manufactured-findings behaviour that makes critics useless as gates.`) +
+        code({ title: "the completion gate, in code",
+          src: `// Verification that a model cannot talk its way past.
+export function completionGate(state: RunState, plan: Plan): string | null {
+  const incomplete = plan.steps.filter((s) => s.status === "pending" || s.status === "active");
+  if (incomplete.length)
+    return \`\${incomplete.length} plan steps are not done: \${incomplete.map((s) => s.id).join(", ")}. \` +
+           \`Complete them, or call update_plan to drop them with a reason.\`;
 
-#   C11 · Control Flow
+  const unsupported = plan.steps.filter((s) => s.status === "done" && (s.evidence?.length ?? 0) < 20);
+  if (unsupported.length) return \`Steps \${unsupported.map((s) => s.id).join(", ")} are marked done without evidence.\`;
+
+  if (state.filesChanged.length && !state.lastTestResult)
+    return "You changed files but never ran the tests.";
+
+  return null;   // only now may the loop return an answer
+}`,
+        }) +
+        code({ title: "run it", lang: "bash", plain: true,
+          src: `node --experimental-strip-types code/c11_reflection.ts
+
+#   C11 · Reflection & Verification
 #
-#   a hybrid in action — one router, two chains, two agents:
+#   configuration               caught  false alarms   cost  added latency
+#   none                            0%            0%  1.00×           0 ms
+#   self-critique only             11%            3%  1.25×         500 ms
+#   rules + grounding              43%            1%  1.00×           0 ms
+#   + independent critic           73%            7%  1.55×         900 ms
+#   + critic sees reasoning        53%            7%  1.55×         900 ms
+#   + ground truth (tests)         90%            7%  1.60×          4.9 s
+#   + self-consistency gate        94%            7%  2.50×          5.8 s
 #
-#     Order 4471 is in transit.
-#     [agent] worked out refund eligibility for: I want my money back for 4471
-#     [chain] policy answer for "what are the rules on re…"
-#     [general agent] handling an unclassified request: my cat walked across t
+#   the row that matters — "claimed work that was not done":
 #
-#     routing log: tracking@0.91  refund@0.94  policy@0.88  other@0.41
-#     the last one fell back to the general agent — which is what the fallback is for
+#     self-critique only            4%
+#     rules + grounding            55%
+#     + ground truth (tests)       99%
 #
-#   parallel with one failed branch: majority of 2 surviving branches: high
-#   allSettled, not all — one rejection must not discard the others
+#   A model has no way to know it did not do something it believes it did.
+#   Only an external observation surfaces it.
 #
-#   10,000 requests/day · 55% routine, 25% needs a branch, 20% open-ended
+#   independence, measured: the same critic with and without the reasoning
 #
-#   architecture                      $/day     p50      p99  success  predictable
-#   everything is an agent             $290    7.4s    31.0s      90%           0%
-#   route → chain | agent               $79    2.7s    31.0s      94%          78%
-#   rules → route → chain|agent         $67    2.0s    31.0s      95%          78%
+#     fresh context   73% caught
+#     same thread     53% caught   ← identical cost, 20 points worse
 #
-#   Success barely moves. Cost falls by an order of magnitude, p50 by more, and
-#   83% of traffic becomes something you can test, explain and put an SLA on.
+#   grounding check (rung 2), on a realistic answer:
 #
-#   the opposite error — refusing to pay for agency where it is needed:
-#     force open-ended down a chain       $13    0.8s     4.2s      83%
-#     cheapest of all, and a fifth of users are quietly failed.`,
+#     ✗ unsupported: Qdrant handles 50,000,000 vectors on a single node.
+#     ✗ unsupported: The vendor states it is "the fastest engine available".
+#     ✓ everything else appears in the retrieved sources
+#
+#   The first is a fabricated figure sitting beside a genuine citation — the
+# …
+#     ✓ all clear                        may finish`,
         }) },
 
     { id: "production", kicker: "Production notes", title: "Field notes",
       html:
         ul([
-          `<strong>Anthropic's "Building Effective Agents"</strong> is the canonical write-up of these patterns and is worth reading in full. Its central claim — use the simplest composition that works, and add agency only where it buys real task performance — is the thesis of this chapter.`,
-          `<strong>LangGraph</strong> is a direct implementation of this space: nodes are handlers, edges are control flow, conditional edges are routing, and an agent is a cycle. Building this vocabulary yourself first is why its API stops looking arbitrary.`,
-          `<strong>Routing decisions are where cheap models earn their keep.</strong> A small model classifying into four buckets at 99% accuracy costs a fraction of the capable model's call and lands on the latency-critical path. This is the single easiest cost win in most systems.`,
-          `<strong>Instrument the boundaries.</strong> Success rate per branch, confidence distribution, fallback rate. A rising fallback rate is an early signal that your traffic has shifted and a category is missing.`,
-          `<strong>Start agentic, then harden.</strong> A legitimate development order: build the agent first to discover what the task actually requires, read fifty traces, notice that eight steps are always identical, and promote them into a chain. You end up with the hybrid, and you got there from evidence rather than guesswork.`,
+          `<strong>Coding agents are the proof of this chapter.</strong> They outperform agents in other domains largely because ground truth is available and cheap. The generalisable lesson is to <em>manufacture</em> ground truth where it does not exist: a validation endpoint, a dry-run mode, a linter for your domain's output. Building one is usually worth more than any prompt work.`,
+          `<strong>LLM-as-judge has known biases:</strong> position, verbosity (longer answers score higher), and self-preference (a model rates its own outputs above equivalent ones). Randomise order, control for length in the rubric, and use a different model family as judge where the stakes justify it.`,
+          `<strong>Reflexion and self-refine</strong> are the research names for the critic loop. The literature's reported gains are real and are largest where an external signal is available, which is the same finding as rung 1.`,
+          `<strong>Constitutional-AI-style critique</strong> (critique against written principles, then revise) is this pattern with the rubric as the constitution. The mechanism is identical. The difference is who writes the criteria.`,
+          `<strong>Put verification in the loop, not after it.</strong> Verifying at the end tells you the run failed. Verifying at each ground-truth boundary lets the agent fix it while the context is still relevant and cheap.`,
         ]) },
   ],
 
   exercises: [
     { difficulty: "warm-up",
-      prompt: `For each, name the cheapest pattern that works: (a) translate a document into five languages; (b) answer a question about a 200-page PDF; (c) triage an incident; (d) write a blog post, check it for errors, then polish it; (e) "do whatever is needed to make CI green".`,
-      answer: ul([
-        `<b>(a) Parallel (sectioning).</b> Five independent calls, one wall-clock. No agency anywhere.`,
-        `<b>(b) Chain.</b> Retrieve, then answer. Two steps, always the same two. If follow-up questions are likely, an agent with a search tool — but a single question is a chain.`,
-        `<b>(c) Routing.</b> Classify severity and type, then run a severity-specific handler. P0 should bypass the model entirely and page a human — that is question 1.`,
-        `<b>(d) Chain.</b> Three fixed steps in a fixed order. The classic case where splitting a hard task into easy ones raises quality with no agency.`,
-        `<b>(e) Agent.</b> The next step depends entirely on what the last build output said. This is the only one where question 5 is genuinely yes.`,
-      ]) },
+      prompt: `Why does adding "double-check your answer before responding" to the system prompt produce so little improvement?`,
+      answer: p(`Because the check has the same information as the thing being checked. The model re-reads its own reasoning with every assumption still loaded, and a plausible chain of reasoning re-reads as plausible. What it produces is a fluent justification, not a discovery.`) +
+        p(`It does catch a narrow class: arithmetic slips, format violations, and internal contradictions that are visible on a second pass. It cannot catch "I believe I edited six files", because nothing in the context contradicts that belief. For that you need a source of information the model did not have — a file listing, a test result, a fresh reader.`) },
 
     { difficulty: "core",
-      prompt: `Your agent has 12 tools. Reviewing 100 traces, you find 4 tools are called in the same order 80% of the time. What do you do, and what do you check first?`,
-      answer: p(`That fixed sub-sequence is a chain the model is rediscovering (and paying for) on every run. Two options:`) +
+      prompt: `Design verification for an agent that drafts customer emails. There is no compiler. What are your rungs 1 and 2?`,
+      answer: p(`"No ground truth" is usually "no ground truth <em>yet</em>". Manufacture it:`) +
         ol([
-          `<strong>Collapse into one composite tool.</strong> <code>investigate_order(id)</code> internally calls all four and returns a combined result. The model makes one decision instead of four, and you save three round trips and three sets of tokens. Keep the individual tools available for the 20% case.`,
-          `<strong>Promote it to a chain before the agent runs.</strong> If the sequence always starts the run, run it deterministically and give the agent its results as initial context. It now starts step 1 already informed.`,
+          `<strong>Rung 1 — checks against real systems.</strong> Every factual claim in the draft is verifiable against the data the agent already has access to: does order 4471 exist, is its status what the email says, is the refund amount equal to the order total, does the promised date match the carrier's estimate? Each is a read tool call, cheap and unarguable. This catches the errors that cause real harm.`,
+          `<strong>Rung 2 — rules you write.</strong> Forbidden phrases ("guarantee", "immediately", anything committing to a date not returned by a tool); required elements (order reference, a next step, the correct signature); tone and length limits; and a regex pass for anything that looks like a leaked internal identifier or another customer's data.`,
         ]) +
-        p(`<strong>Check first, before doing either:</strong> what is in the other 20%? If those runs deviate because the first tool returned something unexpected, that deviation is the valuable behaviour and collapsing the sequence destroys it. The composite tool must then surface enough detail for the agent to notice the same thing, which usually means returning the sub-results rather than just a summary.`) +
-        p(`Also check <em>ordering variance</em>: if the four tools appear in different orders in the 80%, they are independent and the real win is parallelism, not composition.`) },
+        code({ title: "the claim-check loop", src: `const claims = await extractClaims(draft);          // structured: {text, kind, refersTo}
+const results = await Promise.all(claims.map(verifyAgainstSystems));
+const wrong = results.filter((r) => !r.ok);
+if (wrong.length) {
+  // Feed back as an observation, not an exception — the agent rewrites and re-checks.
+  return \`These claims do not match the system of record:\\n\` +
+    wrong.map((w) => \`- "\${w.claim}" → actual: \${w.actual}\`).join("\\n");
+}` }) +
+        p(`Rung 3 (an independent critic scoring tone, clarity and completeness against a rubric) is a reasonable addition. Rung 4 is not worth the call here. And note that the highest-value rung was available all along. It just had to be built.`) },
 
     { difficulty: "core",
-      prompt: `Implement a routing layer that improves itself: it should detect when a new category appears in traffic and surface it, without silently changing behaviour.`,
-      answer: code({ title: "the fallback rate is the signal",
-        src: `export class AdaptiveRouter {
-  private fallbacks: Array<{ input: string; confidence: number; at: number }> = [];
+      prompt: `Implement the self-consistency gate: sample twice, verify only on disagreement. What counts as "disagreement" for a tool-calling decision, and what for a written answer?`,
+      answer: code({ title: "cheap agreement, expensive only when it matters",
+        src: `export async function consistencyGated<T>(
+  sample: () => Promise<T>, agree: (a: T, b: T) => boolean,
+  verify: (candidates: [T, T]) => Promise<T>,
+): Promise<{ value: T; verified: boolean }> {
+  const [a, b] = await Promise.all([sample(), sample()]);   // parallel: no added latency
+  if (agree(a, b)) return { value: a, verified: false };
+  return { value: await verify([a, b]), verified: true };
+}
 
-  async route(input: string, ctx: Ctx): Promise<Handler<string, Result>> {
-    const { route, confidence } = await this.classify(input);
-    ctx.metric("route.confidence", confidence, { route });
+// Tool decision: same tool name AND semantically equivalent arguments.
+const agreeOnCall = (a: ToolUse, b: ToolUse) =>
+  a.name === b.name && stableStringify(normaliseArgs(a.input)) === stableStringify(normaliseArgs(b.input));
 
-    if (confidence < this.threshold) {
-      this.fallbacks.push({ input, confidence, at: Date.now() });
-      ctx.metric("route.fallback", 1);
-      return this.general;                 // behaviour is unchanged: still the safe path
-    }
-    return this.routes[route];
-  }
-
-  /** Offline, on a schedule. Proposes — never applies. */
-  async proposeCategories(model: Model): Promise<CategoryProposal[]> {
-    const recent = this.fallbacks.filter((f) => f.at > Date.now() - 7 * 864e5);
-    if (recent.length < 30) return [];                       // not enough signal
-    const clusters = await clusterByEmbedding(recent.map((f) => f.input), { minSize: 8 });
-    return Promise.all(clusters.map(async (c) => ({
-      size: c.length,
-      examples: c.slice(0, 5),
-      proposed: await structured(model, [{ role: "user", content: NAME_CATEGORY_PROMPT + c.slice(0, 20).join("\\n") }],
-        obj({ name: str(), description: str(), suggestedTools: arr(str()) })),
-    })));
-  }
+// Written answer: agreement on the CLAIMS, not the wording.
+const agreeOnAnswer = (a: string, b: string) => {
+  const fa = new Set(extractFacts(a)), fb = new Set(extractFacts(b));   // numbers, names, dates, verdicts
+  return jaccard(fa, fb) > 0.85;
 }` }) +
       ul([
-        `<strong>Propose, never auto-apply.</strong> A router that adds categories on its own changes system behaviour with no review, no eval, and no rollback. The output is a pull request, not a deployment.`,
-        `<strong>The fallback rate is the monitor.</strong> A step change in it means traffic has shifted — a new product launched, a policy changed, an incident is generating a novel request type. That alert is worth more than the clustering.`,
-        `<strong>Watch the low-confidence <em>successes</em> too.</strong> Requests routed at confidence 0.71 that succeeded are evidence the threshold could come down; ones that failed are evidence it should go up. Log the outcome alongside the confidence or you cannot tune it.`,
+        `<strong>For tool decisions,</strong> normalise arguments before comparing — key order, whitespace, and semantically equivalent forms (<code>"2024-03-14"</code> vs <code>"14 March 2024"</code>). Without normalisation your disagreement rate is noise and the gate fires constantly.`,
+        `<strong>For prose,</strong> never compare text. Two correct answers differ in wording almost always. Extract the claims — figures, names, dates, the actual verdict — and compare those.`,
+        `<strong>Sample in parallel</strong> so the gate costs tokens but not wall-clock. This is what makes it affordable at 100% of traffic.`,
+        `<strong>Temperature matters:</strong> at 0 the two samples agree nearly always and the gate never fires; at 1.0 they disagree on wording constantly. Around 0.3 is where disagreement tracks genuine ambiguity.`,
       ]) },
 
     { difficulty: "stretch",
-      prompt: `Write the migration plan for turning a working all-agent system into the hybrid, without a regression. Include how you decide what to promote and how you prove it was safe.`,
+      prompt: `Your critic loop sometimes makes output worse. Design the instrumentation that would prove it, and the policy change it implies.`,
       answer: ol([
-        `<strong>Build the eval set first, from production.</strong> Sample 200 real requests stratified by outcome, including failures. Record current behaviour as the baseline. Nothing else in this plan is safe without this step. You cannot prove no regression against a baseline you do not have.`,
-        `<strong>Cluster the traces, not the requests.</strong> Group by <em>tool sequence</em>. The clusters that are large and low-variance are your promotion candidates; high-variance clusters stay agentic no matter how large.`,
-        `<strong>Promote one cluster, shadow first.</strong> Implement the chain, run it in parallel with the agent on live traffic, and compare outputs without serving the new path. Disagreements are your review queue, and they are usually where you discover the agent was doing something subtle.`,
-        `<strong>Ship behind a confidence gate.</strong> The chain handles the request only when the router is confident <em>and</em> the input matches the cluster's preconditions. Everything else falls through to the agent. Fail open toward the agent, always.`,
-        `<strong>Measure four things per cluster:</strong> success rate versus baseline, cost, p50/p99, and fallback rate. Promote the next cluster only when the previous one has been stable for a week.`,
-        `<strong>Keep the agent path warm.</strong> Route a small percentage of eligible traffic to it permanently. It is your control group, and it is how you notice that the chain has silently degraded as the world changed around it.`,
+        `<strong>Record every candidate, not just the final one.</strong> Each round's output, its score, and the critique that prompted the revision. Without this you cannot tell a regression from a noisy scorer.`,
+        `<strong>Score with an independent judge, not the critic.</strong> The critic's own score is the thing under suspicion. Use a separate rubric-based scorer, or better, ground truth where it exists.`,
+        `<strong>Chart score by round.</strong> The expected shape is a steep rise into round 1, a small rise into round 2, and flat or down after. Your data will tell you where your own curve turns.`,
+        `<strong>Classify the regressions.</strong> Nearly always one of three: the critic raised a <em>stylistic preference</em> and the generator sacrificed substance for it; the critic <em>misread</em> the output and the generator "fixed" something correct; or the revision <em>dropped</em> content while addressing a narrow complaint.`,
       ]) +
-      p(`<strong>The mistake to avoid:</strong> promoting based on frequency alone. A cluster covering 30% of traffic with high tool-order variance is frequent <em>because</em> it is varied, and freezing it into a chain converts a flexible success into a rigid failure. Variance within a cluster, not its size, is the promotion criterion.`) },
+      p(`<strong>Policy changes implied.</strong> Cap at the round where your curve flattens — usually two. Return the <em>best-scoring</em> candidate rather than the last. Separate blocking issues from suggestions in the critique schema and only revise for blocking ones. And add a regression guard: if a revision scores worse than its predecessor, stop and keep the predecessor.`) +
+      p(`The deeper fix is the third failure mode: instruct the generator to <em>patch</em> rather than rewrite — "address only the blocking issues; leave everything else byte-identical". Content loss during revision is the most common and least noticed way critic loops destroy value, and it has the same shape as the patch-versus-regenerate rule in ${ch("c10", "C10")}.`) },
   ],
 
   qa: [
-    { q: "Isn't a router just an agent with one step?", a: p(`Mechanically similar, structurally different in the way that matters: the router's branches are fixed and enumerable, so each can be prompted, tested and measured independently. "Refunds succeed 94%, tracking 99%" is a dashboard you can act on; "the agent succeeds 93%" is not.`) },
-    { q: "How do I know if a decision is genuinely non-enumerable?", a: p(`Try to enumerate it. Sit down and write the rules for twenty real examples. If you finish in twenty minutes, it was enumerable and you now have the code. If you keep hitting "well, it depends on what the search returned" — that is question 5, and you have earned the loop.`) },
-    { q: "Does the hybrid make the system harder to maintain?", a: p(`It makes it harder to <em>describe</em> and much easier to maintain, because failures are localised. In an all-agent system, every bug is a prompt change affecting everything. In the hybrid, a broken tracking flow is a broken function with a test.`) },
-    { q: "Where does human-in-the-loop fit in this taxonomy?", a: p(`As a node like any other — a handler that blocks on an approval, with the durability from ${ch("c08", "C08")} so the process need not stay alive. The interesting design question is <em>where</em> in the graph the approval sits, and ${ch("c16", "C16")} argues it belongs at the last reversible point, not at the end.`) },
-    { q: "Should the router and the agent share a system prompt?", a: p(`No. Each branch should have the narrowest prompt and the smallest tool set that does its job. That is most of the benefit of routing (${ch("c03", "C03")}: fewer, disjoint tools select better). Share the tool <em>definitions</em>; do not share the instructions.`) },
+    { q: "Should the critic use a different model?", a: p(`It helps for subjective judgements — models show a measurable preference for their own outputs — but it matters far less than fresh context and a specific rubric. Fix independence and the rubric first; switch models only if you are comparing candidates or the stakes justify the operational cost of a second provider.`) },
+    { q: "How many critic rounds?", a: p(`Two revisions maximum, with the guards. Measured returns are steep into round 1, small into round 2, and negative after. If you need more, the problem is the generator's prompt or the task decomposition, not the number of rounds.`) },
+    { q: "Is verification worth it for read-only agents?", a: p(`Yes, for a different reason: a read-only agent that fabricates a citation causes real harm even though it changed nothing. The grounding check (rung 2) is nearly free and targets exactly that failure. What you can skip is the expensive approval machinery of ${ch("c19", "C19")}.`) },
+    { q: "Can the agent verify itself by re-reading the files it edited?", a: p(`Yes, and that is genuinely rung 1 rather than rung 4, because the file system is an external source of truth, so re-reading is a real observation. It catches the "I believe I edited six files" error directly. The limitation is that it verifies the edit happened, not that it was correct. That still needs the tests.`) },
+    { q: "How do I stop the critic from inventing problems?", a: p(`Three things together: a rubric with explicit pass/fail criteria rather than open-ended judging; an explicit statement that no issues is an acceptable finding; and a required quote from the output for every criticism. That last one is the most effective. A complaint that cannot cite the text usually evaporates when the citation is required.`) },
   ],
 
   project: {
-    title: "Project · Convert your agent to a hybrid",
-    brief: p(`Take the agent you have been building and find the parts that never needed agency. The measurable goal: cut cost and p50 substantially with no loss in success rate.`),
+    title: "Project · A verification layer",
+    brief: p(`Add verification to your agent at three rungs, then measure what each one actually catches. The deliverable is the measurement. You should be able to say which rung earns its cost on your task.`),
     spec: [
-      "The five composition primitives — <code>rule</code>, <code>chain</code>, <code>route</code>, <code>parallel</code>, <code>agent</code> — sharing one <code>Handler</code> signature.",
-      "An eval set of at least 50 real or realistic requests with recorded baseline behaviour, built <em>before</em> any change.",
-      "At least one decision moved from the model to code, with the test that replaces it.",
-      "A router with a small model, a confidence threshold, a general-agent fallback, and logging of route and confidence on every request.",
-      "At least one fixed chain for a high-volume case, gated on router confidence.",
-      "A before/after table: cost per 1,000 requests, p50, p99, success rate, and share of traffic on a deterministic path.",
+      "At least one ground-truth verifier exposed as a tool, and a <code>completionGate()</code> in the loop that refuses to return an answer without it.",
+      "Rule-based checks including a grounding check that flags claims not supported by any retrieved source.",
+      "An independent critic with a fresh context, a rubric, required quotes, and explicit permission to pass.",
+      "<code>withCritic()</code> with a maximum of two revisions, a no-improvement guard, a repeated-issue guard, and best-candidate-wins rather than last.",
+      "A gating policy so verification runs on stakes × uncertainty, not on everything.",
+      "A results table over at least 50 runs: catch rate, false-alarm rate, cost multiplier and added latency per configuration.",
     ],
     stretch: [
-      "Add the fallback-clustering job that proposes new categories as a report, never applying them.",
-      "Shadow-run a promoted chain against the agent on the same inputs and review every disagreement.",
-      "Add parallel voting to your highest-stakes decision and measure whether three samples with a majority rule beat one sample plus a critic, at comparable cost.",
+      "Add the self-consistency gate with parallel sampling and claim-level agreement, and report what fraction of traffic it escalates.",
+      "Run the critic with and without the agent's reasoning in its context and report the difference. It is the most convincing experiment in this chapter.",
+      "Chart critique score by round for 30 tasks and find the round where your own curve turns.",
     ],
   },
 
   quiz: [
-    { q: "What is the first question in the decision procedure?",
-      options: ["Can I write this rule down? If yes, write code — no model call", "Which model should handle this?", "How many steps will this take?", "Does this need tools?"],
+    { q: "What makes a verification step worth its cost?",
+      options: ["The checker knows something the author did not — a test result, a written rule, or a fresh context", "It uses a larger model than the generator", "It runs at temperature 0", "It is repeated several times"],
       answer: 0,
-      why: "It eliminates more decisions than any other question. Giving a stochastic process a job a deterministic one does better costs money, latency and predictability, and buys nothing." },
-    { q: "What distinguishes a chain from an agent?",
-      options: ["In a chain you know the full sequence before starting; in an agent the next step depends on content you have not seen", "Chains cannot use tools", "Agents use larger models", "Chains cannot make model calls"],
+      why: "A check with identical information to the thing being checked mostly produces agreement. Independence is the design requirement; everything else is detail." },
+    { q: "Why must the critic NOT see the agent's reasoning?",
+      options: ["A critic that reads the reasoning is persuaded by it, which converts an independent check into agreement", "It would exceed the context window", "It would slow the critic down", "The reasoning may contain secrets"],
       answer: 0,
-      why: "'Search then summarise' is a chain — you always knew step 2 was coming. 'Search, and if the results contradict the policy, search the policy index instead' is an agent, because the branch structure is a function of unseen content." },
-    { q: "Why does a router need a general-agent fallback?",
-      options: ["Without one, unusual inputs get a specialist that cannot handle them — exactly the cases that motivated agency", "To handle API errors from the classifier", "To reduce cost on common paths", "To satisfy the confidence threshold"],
+      why: "The simulator makes this vivid: leaking the reasoning collapses catch rates across every error class. The critic should evaluate the artefact, not the process, which is also how human code review works best." },
+    { q: "Which error class does self-critique essentially fail to catch?",
+      options: ["Claiming work that was not done", "Arithmetic slips", "Output format violations", "Internal contradictions"],
       answer: 0,
-      why: "A confident misroute sends a novel request to a branch with the wrong prompt and wrong tools. Falling back below a confidence threshold keeps the long tail working, which is the whole reason you built an agent." },
-    { q: "In the simulator, what happened when every traffic class was handled by an agent?",
-      options: ["Success was fine but cost was roughly 10× higher, p99 was tens of seconds, and no traffic was predictable", "Success dropped sharply", "Latency improved due to parallelism", "Cost was unchanged but reliability fell"],
+      why: "The model has no way to know it did not do something it believes it did, because nothing in its context contradicts the belief. Only an external observation (re-read the files, run the tests, list the changes) surfaces it." },
+    { q: "In a generate-critique-revise loop, which round gives most of the benefit?",
+      options: ["Round 1; round 2 is small and round 3 is often negative", "Round 3, once the critic has calibrated", "All rounds improve equally", "The final round always produces the best output"],
       answer: 0,
-      why: "That is the characteristic shape of a first production release: it works, and it is paying an order of magnitude for flexibility that most requests never use — with a p99 nobody can put an SLA on." },
-    { q: "Four tools are always called in the same order in 80% of traces. What should you check before collapsing them into one composite tool?",
-      options: ["What happens in the other 20% — that deviation may be the valuable behaviour", "Whether the tools are read-only", "Whether the model supports parallel tool calls", "Whether the tools share a schema"],
+      why: "The measured pattern is consistent. Later rounds drift into stylistic preference, and revising for style tends to sacrifice substance. Cap at two and keep the best-scoring candidate rather than the last." },
+    { q: "What is a `completionGate` and why is it stronger than a prompt instruction?",
+      options: ["A check in the loop code that refuses to return an answer until conditions are met — the model cannot talk its way past it", "A stricter system prompt about finishing", "A higher confidence threshold on the final answer", "A limit on the number of steps"],
       answer: 0,
-      why: "If runs deviate because the first tool returned something unexpected, the composite must surface enough detail for the agent to notice the same thing. Collapsing blindly turns an adaptive success into a rigid failure." },
-    { q: "What is the right criterion for promoting an agentic path into a fixed chain?",
-      options: ["Low variance in the tool sequence within that cluster — not how much traffic it represents", "The size of the cluster", "The cost of the cluster", "The average number of steps"],
+      why: "Prompt instructions are suggestions to a stochastic process. A structural check is deterministic: 'you changed files and never ran the tests' is decided by your code, not negotiated with the model." },
+    { q: "What is the self-consistency gate, and why is it good value?",
+      options: ["Sample twice in parallel and run expensive verification only when the samples disagree — concentrating spend on genuinely ambiguous cases", "Ask the model the same question twice and take the second answer", "Run the same prompt at two temperatures and average", "Compare the output against a cached previous answer"],
       answer: 0,
-      why: "A large cluster with high tool-order variance is frequent because it is varied. Freezing it removes exactly the adaptability that was doing the work. Variance, not volume, decides." },
+      why: "Disagreement between samples is a decent proxy for the cases where the model is uncertain, which is usually 5–15% of traffic. Sampling in parallel means it costs tokens but not wall-clock." },
   ],
 
-  continues: p(`You now have a system with the right amount of agency in the right places. It will still fail — tools time out, models return nonsense, APIs rate-limit, and the agent occasionally decides to do something inexplicable. ${ch("c12", "C12")} is the taxonomy of those failures and the specific recovery each one needs, because "wrap it in a try/catch and retry" is wrong for most of them.`),
+  continues: p(`Planning and verification both add model calls to buy reliability. Sometimes the cheaper answer is to take the decision away from the model entirely: notice that this branch never actually needed judgement, and write an <code>if</code> statement. ${ch("c12", "C12")} is about where to draw that line, and it is the most useful architectural chapter in the course.`),
 };
 
 export default chapter;

@@ -1,13 +1,13 @@
 /**
- * C24 · Capstone II — a coding agent.
+ * C28 · Capstone II — a coding agent.
  *
  * Orient with grep, plan, patch with apply_patch, run the tests, read the real
  * failure, repair. The test suite is ground truth and it lives inside the loop.
  *
- *   node --experimental-strip-types code/c24_coder/main.ts
+ *   node --experimental-strip-types code/c28_coder/main.ts
  */
 
-import { parsePatch, applyPatch } from "../c14_apply_patch.ts";
+import { parsePatch, applyPatch } from "../c16_apply_patch.ts";
 import { Repo, runTests, renderTestResult, checkTestWeakening, canFinish, type CodeState } from "./repo.ts";
 
 const SESSION_TS = `import type { Redis } from "./redis.ts";
@@ -87,7 +87,7 @@ const SCRIPT: Step[] = [
 /* ---------------- run ---------------- */
 
 async function main(): Promise<void> {
-  console.log("\n  C24 · Capstone II — Coding Agent\n");
+  console.log("\n  C28 · Capstone II — Coding Agent\n");
   console.log(`  task: "Session cache entries never expire. Fix it, and make sure expired`);
   console.log(`         entries are removed. Do not weaken the tests."\n`);
 

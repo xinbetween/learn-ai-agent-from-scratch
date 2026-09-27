@@ -56,9 +56,9 @@ TypeScript that run on a laptop in a few seconds.
 | | |
 | --- | --- |
 | **You used a framework and it felt like magic.** | Build the loop once and `StateGraph` and `RoutedAgent` stop being vocabulary. C04 is the whole idea in 120 lines. |
-| **Your agent works in the demo and not on Tuesday.** | C12 is the failure taxonomy, retries, loop detection and budget enforcement — the four things that separate a demo from a system. |
-| **You have to sign off on shipping one.** | C21 is prompt injection, the lethal trifecta, least privilege, egress control and an approval design that actually holds. |
-| **You learn by breaking things.** | Twenty-five simulators. Starve the context budget and watch the agent forget its goal. |
+| **Your agent works in the demo and not on Tuesday.** | C13 is the failure taxonomy, retries, loop detection and budget enforcement — the four things that separate a demo from a system. |
+| **You have to sign off on shipping one.** | C24 is prompt injection, the lethal trifecta, least privilege, egress control and an approval design that actually holds. |
+| **You learn by breaking things.** | Twenty-nine simulators. Starve the context budget and watch the agent forget its goal. |
 
 Prerequisites: TypeScript or JavaScript, and having called an LLM API once. No
 machine learning background — nothing here trains a model.
@@ -94,32 +94,32 @@ machine learning background — nothing here trains a model.
 </tr>
 <tr>
 <td><b>Context &amp; Memory</b></td>
-<td>C05, C06, C28, C07, C08</td>
+<td>C05, C06, C07, C08, C09</td>
 <td>Context engineering · retrieval as a tool · <b>multimodal observations</b> · memory &amp; contradiction · durable state and resume</td>
 </tr>
 <tr>
 <td><b>Reasoning &amp; Control</b></td>
-<td>C09–C12</td>
+<td>C10–C13</td>
 <td>Planning · verification &amp; the reflection ladder · composition primitives · failure &amp; recovery</td>
 </tr>
 <tr>
 <td><b>The Environment</b></td>
-<td>C13, C25, C14, C15, C27, C16</td>
+<td>C14, C15, C16, C17, C18, C19</td>
 <td>Code execution &amp; sandboxing · <b>the action space</b> (code actions vs tool calls) · files, shell and <code>apply_patch</code> · MCP · <b>skills</b> (progressive disclosure) · human approval</td>
 </tr>
 <tr>
 <td><b>Systems &amp; Production</b></td>
-<td>C17–C21, C26, C22</td>
+<td>C20–C24, C25, C26</td>
 <td>Multi-agent topology · the actor runtime · evals · tracing · security · <b>the interactive loop</b> (steering, interrupts) · the server</td>
 </tr>
 <tr>
 <td><b>Capstone I</b></td>
-<td>C23</td>
+<td>C27</td>
 <td>A deep-research agent — plans, searches, verifies claims against evidence spans, cites, surfaces conflicts</td>
 </tr>
 <tr>
 <td><b>Capstone II</b></td>
-<td>C24</td>
+<td>C28</td>
 <td>A coding agent — orients in a repo, patches, runs the tests, reads the failure, repairs</td>
 </tr>
 </table>
@@ -184,7 +184,7 @@ rebuild the site, and assert no output block has drifted:
 
 ```
 27/27 runnable files execute cleanly.
-built 25 chapters + 9 pages + 23 runnable files × 2 locales → dist/  (zh: 5/25 chapters translated)
+built 29 chapters + 9 pages + 23 runnable files × 2 locales → dist/  (zh: 5/29 chapters translated)
 ```
 
 The build refuses to ship an incomplete chapter: fewer than four sections, not
@@ -198,11 +198,11 @@ review comments.
 
 ```
 code/                      ALL chapter code lives here
-  c00..c28_*.ts            one runnable file per chapter
-  c23_research/            Capstone I — the deep-research agent
-  c24_coder/               Capstone II — the coding agent
+  c00..c07_*.ts            one runnable file per chapter
+  c27_research/            Capstone I — the deep-research agent
+  c28_coder/               Capstone II — the coding agent
 content/
-  chapters/c00..c24.ts     chapter prose, exercises, Q&A, projects, quizzes
+  chapters/c00..c28.ts     chapter prose, exercises, Q&A, projects, quizzes
   pages/                   map, glossary, answers, Q&A, projects, setup, timeline
   zh/                      Chinese translations — see below
 src/
@@ -217,7 +217,7 @@ static/                    styles.css, app.js, favicon.svg
 scripts/                   output sync, code check, dev server
 ```
 
-Chapter ids are URLs, so C25–C28 were appended rather than inserted, and
+Chapter ids are URLs, so C15–C07 were appended rather than inserted, and
 `content/chapters/index.ts` places them in reading order. Ids therefore run out of order in the sidebar gutter, on
 purpose: renumbering would have moved eleven chapters and broken every link
 anyone had shared.

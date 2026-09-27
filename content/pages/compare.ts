@@ -14,16 +14,16 @@ export function comparePage(): Page {
 
       `<h3>The landscape by layer</h3>` +
       table(["", "Layer it occupies", "Corresponds to", "Leaves you"], [
-        ["<b>LangGraph</b>", "Graph orchestration — nodes, edges, conditional edges, checkpointers", "C08, C11, C16", "Context strategy, tool quality, evals"],
-        ["<b>AutoGen</b> (core)", "Event-driven actor runtime — AgentId, TopicId, subscriptions", "C18", "Everything above the message layer"],
-        ["<b>AutoGen</b> (agentchat)", "Opinionated teams — RoundRobinGroupChat, SelectorGroupChat, Swarm", "C17", "Termination design, briefs, cost control"],
-        ["<b>OpenAI Agents SDK</b>", "Loop, handoffs, guardrails, sessions", "C04, C16, C17", "Context engineering, memory, durability"],
-        ["<b>Claude Agent SDK</b>", "Loop with a filesystem and shell tool set, permission modes", "C04, C14, C16", "Domain tools, evals, multi-agent design"],
-        ["<b>CrewAI</b>", "Role-based teams with tasks and processes", "C17", "Nearly all of C05–C12"],
-        ["<b>smolagents</b>", "Minimal loop; code-writing agents by default", "C04, C13", "Sandboxing at production grade, context, evals"],
+        ["<b>LangGraph</b>", "Graph orchestration — nodes, edges, conditional edges, checkpointers", "C09, C12, C19", "Context strategy, tool quality, evals"],
+        ["<b>AutoGen</b> (core)", "Event-driven actor runtime — AgentId, TopicId, subscriptions", "C21", "Everything above the message layer"],
+        ["<b>AutoGen</b> (agentchat)", "Opinionated teams — RoundRobinGroupChat, SelectorGroupChat, Swarm", "C20", "Termination design, briefs, cost control"],
+        ["<b>OpenAI Agents SDK</b>", "Loop, handoffs, guardrails, sessions", "C04, C19, C20", "Context engineering, memory, durability"],
+        ["<b>Claude Agent SDK</b>", "Loop with a filesystem and shell tool set, permission modes", "C04, C16, C19", "Domain tools, evals, multi-agent design"],
+        ["<b>CrewAI</b>", "Role-based teams with tasks and processes", "C20", "Nearly all of C05–C13"],
+        ["<b>smolagents</b>", "Minimal loop; code-writing agents by default", "C04, C14", "Sandboxing at production grade, context, evals"],
         ["<b>Pydantic AI</b>", "Typed outputs, dependency injection, validation", "C02", "The loop is thin; context and memory are yours"],
-        ["<b>Temporal / Restate</b>", "Durable execution underneath anything", "C08", "All agent-specific concerns"],
-        ["<b>MCP</b>", "A wire protocol for tools — not a framework", "C15", "Tool quality, context cost, trust"],
+        ["<b>Temporal / Restate</b>", "Durable execution underneath anything", "C09", "All agent-specific concerns"],
+        ["<b>MCP</b>", "A wire protocol for tools — not a framework", "C17", "Tool quality, context cost, trust"],
       ]) +
 
       `<h3>Where each one's loop lives</h3>` +
@@ -39,11 +39,11 @@ smolagents         CodeAgent.run           the "tool call" is a Python snippet` 
       `<h3>Choosing, in four questions</h3>` +
       table(["If you…", "Reach for"], [
         ["Want explicit, inspectable control flow with checkpointing", "LangGraph"],
-        ["Need per-entity agent identity, events, or separate processes", "AutoGen core (C18)"],
+        ["Need per-entity agent identity, events, or separate processes", "AutoGen core (C21)"],
         ["Want the shortest path from zero to a working tool-using agent", "The vendor SDK for the model you use"],
-        ["Are building a coding agent", "Claude Agent SDK or Codex's architecture as a reference, and read <code>apply_patch</code> (C14)"],
-        ["Need runs that survive deploys and hour-long approvals", "A durable execution engine, or C08's forty lines"],
-        ["Want tools usable across several agents or teams", "MCP (C15)"],
+        ["Are building a coding agent", "Claude Agent SDK or Codex's architecture as a reference, and read <code>apply_patch</code> (C16)"],
+        ["Need runs that survive deploys and hour-long approvals", "A durable execution engine, or C09's forty lines"],
+        ["Want tools usable across several agents or teams", "MCP (C17)"],
         ["Have one agent, one process, and five tools", "<b>No framework.</b> C04 is 120 lines and you will understand all of it"],
       ]) +
 
@@ -51,10 +51,10 @@ smolagents         CodeAgent.run           the "tool call" is a Python snippet` 
       ul([
         `<strong>Decide your context budget</strong> (C05). Every framework will happily grow the message array until the API rejects it.`,
         `<strong>Write good tool descriptions</strong> (C03). The most valuable work in the whole system, and entirely yours.`,
-        `<strong>Tell you what the user gets when the budget runs out</strong> (C12). All of them have a max-iterations setting; almost none has an opinion about the partial work.`,
-        `<strong>Build your eval set</strong> (C19). The thing that converts changes into knowledge.`,
-        `<strong>Design the permission model</strong> (C16). They give you hooks; the policy — and the attention budget it spends — is a product decision.`,
-        `<strong>Remove a circle from the lethal trifecta</strong> (C21). Architectural, and it cannot be a library.`,
+        `<strong>Tell you what the user gets when the budget runs out</strong> (C13). All of them have a max-iterations setting; almost none has an opinion about the partial work.`,
+        `<strong>Build your eval set</strong> (C22). The thing that converts changes into knowledge.`,
+        `<strong>Design the permission model</strong> (C19). They give you hooks; the policy — and the attention budget it spends — is a product decision.`,
+        `<strong>Remove a circle from the lethal trifecta</strong> (C24). Architectural, and it cannot be a library.`,
       ]) +
 
       note("", "A reasonable path", p(`Build C00–C04 from scratch — an afternoon, and it changes how every framework reads. Then adopt one for the plumbing you no longer want to own, and keep writing the parts this course says are yours. The point was never to avoid frameworks; it was to be able to tell what they are and are not doing.`)),

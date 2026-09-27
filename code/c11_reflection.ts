@@ -1,7 +1,7 @@
 /**
- * C10 · Reflection & Verification — the ladder, a critic loop that terminates,
+ * C11 · Reflection & Verification — the ladder, a critic loop that terminates,
  * and a measurement of what each rung actually catches.
- *   node --experimental-strip-types code/c10_reflection.ts
+ *   node --experimental-strip-types code/c11_reflection.ts
  */
 
 export interface Criterion { name: string; description: string }
@@ -134,7 +134,7 @@ function evaluate(c: Config) {
 /* ---------------- demo ---------------- */
 
 async function main(): Promise<void> {
-  console.log("\n  C10 · Reflection & Verification\n");
+  console.log("\n  C11 · Reflection & Verification\n");
 
   const configs: Config[] = [
     { name: "none" },

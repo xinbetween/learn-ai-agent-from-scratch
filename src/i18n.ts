@@ -313,27 +313,27 @@ export const LANDING: Record<Locale, LandingCopy> = {
         p: "Build the loop yourself once and LangGraph's <code>StateGraph</code> or AutoGen's <code>RoutedAgent</code> stop being vocabulary. C04 is the whole idea in 120 lines. →",
       },
       {
-        href: "/c12/",
+        href: "/c13/",
         h: "Your agent works in the demo and not on Tuesday",
         p: "The failure taxonomy, retries, loop detection and budget enforcement — the four things that separate a demo from a system people depend on. →",
       },
       {
-        href: "/c21/",
+        href: "/c24/",
         h: "You have to sign off on shipping one",
         p: "Prompt injection, the lethal trifecta, least privilege, egress control and the human-approval design that actually holds. →",
       },
       {
-        href: "/c18/",
+        href: "/c21/",
         h: "You learn by breaking things",
-        p: "Twenty-five simulators that run the mechanism they draw. Starve the context budget and watch the agent forget its goal; break a tool and watch the retry policy decide. →",
+        p: "Twenty-nine simulators that run the mechanism they draw. Starve the context budget and watch the agent forget its goal; break a tool and watch the retry policy decide. →",
       },
     ],
     currKicker: "The curriculum",
-    currTitle: "Seven layers, twenty-five chapters, two capstones",
+    currTitle: "Seven layers, twenty-nine chapters, two capstones",
     currLead:
       "Each layer exists because the previous one created a problem. Read in order the first time: the sequence is what turns a list of techniques into a design you could defend.",
     everyKicker: "In every chapter",
-    everyTitle: "The same five things, twenty-five times",
+    everyTitle: "The same five things, twenty-nine times",
     every: [
       {
         h: "A mechanism diagram",
@@ -354,7 +354,7 @@ export const LANDING: Record<Locale, LandingCopy> = {
     ],
     beginTitle: "Begin where every agent begins.",
     beginLead:
-      "C00 is one uncomfortable question — is the thing you are building actually an agent, and should it be? — and one dial that answers it. The other twenty-four chapters follow from that dial.",
+      "C00 is one uncomfortable question — is the thing you are building actually an agent, and should it be? — and one dial that answers it. The other twenty-eight chapters follow from that dial.",
     beginCta: "C00 · What an agent actually is →",
   },
 
@@ -393,27 +393,27 @@ export const LANDING: Record<Locale, LandingCopy> = {
         p: "自己动手把循环写一遍，LangGraph 的 <code>StateGraph</code> 和 AutoGen 的 <code>RoutedAgent</code> 就不再只是名词。C04 用 120 行讲完整个思路。→",
       },
       {
-        href: "/c12/",
+        href: "/c13/",
         h: "你的智能体在演示里好好的，一到周二就出事",
         p: "失败分类法、重试、循环检测和预算强制执行：把一个演示和一个别人真敢依赖的系统区分开的，就是这四件事。→",
       },
       {
-        href: "/c21/",
+        href: "/c24/",
         h: "你是那个要签字同意上线的人",
         p: "提示注入、致命三要素、最小权限、出口管控，以及真正站得住脚的人工审批设计。→",
       },
       {
-        href: "/c18/",
+        href: "/c21/",
         h: "你习惯把东西拆坏了来学",
-        p: "二十五个模拟器，跑的就是它们画的那个机制。把上下文预算压干，看智能体怎么忘掉自己的目标；把一个工具弄坏，看重试策略怎么决定。→",
+        p: "二十九个模拟器，跑的就是它们画的那个机制。把上下文预算压干，看智能体怎么忘掉自己的目标；把一个工具弄坏，看重试策略怎么决定。→",
       },
     ],
     currKicker: "课程结构",
-    currTitle: "七个层次，二十五章，两个实战项目",
+    currTitle: "七个层次，二十九章，两个实战项目",
     currLead:
       "每一层的存在，都是因为上一层制造了一个新问题。第一次读请按顺序来：正是这个顺序，把一堆零散的技巧变成一套你能为之辩护的设计。",
     everyKicker: "每一章都有",
-    everyTitle: "同样的五件事，重复二十五次",
+    everyTitle: "同样的五件事，重复二十九次",
     every: [
       {
         h: "一张机制图",
@@ -434,7 +434,7 @@ export const LANDING: Record<Locale, LandingCopy> = {
     ],
     beginTitle: "从每个智能体都要面对的那个起点开始。",
     beginLead:
-      "C00 只有一个让人不太舒服的问题：你正在做的这个东西，真的是智能体吗，它应该是吗？以及一个能回答这个问题的旋钮。剩下二十四章，全都是从这个旋钮推导出来的。",
+      "C00 只有一个让人不太舒服的问题：你正在做的这个东西，真的是智能体吗，它应该是吗？以及一个能回答这个问题的旋钮。剩下二十八章，全都是从这个旋钮推导出来的。",
     beginCta: "C00 · 智能体到底是什么 →",
   },
 };

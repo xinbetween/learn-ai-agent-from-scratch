@@ -1,7 +1,7 @@
 /**
- * C21 · Security — the trifecta guard, an output sanitiser, and a red-team suite
+ * C24 · Security — the trifecta guard, an output sanitiser, and a red-team suite
  * showing that architecture stops attacks that detection does not.
- *   node --experimental-strip-types code/c21_security.ts
+ *   node --experimental-strip-types code/c24_security.ts
  */
 
 export type Trust = "system" | "user" | "internal" | "untrusted";
@@ -126,7 +126,7 @@ function defend(a: Attack, c: Config): { stopped: boolean; by: string } {
 /* ---------------- demo ---------------- */
 
 function main(): void {
-  console.log("\n  C21 · Security\n");
+  console.log("\n  C24 · Security\n");
 
   // The guard, per run.
   console.log("  the trifecta guard, enforced at the tool boundary\n");

@@ -1,558 +1,572 @@
 import type { Chapter } from "../../src/types.ts";
-import { code, fig, lab, note, table, p, ul, ol, ch } from "../../src/ui.ts";
+import { code, fig, lab, note, table, p, ul, ch } from "../../src/ui.ts";
 
-const RUNTIME_SVG = `
-<svg viewBox="0 0 700 320" width="100%" style="max-width:700px;display:block;margin:0 auto" role="img"
-     aria-label="An agent runtime: direct send by AgentId, and broadcast by TopicId through subscriptions">
-  <defs><marker id="r18" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-    <path d="M0 0 L10 5 L0 10 z" fill="var(--border-strong)"/></marker>
-  <marker id="r18a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-    <path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker></defs>
+export const SKILL_SVG = `
+<svg viewBox="0 0 700 300" width="100%" style="max-width:700px;display:block;margin:0 auto" role="img"
+     aria-label="Forty tool schemas resident in the context versus forty one-line descriptions with bodies read on demand">
+  <defs>
+    <marker id="k27" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="var(--border-strong)"/></marker>
+    <marker id="k27a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker>
+  </defs>
 
-  <text x="14" y="18" class="d-label">IDENTITY = (TYPE, KEY) — THE RUNTIME CREATES INSTANCES ON DEMAND</text>
+  <text x="14" y="20" class="d-label">FORTY CAPABILITIES, TWO WAYS TO OFFER THEM</text>
 
-  <rect x="14" y="30" width="672" height="106" rx="8" class="d-box" stroke-dasharray="3 3"/>
-  <text x="26" y="50" class="d-label" fill="var(--fg-faint)">AGENT RUNTIME — owns lifecycle, routing, delivery</text>
+  <text x="14" y="48" class="d-label" fill="var(--fg-faint)">EVERY SCHEMA RESIDENT</text>
+  <rect x="14" y="58" width="300" height="86" rx="6" class="d-box" stroke-dasharray="3 3"/>
+  <text x="26" y="78" class="d-mono">{"name":"merge_pdfs","parameters":{…}}</text>
+  <text x="26" y="94" class="d-mono">{"name":"split_pdf","parameters":{…}}</text>
+  <text x="26" y="110" class="d-mono" fill="var(--fg-faint)">… 38 more, in full</text>
+  <text x="26" y="132" class="d-mono" fill="var(--danger)">10,518 tokens · every turn</text>
 
-  <rect x="30" y="60" width="128" height="30" rx="4" class="d-box-a"/>
-  <text x="94" y="80" class="d-mono" text-anchor="middle">triage / issue-41</text>
-  <rect x="170" y="60" width="128" height="30" rx="4" class="d-box-a"/>
-  <text x="234" y="80" class="d-mono" text-anchor="middle">triage / issue-77</text>
-  <rect x="310" y="60" width="128" height="30" rx="4" class="d-box-t"/>
-  <text x="374" y="80" class="d-mono" text-anchor="middle">coder / issue-41</text>
-  <rect x="450" y="60" width="128" height="30" rx="4" class="d-box-p"/>
-  <text x="514" y="80" class="d-mono" text-anchor="middle">reviewer / default</text>
-  <rect x="590" y="60" width="80" height="30" rx="4" class="d-box" stroke-dasharray="2 2"/>
-  <text x="630" y="80" class="d-mono" text-anchor="middle" fill="var(--fg-faint)">…on demand</text>
+  <text x="386" y="48" class="d-label" fill="var(--fg-faint)">NAMES ONLY</text>
+  <rect x="386" y="58" width="300" height="86" rx="6" class="d-box-a"/>
+  <text x="398" y="78" class="d-mono">- merge_pdfs: merge pdfs — documents</text>
+  <text x="398" y="94" class="d-mono">- split_pdf: split pdf — documents</text>
+  <text x="398" y="110" class="d-mono" fill="var(--fg-faint)">… 38 more, one line each</text>
+  <text x="398" y="132" class="d-mono" fill="var(--ok)">534 tokens · every turn</text>
 
-  <text x="30" y="110" class="d-mono" fill="var(--fg-faint)">same TYPE (behaviour, tools, prompt) · different KEY (isolated state, own mailbox)</text>
-  <text x="30" y="128" class="d-mono" fill="var(--accent)">two issues → two triage instances → no shared context, no cross-talk</text>
+  <path d="M536 148 L536 186" class="d-arrow-a" marker-end="url(#k27a)"/>
+  <text x="548" y="172" class="d-mono" fill="var(--accent)">only after it commits</text>
 
-  <line x1="14" y1="152" x2="686" y2="152" stroke="var(--border)"/>
-  <text x="14" y="174" class="d-label">TWO WAYS TO SEND</text>
+  <rect x="386" y="192" width="300" height="76" rx="6" class="d-box-t"/>
+  <text x="398" y="212" class="d-mono">cat skills/plot_timeseries/SKILL.md</text>
+  <text x="398" y="232" class="d-mono" fill="var(--fg-faint)">## When to use · ## Steps · ## Notes</text>
+  <text x="398" y="254" class="d-mono" fill="var(--tool)">154 tokens · once</text>
 
-  <rect x="14" y="186" width="322" height="118" rx="8" class="d-box"/>
-  <text x="26" y="206" class="d-mono">DIRECT · send(msg, to: AgentId)</text>
-  <rect x="30" y="218" width="88" height="26" rx="4" class="d-box-a"/><text x="74" y="236" class="d-mono" text-anchor="middle">lead</text>
-  <path d="M122 231 L186 231" class="d-arrow-a" marker-end="url(#r18a)"/>
-  <rect x="190" y="218" width="130" height="26" rx="4" class="d-box-t"/><text x="255" y="236" class="d-mono" text-anchor="middle">coder / issue-41</text>
-  <text x="26" y="262" class="d-mono" fill="var(--fg-faint)">one recipient, named. returns a reply.</text>
-  <text x="26" y="280" class="d-mono" fill="var(--fg-faint)">this is C17's asTool() with an address.</text>
-  <text x="26" y="298" class="d-mono" fill="var(--ok)">use for: "you, do this, tell me the answer"</text>
+  <rect x="14" y="192" width="300" height="76" rx="6" class="d-box" stroke-dasharray="3 3"/>
+  <text x="164" y="228" class="d-text" text-anchor="middle" fill="var(--fg-faint)">nothing to read —</text>
+  <text x="164" y="248" class="d-text" text-anchor="middle" fill="var(--fg-faint)">it was already all there</text>
 
-  <rect x="350" y="186" width="336" height="118" rx="8" class="d-box"/>
-  <text x="362" y="206" class="d-mono">BROADCAST · publish(msg, to: TopicId)</text>
-  <rect x="364" y="218" width="88" height="26" rx="4" class="d-box-a"/><text x="408" y="236" class="d-mono" text-anchor="middle">coder</text>
-  <path d="M456 231 L486 219" class="d-arrow" marker-end="url(#r18)"/>
-  <path d="M456 231 L486 243" class="d-arrow" marker-end="url(#r18)"/>
-  <rect x="490" y="208" width="188" height="22" rx="3" class="d-box-p"/><text x="584" y="224" class="d-mono" text-anchor="middle">reviewer (subscribed)</text>
-  <rect x="490" y="234" width="188" height="22" rx="3" class="d-box-p"/><text x="584" y="250" class="d-mono" text-anchor="middle">auditor (subscribed)</text>
-  <text x="362" y="274" class="d-mono" fill="var(--fg-faint)">topic ("patch_ready", "issue-41") →</text>
-  <text x="362" y="292" class="d-mono" fill="var(--fg-faint)">TypeSubscription maps type→type, source→key</text>
-  <text x="362" y="310" class="d-mono" fill="var(--ok)">use for: "this happened, whoever cares</text>
+  <text x="14" y="290" class="d-mono" fill="var(--accent)">a body is read once · a schema is re-sent on every turn (C01)</text>
 </svg>`;
 
 const chapter: Chapter = {
   id: "c18",
   num: 18,
-  layer: "systems",
-  title: "The Agent Runtime",
-  subtitle: "Actors, identities, topics and subscriptions",
+  layer: "environment",
+  title: "Skills",
+  subtitle: "Giving an agent forty capabilities without putting forty schemas in its context",
   blurb:
-    "Underneath every serious multi-agent framework is a message-passing runtime. Building one — AgentId, TopicId, subscriptions, direct send versus broadcast — following the design AutoGen settled on, and why it scales to separate processes.",
-  lines: 267,
-  file: "code/c18_runtime.ts",
-  tags: ["actor model", "AgentId", "TopicId", "subscriptions", "pub/sub", "message routing", "AutoGen", "distributed"],
+    "A tool costs tokens before it is used and every turn after. A skill costs one line until the agent commits to it, and then it reads the rest itself. The pattern is progressive disclosure, and it is what lets a capability surface grow without the context growing with it.",
+  lines: 214,
+  file: "code/c18_skills.ts",
+  tags: ["skills", "progressive disclosure", "tool registry", "context budget", "SKILL.md", "capability surface"],
 
   sections: [
-    { id: "motivation", kicker: "Motivation", title: "Where the call tree runs out",
+    {
+      id: "motivation",
+      kicker: "Motivation",
+      title: "The registry problem, from the other end",
       html:
-        p(`${ch("c17", "C17")} wrapped agents as tools, which is a call tree: the parent calls the child, waits, and gets a string. That is the right default and it has four hard limits.`) +
-        ol([
-          `<strong>No identity.</strong> Two concurrent issues each need their own triage state. A function call has no notion of "the triage agent <em>for issue 41</em>", so you end up threading an id through every call by hand.`,
-          `<strong>No events.</strong> A worker that finishes cannot tell an auditor. It can only return to whoever called it, and the caller must know to forward.`,
-          `<strong>No fan-out without a coordinator.</strong> "Whoever cares about a new patch should look at it" requires the publisher to know every subscriber.`,
-          `<strong>No process boundary.</strong> A call tree lives in one process. Scaling out, or running a tool-heavy agent in a different language, means rewriting the coordination.`,
-        ]) +
-        p(`The answer is forty years old: <strong>the actor model</strong>. Agents are actors with addresses and mailboxes; the runtime owns identity, routing and lifecycle. AutoGen's <code>autogen-core</code> is built on exactly this, and its design is worth following closely because it is the one that made the same agent code run standalone and distributed unchanged.`) +
-        note("key", "The payoff to keep in view", p(`Once agents are addressed rather than called, moving one to another process is a routing change, not a rewrite. That property is why this layer exists, and it is invisible until you need it.`)) },
-
-    { id: "core-idea", kicker: "Core idea", title: "Identity, and two ways to send",
+        p(`${ch("c03", "C03")} showed selection accuracy collapsing past roughly twenty tools and offered three ways out: coarser facades, two-stage selection, or subagents. All three reduce how many options the model sees. None of them addresses the other half of the cost, which is that a tool you never call is still in the system prompt, and ${ch("c01", "C01")} bills it on every turn of the run.`) +
+        p(`Forty capabilities with a few arguments each is about ten thousand tokens resident. Over a twelve-turn task that is a hundred and twenty thousand tokens spent on <em>describing</em> what the agent could do, against maybe eight thousand spent on the thing it actually did. The ratio is absurd and it is the normal state of a mature agent, because tools accumulate and nobody removes them.`) +
+        p(`Skills invert the default. The context holds a name and one line per capability. When the agent decides it needs one, it reads the rest — from a file, with a tool it already has. Nothing about the capability is resident until it is chosen, and nothing about it is re-sent afterwards except what it actually used.`) +
+        note(
+          "key",
+          "The asymmetry that makes it work",
+          p(`A schema in the system prompt is paid on every turn. A skill body read from disk is paid once, and it enters the transcript as a tool result like any other. Progressive disclosure is not a compromise you accept when the catalogue is large; it is cheaper at every size above one.`)
+        ),
+    },
+    {
+      id: "core-idea",
+      kicker: "Core idea",
+      title: "A directory, a front-matter header, and one line in the prompt",
       html:
-        fig({ label: "Diagram", title: "the runtime, instances, and both send modes", body: RUNTIME_SVG,
-          caption: `The (type, key) split is the piece that does the most work: one registered behaviour, many isolated instances, created on demand.` }) +
-        `<h3>AgentId = (type, key)</h3>` +
-        code({ title: "code/c18_runtime.ts — identity",
-          src: `export interface AgentId { type: string; key: string }
-export const agentId = (type: string, key = "default"): AgentId => ({ type, key });
+        p(`A skill is a folder with a <code>SKILL.md</code> in it. The front matter carries exactly the two fields the agent needs in order to decide; the body carries everything it needs in order to act.`) +
+        code({
+          title: "skills/merge_pdfs/SKILL.md",
+          lang: "text",
+          plain: true,
+          src: `---
+name: merge_pdfs
+description: Combine several PDFs into one, optionally selecting page ranges.
+---
 
-// TYPE is the behaviour you registered: prompt, tools, message handlers.
-// KEY is the instance: its own state, its own mailbox, isolated from siblings.
-//
-//   agentId("triage", "issue-41")   ← state for issue 41
-//   agentId("triage", "issue-77")   ← a different agent, same behaviour
-//   agentId("reviewer")             ← a singleton, key "default"
-//
-// The runtime creates an instance the first time one is addressed. You never
-// construct agents; you address them.`,
+# merge_pdfs
+
+## When to use
+The task names two or more PDFs and asks for a single output, or asks to
+extract pages from one document into another.
+
+## When not to use
+Splitting one PDF into many — use split_pdf, which handles bookmarks.
+
+## Steps
+1. Confirm every input path exists with \`ls\`.
+2. Run \`python scripts/merge.py <out> <in...>\` from this directory.
+3. The script prints the page count; check it against the sum of the inputs.
+
+## Notes
+Encrypted PDFs fail with a PdfReadError. Decrypt first with qpdf, and if
+there is no password, say so rather than guessing.`,
         }) +
-        p(`This is why the runtime, not your code, owns lifecycle. Sending to <code>("triage", "issue-41")</code> creates that instance if it does not exist. Concurrency becomes a naming question rather than a locking question.`) +
-        `<h3>Direct send: one named recipient, a reply</h3>` +
-        code({ title: "request/response, with an address",
-          src: `const review = await runtime.send<ReviewResult>(
-  { type: "ReviewRequest", patch, issue: "41" },
-  agentId("reviewer"),
-  { sender: self, signal },
-);
-// Blocks until the recipient's handler returns. This is C17's asTool() —
-// the difference is that the recipient is addressed rather than called, so it
-// may live in another process without any change here.`,
+        p(`Only the first four lines of that file are ever resident. The agent's system prompt gets one entry — <code>- merge_pdfs: Combine several PDFs into one, optionally selecting page ranges.</code> — and an instruction telling it how to read the rest.`) +
+        code({
+          title: "what the model sees before it has chosen anything",
+          lang: "text",
+          plain: true,
+          src: `## Available skills
+Skills live in ./skills. Read a skill's SKILL.md before using it.
+
+- merge_pdfs: Combine several PDFs into one, optionally selecting page ranges.
+- clean_csv: Normalise headers, types and missing values in a CSV.
+- query_warehouse: Run read-only SQL against the analytics warehouse.
+… 37 more, one line each
+
+To use a skill:  cat skills/<name>/SKILL.md`,
         }) +
-        `<h3>Broadcast: a topic, and whoever subscribed</h3>` +
-        code({ title: "publish/subscribe, and the mapping rule",
-          src: `export interface TopicId { type: string; source: string }   // rendered "type/source"
-
-// A TypeSubscription maps a topic TYPE to an agent TYPE, and carries the topic
-// SOURCE across as the agent KEY. That one rule is the whole routing model:
-//
-//   subscription: TypeSubscription({ topicType: "patch_ready", agentType: "reviewer" })
-//   publish to:   TopicId("patch_ready", "issue-41")
-//   delivers to:  AgentId("reviewer", "issue-41")     ← source becomes key
-//
-// So per-issue reviewers appear automatically, with isolated state, because the
-// topic source names the thing the work is about.
-
-await runtime.publish({ type: "PatchReady", patch }, topicId("patch_ready", "issue-41"));
-// The publisher does not know who receives this. Zero subscribers is not an error.`,
-        }) +
-        p(`That mapping rule is the cleverest part of the design and the easiest to miss. The topic's <em>source</em> is usually a business identifier — an issue number, a customer id, a run id — and carrying it into the agent key means the runtime automatically gives you one isolated agent per business entity, without any registry of instances.`) +
-        table(["", "Direct send", "Broadcast"], [
-          ["Recipient", "One, named", "Whoever subscribed — the publisher does not know"],
-          ["Reply", "Yes, awaited", "No"],
-          ["Coupling", "Sender knows the recipient", "Both know only the topic"],
-          ["Use for", "\"You, do this, tell me\"", "\"This happened\""],
-          ["Failure of none", "Error — the agent type is unknown", "Silent, and correct: nobody cared"],
-        ]) },
-
-    { id: "mechanics", kicker: "Mechanics", title: "Handlers, and what the runtime owes you",
-      html:
-        code({ title: "a routed agent",
-          src: `export abstract class RoutedAgent {
-  constructor(public readonly id: AgentId, protected readonly rt: Runtime) {}
-
-  /** Dispatch on message type. State lives on \`this\` and is per-instance. */
-  async onMessage(msg: Message, ctx: MessageContext): Promise<unknown> {
-    const handler = (this as any)[\`on\${msg.type}\`];
-    if (!handler) return undefined;          // unhandled is not an error
-    return handler.call(this, msg, ctx);
-  }
-}
-
-class Coder extends RoutedAgent {
-  private attempts = 0;                       // per-instance: one coder per issue
-
-  async onCodeRequest(msg: CodeRequest, ctx: MessageContext) {
-    this.attempts++;
-    const patch = await runAgent(msg.brief, { ...CODER_CFG, signal: ctx.signal });
-
-    // Tell whoever cares. No coordinator, no list of recipients.
-    await this.rt.publish({ type: "PatchReady", patch, attempt: this.attempts },
-                          topicId("patch_ready", this.id.key));
-
-    return { ok: true };                      // the direct reply to the sender
-  }
-
-  async onReviewFailed(msg: ReviewFailed, ctx: MessageContext) {
-    if (this.attempts >= 3) {
-      return this.rt.publish({ type: "Escalate", issue: this.id.key, why: msg.reason },
-                             topicId("needs_human", this.id.key));   // C16
-    }
-    return this.onCodeRequest({ type: "CodeRequest", brief: msg.reason }, ctx);
-  }
-}`,
-        }) +
-        p(`Note what disappeared. There is no orchestrator deciding that a failed review should go back to the coder. The coder subscribed to <code>review_failed</code> and handles it. Choreography rather than orchestration, which is more flexible and, as the next section admits, harder to reason about.`) +
-        `<h3>What the runtime must provide</h3>` +
+        `<h3>Why this is not just a smaller tool description</h3>` +
+        p(`Two things change, and the second is the one people miss.`) +
         ul([
-          `<strong>Lifecycle.</strong> Create on first address, idle-evict, and rehydrate state on the next message (from ${ch("c08", "C08")}'s log).`,
-          `<strong>Ordered per-instance delivery.</strong> One mailbox per agent, processed in order. This is what makes <code>this.attempts++</code> safe without a mutex.`,
-          `<strong>Cancellation.</strong> A token that propagates to every message sent downstream of a cancelled one.`,
-          `<strong>Cycle protection.</strong> A hop-count on every message, and a refusal past a limit. Choreographed systems produce cycles by accident.`,
-          `<strong>Dead letters.</strong> A message to an unknown type, or a handler that throws, must land somewhere visible rather than vanishing.`,
+          `<strong>The body is unbounded.</strong> A tool description is a field in a schema that you are reluctant to grow, because it is resident. A skill body is read on demand, so it can carry the three paragraphs of hard-won detail that actually make the capability work — the failure modes, the flag nobody remembers, the check to run afterwards. ${ch("c03", "C03")} argued that description quality is the highest-value work in a tool surface; skills are what happens when that work stops being taxed.`,
+          `<strong>A skill can carry files.</strong> The folder holds scripts, templates, reference data, fixtures. The agent does not need a tool per artefact because it has a shell and a filesystem (${ch("c16", "C16")}) and can simply use them. A skill is a capability packaged the way a human colleague would package one: here is the folder, the README explains it.`,
         ]) +
-        code({ title: "single-threaded runtime: the mailbox is the concurrency model",
-          src: `export class SingleThreadedRuntime implements Runtime {
-  private factories = new Map<string, (id: AgentId, rt: Runtime) => RoutedAgent>();
-  private instances = new Map<string, RoutedAgent>();          // "type/key"
-  private subs: Subscription[] = [];
-  private mailboxes = new Map<string, Promise<unknown>>();     // per-instance serialisation
-
-  register(type: string, factory: (id: AgentId, rt: Runtime) => RoutedAgent): void {
-    this.factories.set(type, factory);
-  }
-
-  private instance(id: AgentId): RoutedAgent {
-    const k = \`\${id.type}/\${id.key}\`;
-    let a = this.instances.get(k);
-    if (!a) {
-      const f = this.factories.get(id.type);
-      if (!f) throw new UnknownAgentType(id.type);
-      this.instances.set(k, (a = f(id, this)));                // created on demand
-    }
-    return a;
-  }
-
-  async send<T>(msg: Message, to: AgentId, ctx: SendCtx): Promise<T> {
-    if (ctx.hops >= MAX_HOPS) throw new HopLimit(msg, ctx.trace);
-    const k = \`\${to.type}/\${to.key}\`;
-    // Chain onto this instance's mailbox: messages to one agent never interleave.
-    const prev = this.mailboxes.get(k) ?? Promise.resolve();
-    const next = prev.then(() => this.instance(to).onMessage(msg, { ...ctx, hops: ctx.hops + 1 }));
-    this.mailboxes.set(k, next.catch(() => {}));               // a failure must not block the mailbox
-    return next as Promise<T>;
-  }
-
-  async publish(msg: Message, topic: TopicId, ctx: SendCtx): Promise<void> {
-    const targets = this.subs
-      .filter((s) => s.matches(topic))
-      .map((s) => s.mapTo(topic));                             // source → key
-    // Deduplicate: a subscriber matched twice must still receive exactly once.
-    const unique = dedupeById(targets).filter((t) => !sameAgent(t, ctx.sender));
-    await Promise.allSettled(unique.map((t) => this.send(msg, t, ctx)));
-  }
-}`,
-        }) +
-        note("warn", "Two lines that are not optional", p(`<code>.catch(() => {})</code> on the stored mailbox promise. Without it, one thrown handler wedges that agent forever. And excluding the sender from its own broadcasts. Without it, an agent that publishes to a topic it subscribes to loops immediately.`)) +
-        `<h3>Distribution is a routing change</h3>` +
-        p(`Because agents are addressed, the same agent code runs unchanged when the runtime routes over the network: a host process holds the subscription registry, workers connect and declare which types they serve, and <code>send</code> becomes an RPC. AutoGen's distributed runtime is precisely this, and the fact that agent implementations do not change is the headline property.`) },
-
-    { id: "explore", kicker: "Explore", title: "Route messages through a live runtime",
+        note(
+          "",
+          "This requires a sandbox and a file tool",
+          p(`Skills are not an alternative to ${ch("c14", "C14")} and ${ch("c16", "C16")}; they are built on them. The mechanism is "read a file, then run something", which means the agent needs both capabilities and the security posture that comes with them. An agent with no shell cannot use skills, and an agent with an unsandboxed shell should not be reading skill folders it did not author.`)
+        ),
+    },
+    {
+      id: "mechanics",
+      kicker: "Mechanics",
+      title: "What it costs, measured",
       html:
-        p(`Configure subscriptions and send a message. Watch the routing, the instance creation, and the cycles you create by accident.`) +
-        lab({ label: "Simulator", title: "message routing and instance lifecycle",
+        fig({
+          label: "Diagram",
+          title: "resident cost versus read-on-demand",
+          body: SKILL_SVG,
+          caption: `The left column is paid twelve times in a twelve-turn run. The right column is paid twelve times for the index and once for the body the agent actually used.`,
+        }) +
+        `<h3>Forty skills, three strategies</h3>` +
+        table(
+          ["Strategy", "Resident", "On use", "×12 turns", "Selection"],
+          [
+            ["all schemas resident", "10,518", "0", "126,216", "39%"],
+            ["names + descriptions", "534", "253", "6,661", "47%"],
+            ["names + read the file", "534", "154", "6,562", "47%"],
+          ]
+        ) +
+        p(`Nineteen times the tokens for the same forty capabilities. The selection column moves too, and for the reason ${ch("c03", "C03")} gave: the model is choosing among forty named things instead of the eighty-odd individual tool schemas those skills contain, and fewer, better-separated options select better.`) +
+        `<h3>The break-even that is not there</h3>` +
+        p(`The obvious objection is that progressive disclosure must lose once the agent uses enough skills, because each one costs an extra read. It does not, and the table is worth staring at:`) +
+        table(
+          ["Skills used in the run", "All resident", "Progressive"],
+          [
+            ["1", "126,216", "6,536"],
+            ["3", "126,216", "6,827"],
+            ["8", "126,216", "7,589"],
+            ["20", "126,216", "9,452"],
+            ["<b>40 — every skill in the catalogue</b>", "<b>126,216</b>", "<b>12,484</b>"],
+          ]
+        ) +
+        p(`Reading every skill you have still costs a tenth of holding them resident, because a body is read once and a schema is re-sent on every turn. There is no crossover. The only configuration where residency wins is a catalogue of one.`) +
+        `<h3>The cost that is real</h3>` +
+        ul([
+          `<strong>A round trip.</strong> The agent reads the skill, then acts, so every first use of a skill costs one extra turn. On a twelve-turn task that is eight percent more latency for the turn it happens on, and it happens once per skill per run.`,
+          `<strong>A chance to choose wrong.</strong> The model commits based on one line. If the line is bad it reads the wrong file, discovers the mistake, and reads another — recoverable, but it has now spent two round trips. The description is doing the work the whole tool schema used to do, so it has to be better, not shorter.`,
+          `<strong>A dependency on the agent following instructions.</strong> "Read SKILL.md before using a skill" is a prompt instruction, not a guard. Models mostly comply and occasionally guess at a skill's interface from its name. If that guess is expensive, make the skill's entry point refuse to run without a flag that only the SKILL.md mentions.`,
+        ]),
+    },
+    {
+      id: "explore",
+      kicker: "Explore",
+      title: "Find the size where residency stops being defensible",
+      html:
+        p(`Everything here is a trade between what is resident and what is read. Move the catalogue size and the run length and watch which side of the line you are on.`) +
+        lab({
+          label: "Simulator",
+          title: "resident schemas versus progressive disclosure",
           body: `
 <div class="controls">
-  <div class="ctl"><label>scenario</label>
-    <select id="r18-s">
-      <option value="direct">direct send: lead → coder</option>
-      <option value="pub" selected>publish: patch_ready / issue-41</option>
-      <option value="multi">two issues in flight</option>
-      <option value="cycle">accidental cycle</option>
-      <option value="none">publish with no subscribers</option>
-    </select></div>
-  <div class="ctl"><label>reviewer subscribes to patch_ready</label><select id="r18-rv"><option value="1" selected>yes</option><option value="0">no</option></select></div>
-  <div class="ctl"><label>auditor subscribes to patch_ready</label><select id="r18-au"><option value="1" selected>yes</option><option value="0">no</option></select></div>
-  <div class="ctl"><label>hop limit</label><input type="range" id="r18-h" min="2" max="20" step="1" value="8"><span class="val" id="r18-h-v">8</span></div>
+  <div class="ctl"><label>capabilities</label>
+    <input type="range" id="k27-n" min="1" max="120" step="1" value="40">
+    <span class="val" id="k27-n-v">40</span></div>
+  <div class="ctl"><label>turns in the run</label>
+    <input type="range" id="k27-turns" min="1" max="40" step="1" value="12">
+    <span class="val" id="k27-turns-v">12</span></div>
+  <div class="ctl"><label>used in the run</label>
+    <input type="range" id="k27-used" min="0" max="20" step="1" value="2">
+    <span class="val" id="k27-used-v">2</span></div>
+  <div class="ctl"><label>tokens per schema</label>
+    <input type="range" id="k27-size" min="60" max="600" step="10" value="260">
+    <span class="val" id="k27-size-v">260</span></div>
 </div>
-<div class="trace" id="r18-trace" style="max-height:15rem"></div>
+<div id="k27-verdict" class="note" style="margin-top:0"></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:1rem;margin-top:1rem">
+  <div>
+    <div class="pt" style="font:600 .6875rem var(--font-mono);color:var(--fg-faint);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.3rem">all resident</div>
+    <div class="meter"><i id="k27-rbar" style="width:0%;background:var(--danger)"></i></div>
+    <div class="mono small muted" id="k27-rv">—</div>
+  </div>
+  <div>
+    <div class="pt" style="font:600 .6875rem var(--font-mono);color:var(--fg-faint);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.3rem">progressive</div>
+    <div class="meter"><i id="k27-pbar" style="width:0%"></i></div>
+    <div class="mono small muted" id="k27-pv">—</div>
+  </div>
+</div>
 <div class="stats">
-  <div class="stat"><b id="r18-inst">—</b><span>instances alive</span></div>
-  <div class="stat"><b id="r18-msg">—</b><span>messages delivered</span></div>
-  <div class="stat"><b id="r18-dead">—</b><span>dead letters</span></div>
-</div>
-<div class="note" id="r18-note" style="margin-top:1rem"></div>`,
+  <div class="stat"><b id="k27-ratio">—</b><span>token ratio</span></div>
+  <div class="stat"><b id="k27-sel-r">—</b><span>select · resident</span></div>
+  <div class="stat"><b id="k27-sel-p">—</b><span>select · skills</span></div>
+  <div class="stat"><b id="k27-extra">—</b><span>extra turns</span></div>
+</div>`,
           script: `
-function upd() {
-  var s = document.getElementById("r18-s").value, rv = document.getElementById("r18-rv").value === "1",
-      au = document.getElementById("r18-au").value === "1", H = +document.getElementById("r18-h").value;
-  document.getElementById("r18-h-v").textContent = H;
+var n = document.getElementById("k27-n"), turns = document.getElementById("k27-turns");
+var used = document.getElementById("k27-used"), size = document.getElementById("k27-size");
 
-  var L = [], inst = {}, msgs = 0, dead = 0;
-  function touch(t, k) { var id = t + "/" + k; if (!inst[id]) { inst[id] = 1; L.push(["sys", "CREATE  " + id + "   (first message addressed to it)"]); } return id; }
-  function deliver(from, to, m) { msgs++; L.push(["act", "send    " + from + " → " + to + "   " + m]); }
-  function pub(from, topic, m) {
-    L.push(["think", "publish " + from + " → topic " + topic + "   " + m]);
-    var src = topic.split("/")[1], subs = [];
-    if (rv) subs.push(["reviewer", src]); if (au) subs.push(["auditor", src]);
-    if (!subs.length) { L.push(["r-sys", "        no subscriptions match — delivered to 0 agents (not an error)"]); return; }
-    subs.forEach(function (x) { var id = touch(x[0], x[1]); deliver("(topic)", id, m); });
-  }
-
-  if (s === "direct") {
-    touch("lead", "default"); var c = touch("coder", "issue-41");
-    deliver("lead/default", c, "CodeRequest{issue:41}");
-    L.push(["obs", "reply   " + c + " → lead/default   {ok:true}"]);
-  } else if (s === "pub") {
-    var c2 = touch("coder", "issue-41");
-    L.push(["obs", "        coder/issue-41 finished a patch"]);
-    pub(c2, "patch_ready/issue-41", "PatchReady{attempt:1}");
-    L.push(["r-sys", "        TypeSubscription(patch_ready → reviewer) mapped source 'issue-41' to key 'issue-41'"]);
-  } else if (s === "multi") {
-    ["issue-41", "issue-77"].forEach(function (k) {
-      var c3 = touch("coder", k);
-      pub(c3, "patch_ready/" + k, "PatchReady{}");
-    });
-    L.push(["r-sys", "        note: two coder instances, two reviewer instances, zero shared state"]);
-  } else if (s === "cycle") {
-    var a = touch("coder", "issue-41");
-    var hop = 0;
-    while (hop < H) {
-      hop++;
-      pub("coder/issue-41", "patch_ready/issue-41", "PatchReady (hop " + hop + ")");
-      if (!rv) break;
-      L.push(["err", "        reviewer/issue-41 publishes review_failed → coder resubmits"]);
-      if (hop >= H) { L.push(["err", "HOP LIMIT " + H + " reached — message refused, dead-lettered"]); dead++; }
-    }
-  } else {
-    var c4 = touch("coder", "issue-41");
-    pub(c4, "patch_ready/issue-41", "PatchReady{}");
-  }
-
-  document.getElementById("r18-trace").innerHTML = L.map(function (l) {
-    return '<span class="ln r-' + (l[0] === "sys" ? "sys" : l[0] === "err" ? "err" : l[0] === "obs" ? "obs" : l[0] === "think" ? "think" : l[0] === "r-sys" ? "sys" : "act") + '">' + l[1] + '</span>';
-  }).join("");
-  document.getElementById("r18-inst").textContent = Object.keys(inst).length;
-  document.getElementById("r18-msg").textContent = msgs;
-  document.getElementById("r18-dead").textContent = dead;
-
-  var n = document.getElementById("r18-note");
-  if (s === "none" || (!rv && !au)) n.innerHTML = "<b>No subscribers.</b> The message is delivered to nobody and nothing errors — which is correct for pub/sub, and a real operational hazard. A publisher cannot tell the difference between 'nobody cared' and 'the subscription was never registered'. Log subscriber counts per topic.";
-  else if (s === "multi") n.innerHTML = "<b>Two issues, four instances.</b> The topic source became the agent key, so each issue got its own coder and reviewer with isolated state and its own ordered mailbox. Nobody wrote a registry — this fell out of the TypeSubscription mapping rule.";
-  else if (s === "cycle") n.innerHTML = "<b>An accidental cycle.</b> Coder publishes, reviewer rejects, coder republishes. No single agent is wrong, and the system never stops. The hop limit is the backstop — choreographed systems need one, because nobody owns termination.";
-  else if (s === "direct") n.innerHTML = "<b>Direct send.</b> One named recipient, one reply — C17's asTool() with an address. The difference is invisible here and decisive later: coder/issue-41 could be in another process.";
-  else n.innerHTML = "<b>Broadcast.</b> The coder does not know who is listening. Adding an auditor requires no change to the coder — that is the decoupling you are buying, and the debuggability you are paying with.";
+function accuracy(options, perOption) {
+  var crowding = 1 / (1 + Math.pow(options / 22, 2.1));
+  var legibility = Math.min(1, 0.55 + 0.45 * Math.min(1, perOption / 26));
+  return Math.max(0.05, Math.min(0.985, 0.35 + 0.65 * crowding * legibility));
 }
-["r18-s","r18-rv","r18-au","r18-h"].forEach(function (i) {
-  document.getElementById(i).addEventListener("input", upd); document.getElementById(i).addEventListener("change", upd); });
-upd();`,
-          caption: `Run the "accidental cycle" scenario. Nothing in it is wrong: each agent responds sensibly to the message it received. Cycles are the characteristic failure of choreography, and only the runtime can catch them.`,
-        }) },
 
-    { id: "build", kicker: "Build it", title: "Teams on top of the runtime",
+function run() {
+  var N = +n.value, T = +turns.value, U = Math.min(+used.value, N), S = +size.value;
+  document.getElementById("k27-n-v").textContent = N;
+  document.getElementById("k27-turns-v").textContent = T;
+  document.getElementById("k27-used-v").textContent = U;
+  document.getElementById("k27-size-v").textContent = S;
+
+  var LINE = 13, BODY = 150;
+  var resident = N * S * T;
+  var progressive = N * LINE * T + U * BODY;
+
+  document.getElementById("k27-rv").textContent = Math.round(resident).toLocaleString() + " tok";
+  document.getElementById("k27-pv").textContent = Math.round(progressive).toLocaleString() + " tok";
+  var mx = Math.max(resident, progressive);
+  document.getElementById("k27-rbar").style.width = (resident / mx * 100) + "%";
+  document.getElementById("k27-pbar").style.width = (progressive / mx * 100) + "%";
+
+  var ratio = resident / Math.max(1, progressive);
+  document.getElementById("k27-ratio").textContent = ratio >= 1 ? ratio.toFixed(1) + "×" : ratio.toFixed(2) + "×";
+  document.getElementById("k27-sel-r").textContent = (accuracy(N * 2, S / 8) * 100).toFixed(0) + "%";
+  document.getElementById("k27-sel-p").textContent = (accuracy(N, LINE) * 100).toFixed(0) + "%";
+  document.getElementById("k27-extra").textContent = "+" + U;
+
+  var v = document.getElementById("k27-verdict");
+  if (N === 1) v.innerHTML = "<b>One capability: just use a tool.</b> Skills exist to keep a catalogue off the context budget. With a catalogue of one there is nothing to keep off, and you have added a round trip for nothing.";
+  else if (T === 1) v.innerHTML = "<b>A single-turn run is the one honest case for residency.</b> Nothing is re-sent, so the schemas are paid once — and the skill still has to be read. Almost no agent task is one turn, which is why this configuration is hard to find in practice.";
+  else if (ratio > 8) v.innerHTML = "<b>Not close.</b> At " + N + " capabilities over " + T + " turns the resident schemas cost " + ratio.toFixed(0) + "× what the skills do. The catalogue is being re-sent " + T + " times to support " + U + " actual uses.";
+  else if (ratio > 1.5) v.innerHTML = "<b>Skills win, comfortably.</b> Worth noting <em>why</em>: it is the turn count doing the work, not the catalogue size. Drag turns down and watch the advantage shrink far faster than it does when you drag capabilities down.";
+  else v.innerHTML = "<b>Close enough that it is a judgement call.</b> Small catalogue, short run. Pick on latency instead: residency costs no extra round trips, and at this scale that is the difference that will be felt.";
+}
+[n, turns, used, size].forEach(function (el) { el.addEventListener("input", run); });
+run();`,
+          caption: `Set capabilities to 1 — skills lose, and should. Then set turns to 1, which is the only other configuration where residency competes. Everything between those two corners belongs to progressive disclosure, and the variable driving it is the turn count rather than the catalogue size.`,
+        }),
+    },
+    {
+      id: "build",
+      kicker: "Build it",
+      title: "Discovery, the index, and the read",
       html:
-        p(`AutoGen's layering is worth copying: a low-level runtime, and an opinionated team API above it. ${ch("c17", "C17")}'s topologies are thin once the runtime exists.`) +
-        code({ title: "code/c18_runtime.ts — round-robin and selector, on one primitive",
-          src: `export class RoundRobinTeam {
-  constructor(private members: AgentId[], private rt: Runtime, private stop: Termination) {}
-
-  async run(task: string): Promise<TaskResult> {
-    const transcript: Message[] = [userText(task)];
-    for (let turn = 0; ; turn++) {
-      const reason = this.stop(transcript, { turn });
-      if (reason) return { transcript, stopReason: reason };
-
-      const speaker = this.members[turn % this.members.length];
-      const reply = await this.rt.send({ type: "Turn", transcript }, speaker, ctx());
-      transcript.push(reply as Message);
-    }
-  }
+        p(`The implementation is three small functions and a convention. Nothing about it is clever, which is the point — a skill is a folder, and the agent already knows how to read folders.`) +
+        code({
+          title: "code/c18_skills.ts — the index that goes in the prompt",
+          src: `export interface Skill {
+  name: string;
+  /** The one line that goes in the system prompt. */
+  description: string;
+  /** The body the agent reads only after committing to the skill. */
+  body: string;
+  /** Tool schemas the skill brings with it, as JSON Schema text. */
+  schemas: string[];
 }
 
-export class SelectorTeam extends RoundRobinTeam {
-  /** A model picks the next speaker from the transcript. One extra call per turn. */
-  protected async next(transcript: Message[]): Promise<AgentId> {
-    const { speaker } = await structured(this.model, [{ role: "user", content:
-      \`Roles:\\n\${this.roles()}\\n\\nConversation:\\n\${render(transcript)}\\n\\n\` +
-      \`Who should speak next? Do not pick the previous speaker unless no one else can help.\` }],
-      obj({ speaker: enumOf(this.names()), why: str() }));
-    return agentId(speaker);
-  }
-}`,
+// Discovery: every directory under skills/ with a parseable SKILL.md.
+// Front matter supplies name and description; a folder missing either is
+// skipped rather than half-registered, because a skill with no description
+// is a skill the model cannot choose deliberately.`,
         }) +
-        p(`The "do not pick the previous speaker" clause is not decoration. Selector chats collapse into one agent monologuing without it, because the model that just produced a good turn looks like the best candidate for the next one.`) +
-        `<h3>Durability, from the runtime rather than in each agent</h3>` +
-        code({ title: "the runtime writes the log",
-          src: `// Every send and publish is an event (C08). State is a fold, so an evicted or
-// crashed instance rehydrates by replaying its own mailbox.
-async send(msg, to, ctx) {
-  await this.log.append(ctx.runId, [{ t: "message_sent", from: ctx.sender, to, msg, hops: ctx.hops }]);
-  const out = await this.deliver(msg, to, ctx);
-  await this.log.append(ctx.runId, [{ t: "message_handled", to, result: summarise(out) }]);
-  return out;
-}
+        p(`The accounting in the file separates the two costs that behave differently, which is the whole analysis:`) +
+        code({
+          title: "the two costs",
+          src: `export const STRATEGIES: Strategy[] = [
+  {
+    name: "all schemas resident",
+    // Every tool of every skill, in the system prompt, on every single call.
+    resident: (ss) => ss.reduce((n, s) => n + s.schemas.reduce((m, x) => m + tokens(x), 0), 0),
+    onUse: () => 0,
+    extraTurns: 0,
+  },
+  {
+    name: "names + read the file",
+    // Same index, but the body is read with an existing file tool, so the
+    // schemas never need to exist as schemas at all.
+    resident: (ss) => ss.reduce((n, s) => n + tokens(\`- \${s.name}: \${s.description}\`), 0),
+    onUse: (s) => tokens(s.body),
+    extraTurns: 1,
+  },
+];
 
-// Idle eviction becomes safe: drop the instance, keep the log.
-// The next message addressed to ("triage","issue-41") replays its history and continues.`,
+// Resident tokens are re-sent every turn (C01); the skill body is read once.
+const total = resident * TURNS + onUse;`,
         }) +
-        code({ title: "run it", lang: "bash", plain: true,
-          src: `node --experimental-strip-types code/c18_runtime.ts
+        code({
+          title: "run it",
+          lang: "bash",
+          plain: true,
+          src: `node --experimental-strip-types code/c18_skills.ts
 
-#   C18 · The Agent Runtime
+#   C18 · 40 skills, three ways to offer them
 #
-#   routing trace for one issue:
+#   strategy                 resident   on use   ×12 turns   select
+#   ------------------------ ---------- -------- ----------- ------
+#   all schemas resident          10518        0      126216    39%
+#   names + descriptions            534      253        6661    47%
+#   names + read the file           534      154        6562    47%
 #
-#     publish  (external) → issue_opened/issue-41  IssueOpened  (1 subscriber)
-#     send     (external) → triage/issue-41  IssueOpened
-#     create   triage/issue-41
-#     send     triage/issue-41 → coder/issue-41  CodeRequest
-#     create   coder/issue-41
-#     publish  coder/issue-41 → patch_ready/issue-41  PatchReady  (2 subscribers)
-#     send     coder/issue-41 → reviewer/issue-41  PatchReady
-#     create   reviewer/issue-41
-#     publish  reviewer/issue-41 → review_failed/issue-41  ReviewFailed  (1 subscriber)
-#     send     coder/issue-41 → auditor/issue-41  PatchReady
-#     create   auditor/issue-41
-#     send     reviewer/issue-41 → coder/issue-41  ReviewFailed
-#     publish  coder/issue-41 → patch_ready/issue-41  PatchReady  (2 subscribers)
-#     send     coder/issue-41 → reviewer/issue-41  PatchReady
-#     send     coder/issue-41 → auditor/issue-41  PatchReady
+#   19× the tokens over a 12-turn run, for the same forty capabilities.
+#   The resident column is the one that matters: it is paid on every turn
+#   whether or not a skill is used, and 40 skills of schemas is more
+#   context than most agents spend on the actual task.
 #
-#     The topic SOURCE became the agent KEY, so reviewer/issue-41 and
-#     auditor/issue-41 were created on demand. Nobody wrote a registry.
+#   What the agent sees before it has chosen anything:
 #
-#   two issues concurrently → 8 instances, zero shared state:
+#     - merge_pdfs: merge pdfs — for documents.
+#     - split_pdf: split pdf — for documents.
+#     - fill_pdf_form: fill pdf form — for documents.
+#     … 37 more, one line each
 #
-#     auditor/issue-41   auditor/issue-77   coder/issue-41   coder/issue-77   reviewer/issue-41   reviewer/issue-77   triage/issue-41   triage/issue-77
+#   And after it commits to plot_timeseries:
 #
-#   publish to a topic with no subscriptions → delivered to 0 agents, no error.
-#   A publisher cannot distinguish "nobody cared" from "the subscription was never
-#   registered" — which is why you instrument subscriber counts per topic.
+#     # plot_timeseries
 #
-#   accidental cycle (reviewer always rejects):
+#     ## When to use
+#     Use this when the task involves plot timeseries and the workspace
+#     already contains the inputs it needs.
+#
+#     ## Steps
+#     …
+#
+#   Break-even, 40 skills over 12 turns:
 # …
-#   State held outside it is lost silently on eviction — the requirement this layer imposes.`,
-        }) },
-
-    { id: "production", kicker: "Production notes", title: "Field notes",
+#   when the catalogue is large — it is cheaper at every size above one.`,
+        }) +
+        note(
+          "good",
+          "Writing a skill is writing documentation",
+          p(`The best thing about this pattern is what it does to the authoring experience. A tool description is a cramped field you are reluctant to grow. A <code>SKILL.md</code> is a document — you write the "when not to use" section, the failure modes and the gotcha about encrypted files, because there is no budget pressure telling you not to. The capability gets better because the format stopped punishing detail.`)
+        ),
+    },
+    {
+      id: "production",
+      kicker: "Production notes",
+      title: "Field notes",
       html:
         ul([
-          `<strong>Read <code>autogen-core</code>.</strong> It is the clearest available implementation of this design: <code>AgentId</code>, <code>TopicId</code>, <code>TypeSubscription</code>, <code>RoutedAgent</code>, <code>SingleThreadedAgentRuntime</code>, and a distributed runtime with a host and workers where — the documentation is explicit about this — agents work the same way in both, so you can switch with no change to agent implementations.`,
-          `<strong>The layering is the lesson.</strong> <code>autogen-core</code> for the runtime, <code>autogen-agentchat</code> for opinionated teams, <code>autogen-ext</code> for model clients and tools. Keep your own runtime free of anything opinionated about conversation; teams belong above it.`,
-          `<strong>Do not build this on day one.</strong> ${ch("c17", "C17")}'s <code>asTool()</code> covers most needs. Adopt a runtime when you need per-entity agent identity, event-driven fan-out, or separate processes, and not before, because choreography is genuinely harder to debug than a call tree.`,
-          `<strong>Orchestration versus choreography is a real trade.</strong> Direct sends give you a readable call tree and an obvious owner of termination. Pub/sub gives you decoupling and costs you both. A good default is orchestration for the main flow and broadcast for side-effects — auditing, notification, metrics.`,
-          `<strong>Instrument subscriber counts per topic.</strong> Publishing to a topic with zero subscribers is silent and correct, which makes a missing subscription registration an invisible outage. It is the characteristic pub/sub incident.`,
-        ]) },
+          `<strong>Claude Code and pi both ship this.</strong> Both discover skills from directories, both put a name and description in the prompt, both expect the agent to read the file before acting. Convergent design across independent implementations is the strongest signal available that a shape is right, and it matches the Manning course's <code>SKILL.md</code> treatment almost line for line.`,
+          `<strong>Scope skills the way you scope config.</strong> Personal, project and organisation-level directories, resolved in that order with the nearest winning. This is ${ch("c08", "C08")}'s memory scoping applied to capabilities, and it has the same failure mode: a skill that should have been personal leaking into a shared context, or a project skill silently overriding an org one nobody knew existed.`,
+          `<strong>A skill folder is executable content, so it is a supply chain.</strong> ${ch("c24", "C24")} covers this for project config, and skills are the sharpest instance: a <code>SKILL.md</code> is instructions the model will follow, and the scripts beside it are code it will run. Cloning a repository with a skills directory and pointing an agent at it is an install, not a read. Review third-party skills the way you would review a dependency.`,
+          `<strong>Measure first-use rate, not just usage.</strong> ${ch("c23", "C23")} should tell you how often a skill is read and then <em>not</em> used, which is the signal that its description promises the wrong thing. A skill read in 40% of runs and used in 5% is a description bug, and it is invisible if you only count invocations.`,
+          `<strong>Do not convert every tool into a skill.</strong> The pattern pays for capabilities that are occasional, documented and self-contained. The four tools the agent uses on every single task should stay resident — they are paid on every turn either way, and making the agent read a file first just adds a round trip to the hot path.`,
+        ]),
+    },
   ],
 
   exercises: [
-    { difficulty: "warm-up",
-      prompt: `You publish to <code>TopicId("issue_opened", "issue-41")</code> with a subscription <code>TypeSubscription(topicType: "issue_opened", agentType: "triage")</code>. Which agent receives it, and what if you publish to <code>"issue-77"</code>?`,
-      answer: p(`<code>AgentId("triage", "issue-41")</code>, created on demand if it does not exist. Publishing to <code>"issue-77"</code> reaches <code>AgentId("triage", "issue-77")</code> — a different instance with its own state and its own ordered mailbox.`) +
-        p(`The rule is: <em>topic type selects the agent type; topic source becomes the agent key</em>. The consequence worth appreciating is that you get one isolated agent per business entity with no registry, no factory calls, and no id threaded through your code, as long as you choose topic sources that name the thing the work is about.`) },
+    {
+      difficulty: "warm-up",
+      prompt: `The break-even table shows progressive disclosure winning even when the agent uses all forty skills. Explain why, in one sentence, using ${ch("c01", "C01")}'s billing rule.`,
+      answer:
+        p(`A resident schema is re-sent on every turn of the run, so forty schemas over twelve turns are billed four hundred and eighty times; a skill body is read once and then sits in the transcript like any other tool result, so forty bodies are billed forty times plus their own re-sends from the point they were read.`) +
+        p(`The general form is worth keeping: <strong>residency multiplies by turns, reading multiplies by uses.</strong> Since turns exceed uses in almost every real task, the asymmetry is structural rather than a matter of tuning.`),
+    },
+    {
+      difficulty: "core",
+      prompt: `Write the <code>SKILL.md</code> for a capability you have shipped as a tool, and name three things you put in it that would never have fitted in a tool description.`,
+      answer:
+        p(`The exercise is the point rather than the artefact, so here is the shape and the three categories that reliably appear.`) +
+        code({
+          title: "the shape",
+          lang: "text",
+          plain: true,
+          src: `---
+name: query_warehouse
+description: Run read-only SQL against the analytics warehouse.
+---
 
-    { difficulty: "core",
-      prompt: `Implement idle eviction: drop an agent instance after N seconds of inactivity and rehydrate it on the next message. What must be true for this to be safe?`,
-      answer: code({ title: "evict the object, keep the log",
-        src: `class Runtime {
-  private lastSeen = new Map<string, number>();
+## When not to use
+Anything needing today's data — the warehouse lags by up to 6 hours.
+Use the operational read-replica skill for anything time-sensitive.
 
-  private async instance(id: AgentId): Promise<RoutedAgent> {
-    const k = key(id);
-    let a = this.instances.get(k);
-    if (!a) {
-      a = this.factories.get(id.type)!(id, this);
-      // Rehydrate from this instance's own event history (C08).
-      const events = await this.log.readFor(id);
-      if (events.length) await a.restore(project(events));
-      this.instances.set(k, a);
-    }
-    this.lastSeen.set(k, Date.now());
-    return a;
-  }
+## Steps
+1. Check the schema first: \`python scripts/describe.py <table>\`.
+2. Queries are killed at 30s. Add a LIMIT while exploring.
+3. Results over 1000 rows are written to results.csv, not returned.
 
-  private sweep(): void {
-    for (const [k, at] of this.lastSeen) {
-      if (Date.now() - at < this.idleMs) continue;
-      // NEVER evict an instance with a non-empty mailbox or an in-flight handler.
-      if (this.mailboxDepth(k) > 0 || this.inFlight.has(k)) continue;
-      this.instances.delete(k);
-      this.lastSeen.delete(k);
-    }
-  }
-}` }) +
-      ul([
-        `<strong>All agent state must be derivable from the log.</strong> An instance holding something not recorded — an open connection, a cached computation, a counter incremented outside a handler — loses it silently on eviction. This is the requirement that eviction imposes on your agent code, and it is worth enforcing by making state a single serialisable field.`,
-        `<strong>Never evict with a pending mailbox or an in-flight handler.</strong> Otherwise a message is processed by an instance that is about to be discarded, and its effects are lost.`,
-        `<strong>Rehydration must be ordered.</strong> Two concurrent messages to an evicted agent must not both trigger a restore. Cache the promise, not the instance.`,
-        `<strong>Watch the cost.</strong> Replaying a long history on every wake is slow. Snapshot periodically and replay only from the snapshot — the standard event-sourcing answer.`,
-      ]) },
-
-    { difficulty: "core",
-      prompt: `Design cycle detection that catches the accidental loop from the simulator without blocking legitimate multi-turn conversations.`,
-      answer: p(`A hop limit alone is blunt: a legitimate ten-turn review conversation and a two-agent infinite loop both have many hops. Three signals together:`) +
-        code({ title: "cheap first, then structural",
-          src: `interface MsgCtx { hops: number; path: string[]; runId: string }   // path = ["coder/41","reviewer/41",…]
-
-function checkCycle(ctx: MsgCtx, msg: Message): Violation | null {
-  // 1. Hard backstop. Generous, so it only catches true runaways.
-  if (ctx.hops >= MAX_HOPS) return { kind: "hop_limit", hops: ctx.hops };
-
-  // 2. Structural repetition: the same agent appearing 3+ times in one causal path.
-  //    Legitimate conversations revisit agents, so require a repeated PAIR.
-  const pairs = ctx.path.slice(1).map((a, i) => \`\${ctx.path[i]}→\${a}\`);
-  const repeats = countMax(pairs);
-  if (repeats >= 4) return { kind: "oscillation", pair: mostCommon(pairs) };
-
-  // 3. No new information: the same message CONTENT circulating (C04's repeat detector).
-  const h = hash(canonical(msg));
-  if (ctx.seen.get(h) >= 2) return { kind: "identical_message", hash: h };
-  return null;
-}`,
+## Notes
+- event_time is UTC; every other timestamp column is local. This has
+  caused three incidents.
+- The orders table has soft deletes. Filter deleted_at IS NULL or your
+  numbers will be quietly wrong rather than obviously wrong.`,
         }) +
         ul([
-          `<strong>Carry the causal path, not just a counter.</strong> The path is what distinguishes a long legitimate conversation (many distinct agents) from a loop (the same pair repeatedly), and it is also what makes the trace readable afterwards.`,
-          `<strong>Check content, not only structure.</strong> A coder resubmitting a byte-identical patch is looping even if the path looks varied.`,
-          `<strong>Intervene rather than kill.</strong> On detection, deliver a message to the participants describing the cycle — the same move as ${ch("c04", "C04")}'s repeat detector, and for the same reason: from inside, each agent's behaviour is locally correct.`,
-          `<strong>Dead-letter with the full path.</strong> A cycle report that names the sequence is diagnosable; "hop limit exceeded" is not.`,
-        ]) },
+          `<strong>Negative guidance with a reason.</strong> "Not for today's data, because it lags six hours" needs a clause and a justification. In a tool description it competes for space with the arguments and usually loses.`,
+          `<strong>Operational limits.</strong> The 30-second kill and the 1000-row spill are things the agent discovers by failing. Documented, they cost nothing; undocumented, they cost a wasted turn each.`,
+          `<strong>Domain traps.</strong> Soft deletes and mixed timezones are exactly the knowledge that makes the difference between a right answer and a plausible one, and they are the first thing cut when a description has to be short.`,
+        ]),
+    },
+    {
+      difficulty: "core",
+      prompt: `An agent reads <code>merge_pdfs/SKILL.md</code> in 40% of runs but actually merges a PDF in 5%. Diagnose it, and say what you would change.`,
+      answer:
+        p(`The description is promising something it does not deliver. The model is committing a round trip on the strength of one line, discovering the skill is not what it wanted, and moving on — so the cost is real and the benefit is not.`) +
+        p(`Three candidate causes, in the order worth checking:`) +
+        ul([
+          `<strong>The name is broader than the capability.</strong> "merge_pdfs" reads as the general document-combining skill, so it gets opened for "combine these reports" when the reports are Word files. Fix by narrowing the description rather than the name: <em>merge PDF files specifically; does not convert other formats</em>.`,
+          `<strong>A neighbouring skill is missing.</strong> If there is no <code>convert_to_pdf</code>, the model reaches for the nearest thing. The read is rational; your catalogue has a hole, and the 35% gap is telling you where.`,
+          `<strong>The description is the whole interface and it is too short.</strong> ${ch("c03", "C03")}'s "when not to use" clause matters more here than in a tool schema, because there is no schema underneath to disambiguate. One line naming what it refuses usually closes most of the gap.`,
+        ]) +
+        p(`The measurement itself is the lesson: ${ch("c23", "C23")} should record skill reads separately from skill uses. Counting only invocations makes this failure invisible, and it is the most common way a skill catalogue degrades.`),
+    },
+    {
+      difficulty: "stretch",
+      prompt: `Design skill scoping across personal, project and organisation directories. Handle precedence, name collisions, and the security question of a project skill shadowing an org one.`,
+      answer:
+        p(`Resolution is the easy half and the security question is the real one.`) +
+        code({
+          title: "resolution",
+          lang: "text",
+          plain: true,
+          src: `~/.agent/skills/          personal    — highest precedence
+./.agent/skills/          project     — middle
+/etc/agent/skills/        org         — lowest, but see below
 
-    { difficulty: "stretch",
-      prompt: `Move one agent type to a separate process. What has to exist that did not, and what breaks first?`,
-      answer: ol([
-        `<strong>A subscription registry outside both processes.</strong> Locally, subscriptions are an array. Distributed, a host must hold them and route, and workers must register their served types on connect.`,
-        `<strong>Serialisation with versioning.</strong> Messages are now wire format. Agree on a schema, and version it: a rolling deploy means two versions of an agent are live simultaneously, and one will receive a message shape it does not know.`,
-        `<strong>Real failure modes.</strong> Local <code>send</code> either returns or throws. Remote <code>send</code> can time out with the work still in progress — exactly ${ch("c08", "C08")}'s problem, now on every message. Handlers need to be idempotent or the protocol needs deduplication by message id.`,
-        `<strong>Backpressure.</strong> An in-memory mailbox has unbounded depth and no cost. A network queue fills, and a slow agent type now stalls its publishers. Bound the queues and decide what to shed.`,
-        `<strong>Distributed tracing.</strong> The causal path must cross the boundary as trace context, or ${ch("c20", "C20")} ends at the process edge.`,
-      ]) +
-      p(`<strong>What breaks first, in practice:</strong> ordering assumptions. The single-threaded runtime gives per-instance ordered delivery for free, and agent code quietly depends on it: <code>this.attempts++</code> is safe only because nothing interleaves. Once two workers can serve the same agent type, you need a partition key (the agent key) routing every message for one instance to one worker, plus the lease-and-fencing protocol from ${ch("c08", "C08")}. Skipping that produces state corruption that appears only under load, which is the worst possible time to discover it.`) },
+Same name at two levels: the nearer one wins and the shadowing is
+recorded, not silent. The index shown to the model lists each name once.`,
+        }) +
+        ul([
+          `<strong>Precedence must be visible.</strong> A project skill silently overriding an org one is how a team ends up running a different <code>deploy</code> than they think. Log the shadowing at load, and surface it in the index the model sees: <em>deploy (project; overrides org)</em>.`,
+          `<strong>Some skills must not be shadowable.</strong> Anything the organisation ships for compliance — an approval wrapper, an audit logger, a redaction step — should be markable as final. A project directory that tries to shadow one gets a load error rather than a quiet win. This is a policy decision encoded in code, which is ${ch("c19", "C19")}'s argument about not trusting a setting a tired user can flip.`,
+          `<strong>Project skills are untrusted by default.</strong> They arrive with the repository, so they are ${ch("c24", "C24")}'s first circle: instructions the model will follow, and scripts it will run, authored by whoever wrote the repo. Load them only inside a trusted workspace, and treat enabling them as the same decision as enabling a project's build hooks — because mechanically it is.`,
+        ]) +
+        p(`The subtle one: an attacker who can add a file to a repository can add a skill whose description is attractive for a common task and whose body instructs the agent to do something else. The defence is not scanning the body, which is a losing game; it is that project skills only load in a workspace someone has trusted, and that a skill cannot shadow a protected name.`),
+    },
   ],
 
   qa: [
-    { q: "Is this not over-engineering for three agents?", a: p(`Yes. Three agents in one process should be ${ch("c17", "C17")}'s <code>asTool()</code>. The runtime earns its complexity when you need per-entity identity (one agent per issue, per customer, per run), event-driven fan-out, or process separation. Adopting it early buys you choreography's debugging difficulty with none of its benefits.`) },
-    { q: "Direct send or publish — how do I choose?", a: p(`"You, do this, and tell me" is a direct send. "This happened" is a publish. If you find yourself publishing and then waiting for a specific reply, you wanted a send. If you find yourself sending the same message to a list you maintain, you wanted a publish.`) },
-    { q: "How do agents share state?", a: p(`They do not; that is the model. Shared mutable state between actors reintroduces every concurrency problem the mailbox removed. Pass state in messages, or put it in an explicit store that agents read and write through tools, where the access is visible in the trace.`) },
-    { q: "What happens if a handler throws?", a: p(`The direct sender sees a rejected promise. A broadcast must not fail the publisher, so it lands in the dead-letter log. The essential detail is that the failure must not wedge the agent's mailbox. Catch on the chained promise, or one exception stops that instance forever, silently.`) },
-    { q: "Does this replace the agent loop from C04?", a: p(`No. It hosts it. An agent's message handler typically runs a full ${ch("c04", "C04")} loop internally. The runtime is about how agents find and address each other; the loop is still what turns a goal into actions.`) },
+    {
+      q: "Is a skill just a prompt fragment with extra steps?",
+      a: p(`Partly, and the extra steps are what make it useful. A prompt fragment you inject is resident and unconditional; a skill is read when chosen, so it can be ten times longer for a tenth of the cost. And a skill is a folder, so it can carry scripts, templates and fixtures that a prompt fragment cannot. The mechanism is unremarkable — that is a feature, since it means an agent with a shell already supports it.`),
+    },
+    {
+      q: "What stops the agent using a skill without reading it?",
+      a: p(`Nothing structural, and you should assume it will occasionally guess from the name. Mostly that is harmless; where it is not, make the entry point refuse. A script that requires a flag documented only in the SKILL.md turns a guess into a clear error rather than a wrong result, and the error is an observation the agent recovers from (${ch("c03", "C03")}).`),
+    },
+    {
+      q: "Skills or MCP?",
+      a: p(`Different problems. ${ch("c17", "C17")} standardises how a tool gets to your agent across a process boundary; skills change what it costs to have a capability available before it is used. They compose — an MCP server's tools can be wrapped as a skill so their schemas stop being resident, which is a reasonable answer to the "one server, forty tools" problem that chapter raises.`),
+    },
+    {
+      q: "How many skills is too many?",
+      a: p(`The token answer is that there is no practical limit; the selection answer is that you are back to ${ch("c03", "C03")}'s curve, just with cheaper options. At a few hundred one-line entries the index itself becomes a crowded registry and the model starts picking badly. At that scale, group them: a short index of categories, and a skill per category that lists its own members. That is the same progressive disclosure one level up, and it is what hierarchical tool structures are.`),
+    },
+    {
+      q: "Does this work without a sandbox?",
+      a: p(`Not safely. The mechanism is read-a-file-then-run-something, which needs ${ch("c14", "C14")} and ${ch("c16", "C16")} underneath it. You could implement a read-only variant where skills contain instructions but no executables, and it would still pay for itself on the token accounting — but the version worth having ships scripts, and shipping scripts means running them.`),
+    },
   ],
 
   project: {
-    title: "Project · A runtime in 400 lines",
-    brief: p(`Build the message-passing runtime and port your ${ch("c17", "C17")} orchestrator onto it. Then prove the property that justifies the whole layer: run two tasks concurrently with fully isolated state, and evict and rehydrate an agent mid-run.`),
+    title: "Project · Convert a tool surface into a skill catalogue",
+    brief:
+      p(`Take an agent with a dozen or more tools and move the occasional ones behind skills. Then measure the two things that decide whether it was worth it: resident tokens per turn, and how often a skill is read without being used.`),
     spec: [
-      "<code>AgentId(type, key)</code>, <code>TopicId(type, source)</code>, and <code>TypeSubscription</code> implementing the source→key mapping.",
-      "A runtime with <code>register</code>, <code>send</code>, <code>publish</code>, on-demand instance creation, and per-instance ordered mailboxes.",
-      "<code>RoutedAgent</code> dispatching on message type, with unhandled messages ignored rather than erroring.",
-      "Cancellation propagating through the causal chain, and a hop limit with dead-lettering that records the full path.",
-      "A publisher excluded from its own broadcasts, and a mailbox that survives a throwing handler.",
-      "Two concurrent tasks producing separate instance sets with zero shared state — asserted in a test.",
-      "Idle eviction plus rehydration from the C08 event log, with a test that evicts mid-run and completes correctly.",
+      "A <code>skills/</code> directory where each skill is a folder with a <code>SKILL.md</code> carrying <code>name</code> and <code>description</code> front matter.",
+      "Discovery that skips folders missing either field, loudly rather than silently, and a generated index of one line per skill in the system prompt.",
+      "The four tools used on nearly every task stay resident; everything occasional moves behind a skill.",
+      "At least one skill that ships a script beside its <code>SKILL.md</code>, invoked from the documented steps.",
+      "Instrumentation recording skill reads and skill uses as separate events, with the ratio reported per skill.",
+      "A before/after measurement of resident tokens per turn and total tokens for a representative task.",
     ],
     stretch: [
-      "Add <code>RoundRobinTeam</code> and <code>SelectorTeam</code> with composable termination conditions, including the 'do not pick the previous speaker' rule.",
-      "Implement the three-signal cycle detector and show it catches the coder/reviewer loop while allowing a legitimate ten-turn conversation.",
-      "Split one agent type into a worker process over a WebSocket, keeping the agent implementation byte-identical. Then break it deliberately: kill the worker mid-message and show recovery.",
+      "Add personal/project/org scoping with nearest-wins precedence, shadowing recorded at load and surfaced in the index.",
+      "Mark one org skill as non-shadowable and prove a project directory cannot override it.",
+      "Group skills into categories once the index passes fifty entries, and measure whether selection accuracy recovers.",
     ],
   },
 
   quiz: [
-    { q: "What does the (type, key) split in AgentId give you?",
-      options: ["One registered behaviour with many isolated instances, created on demand — so concurrency becomes a naming question", "Type safety for message payloads", "A way to version agent implementations", "Load balancing across workers"],
+    {
+      q: "Why does progressive disclosure still win when the agent uses every skill in the catalogue?",
+      options: [
+        "Residency multiplies by turns while reading multiplies by uses, and turns exceed uses in almost every task",
+        "Skill bodies are compressed before being read",
+        "The model caches skill bodies between runs",
+        "Reading a file is free because it uses an existing tool",
+      ],
       answer: 0,
-      why: "Type is the behaviour you registered; key is the instance with its own state and mailbox. Addressing ('triage','issue-41') creates it if needed, so per-entity isolation requires no registry and no locking." },
-    { q: "A TypeSubscription maps topic type 'patch_ready' to agent type 'reviewer'. You publish to TopicId('patch_ready', 'issue-41'). Who receives it?",
-      options: ["AgentId('reviewer', 'issue-41') — the topic source becomes the agent key", "All reviewer instances", "AgentId('reviewer', 'default')", "Only an already-existing reviewer instance"],
+      why:
+        "Forty schemas over twelve turns are billed four hundred and eighty times. Forty bodies read once are billed forty times plus their re-sends from the point of reading. The asymmetry is structural, which is why the break-even table has no crossover.",
+    },
+    {
+      q: "What is the real cost of the skills pattern?",
+      options: [
+        "One extra round trip on first use of each skill, and a decision made from one line of description",
+        "Higher token cost once the catalogue passes about twenty skills",
+        "Loss of structured arguments, since skills have no schema",
+        "The inability to use skills alongside ordinary tools",
+      ],
       answer: 0,
-      why: "The source carries across as the key, so choosing business identifiers as topic sources automatically yields one isolated agent per entity. It is the most useful rule in the design and the easiest to overlook." },
-    { q: "When should you use publish rather than direct send?",
-      options: ["When announcing that something happened and the publisher should not know who cares", "Whenever more than one agent is involved", "When you need a reply", "When the recipient is in another process"],
+      why:
+        "The token accounting favours skills at every catalogue size above one. What you actually pay is latency — a read before the first use — and the risk that a one-line description is not enough to choose correctly, which is why that line has to be better than a tool description, not shorter.",
+    },
+    {
+      q: "A skill is read in 40% of runs and used in 5%. What does that indicate?",
+      options: [
+        "Its description promises something it does not deliver, or a neighbouring capability is missing from the catalogue",
+        "The skill body is too long",
+        "The agent is ignoring the system prompt",
+        "Selection accuracy is fine; reads are free",
+      ],
       answer: 0,
-      why: "Direct send is 'you, do this, tell me' — one named recipient, one reply. Publish is 'this happened'. If you publish and then wait for a particular reply, you wanted a send." },
-    { q: "Why must per-instance message delivery be ordered?",
-      options: ["Agent state is mutated inside handlers, so interleaving would require locking that the mailbox model exists to avoid", "Messages would otherwise be lost", "The runtime cannot deduplicate out-of-order messages", "Ordering is required by the actor model specification"],
+      why:
+        "Each of those reads is a wasted round trip taken on the strength of one line. Either the description is broader than the capability, or the model is reaching for the nearest thing because what it wanted does not exist. Tracking reads separately from uses is what makes the failure visible at all.",
+    },
+    {
+      q: "Why is a third-party skill folder a supply-chain concern?",
+      options: [
+        "SKILL.md is instructions the model will follow and the scripts beside it are code it will run, so adding one is an install rather than a read",
+        "Skills can exhaust the context window",
+        "Skill names can collide with tool names",
+        "Skills bypass the approval layer by design",
+      ],
       answer: 0,
-      why: "`this.attempts++` is safe only because nothing interleaves on that instance. This is also the assumption that breaks first when you distribute: without partitioning by agent key, two workers can serve one instance." },
-    { q: "Publishing to a topic with no subscribers does what?",
-      options: ["Delivers to nobody, silently and correctly — which makes a missing subscription an invisible outage", "Throws an unknown-topic error", "Queues until a subscriber registers", "Dead-letters the message"],
+      why:
+        "This is C24's project-config argument at its sharpest. Cloning a repository with a skills directory and pointing an agent at it executes whatever that directory declares. Review third-party skills like dependencies, and load project skills only inside a workspace someone has trusted.",
+    },
+    {
+      q: "Which capabilities should stay as resident tools rather than becoming skills?",
+      options: [
+        "The few used on nearly every task, since they are paid every turn either way and a read just adds latency to the hot path",
+        "The ones with the longest documentation",
+        "The ones that require approval",
+        "The ones provided over MCP",
+      ],
       answer: 0,
-      why: "Silence is correct for pub/sub and is the characteristic operational hazard: the publisher cannot distinguish 'nobody cared' from 'the subscription was never registered'. Instrument subscriber counts per topic." },
-    { q: "What property makes distribution a routing change rather than a rewrite?",
-      options: ["Agents are addressed rather than called, so where an AgentId resolves is the runtime's concern", "Messages are JSON-serialisable", "Agents are stateless", "The runtime is single-threaded"],
+      why:
+        "Skills pay for capabilities that are occasional. Something invoked on every task is resident in effect whichever way you model it, so making the agent read a file first buys nothing and costs a round trip at the start of every run.",
+    },
+    {
+      q: "What happens to a skill catalogue at a few hundred entries?",
+      options: [
+        "The index becomes a crowded registry and selection degrades, so the fix is to group skills and disclose the groups progressively",
+        "Token cost overtakes resident schemas",
+        "Front-matter parsing becomes the bottleneck",
+        "Nothing; skills scale indefinitely",
+      ],
       answer: 0,
-      why: "This is the headline property of the design and the reason the layer exists. Agent implementations do not change; the host holds the subscription registry and send becomes an RPC." },
+      why:
+        "The token problem is solved but C03's selection curve is not. Several hundred one-line entries is still several hundred options. The answer is the same pattern applied one level up: an index of categories, each of which lists its own members — which is what a hierarchical tool structure is.",
+    },
   ],
 
-  continues: p(`You can now build one agent, many agents, and the runtime beneath them. None of it is worth anything until you can answer a simple question: <em>is it any good, and did that change make it better or worse?</em> ${ch("c19", "C19")} is about measurement, and it is the chapter that separates teams that improve their agents from teams that change them.`),
+  continues:
+    p(`A skill is a capability the agent reads about before using. ${ch("c19", "C19")} is the other half of that arrangement: the capabilities it should not be allowed to use without asking a person first, and how to decide which those are without asking about everything.`),
 };
 
 export default chapter;

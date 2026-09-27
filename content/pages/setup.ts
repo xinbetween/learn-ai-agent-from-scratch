@@ -14,8 +14,8 @@ export function setupPage(): Page {
       table(["", "Version", "Why"], [
         ["Node.js", "22.6 or newer", "Native TypeScript type stripping — <code>.ts</code> files run directly"],
         ["An editor with TS", "any", "The types are the documentation"],
-        ["ripgrep <span class='muted'>(optional)</span>", "any", "Only for C14 and C24's search tool"],
-        ["Git", "any", "C24's undo is built on <code>git stash create</code>"],
+        ["ripgrep <span class='muted'>(optional)</span>", "any", "Only for C16 and C28's search tool"],
+        ["Git", "any", "C28's undo is built on <code>git stash create</code>"],
       ]) +
 
       code({ title: "check your version", lang: "bash", plain: true,
@@ -57,15 +57,15 @@ node --experimental-strip-types code/c01_model_call.ts --live
 
 # This opt-in path is a C01 client demonstration. The chapter programs use
 # deterministic mocks so their output stays reproducible.` }) +
-      note("warn", "Set a spend limit first", p(`Before running anything with <code>--live</code>, set a hard spend cap in your provider's dashboard. C12's simulator exists because runaway loops are real, and the first one you encounter should cost a few cents rather than a few hundred dollars.`)) +
+      note("warn", "Set a spend limit first", p(`Before running anything with <code>--live</code>, set a hard spend cap in your provider's dashboard. C13's simulator exists because runaway loops are real, and the first one you encounter should cost a few cents rather than a few hundred dollars.`)) +
 
       `<h3>Optional, per chapter</h3>` +
       table(["Chapter", "Wants", "Fallback if absent"], [
         ["C06 Retrieval", "An embedding endpoint", "A deterministic hash-based fake embedder — the ranking mechanics still work"],
-        ["C13 Code execution", "Docker, for the container isolation level", "Worker threads; the payload suite still runs"],
-        ["C14 / C24", "ripgrep", "A slower pure-JS scanner"],
-        ["C15 MCP", "Any MCP server", "The course ships a local one to connect to"],
-        ["C22 Serving", "—", "In-memory queue and event bus; the chaos test runs offline"],
+        ["C14 Code execution", "Docker, for the container isolation level", "Worker threads; the payload suite still runs"],
+        ["C16 / C28", "ripgrep", "A slower pure-JS scanner"],
+        ["C17 MCP", "Any MCP server", "The course ships a local one to connect to"],
+        ["C26 Serving", "—", "In-memory queue and event bus; the chaos test runs offline"],
       ]) +
 
       `<h3>Project layout</h3>` +
@@ -74,8 +74,8 @@ node --experimental-strip-types code/c01_model_call.ts --live
   c00_agency_dial.ts     the five positions on the dial, measured
   c01_model_call.ts      the Model type everything else imports
   …
-  c23_research/          capstone I — deep research agent
-  c24_coder/             capstone II — coding agent
+  c27_research/          capstone I — deep research agent
+  c28_coder/             capstone II — coding agent
 content/chapters/        this site's chapter content (TypeScript, one file each)
 src/                     the static-site generator
 scripts/sync-outputs.ts  runs each code file and rewrites the chapter's output block

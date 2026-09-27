@@ -1,450 +1,455 @@
 import type { Chapter } from "../../src/types.ts";
 import { code, fig, lab, note, table, p, ul, ol, ch } from "../../src/ui.ts";
 
-const TAX_SVG = `
-<svg viewBox="0 0 700 300" width="100%" style="max-width:700px;display:block;margin:0 auto" role="img"
-     aria-label="Four failure layers and the recovery that belongs to each">
-  <text x="14" y="18" class="d-label">FOUR LAYERS — EACH NEEDS A DIFFERENT RECOVERY, AND ONLY ONE WANTS A RETRY</text>
+const PATTERNS_SVG = `
+<svg viewBox="0 0 700 320" width="100%" style="max-width:700px;display:block;margin:0 auto" role="img"
+     aria-label="Five composition patterns from chaining to autonomous agent">
+  <defs><marker id="c12" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M0 0 L10 5 L0 10 z" fill="var(--border-strong)"/></marker></defs>
 
-  <rect x="14" y="30" width="672" height="52" rx="6" class="d-box-t"/>
-  <text x="28" y="50" class="d-text">1 · transport — 429, 503, socket reset, timeout</text>
-  <text x="28" y="68" class="d-mono" fill="var(--fg-faint)">RECOVER: retry with jitter. invisible to the model. the ONLY layer where retrying is the answer.</text>
+  <text x="14" y="16" class="d-label">CHAINING — fixed order, each output feeds the next</text>
+  <g><rect x="14" y="24" width="60" height="24" rx="4" class="d-box"/><text x="44" y="40" class="d-mono" text-anchor="middle">draft</text>
+  <path d="M78 36 L94 36" class="d-arrow" marker-end="url(#c12)"/>
+  <rect x="98" y="24" width="60" height="24" rx="4" class="d-box"/><text x="128" y="40" class="d-mono" text-anchor="middle">check</text>
+  <path d="M162 36 L178 36" class="d-arrow" marker-end="url(#c12)"/>
+  <rect x="182" y="24" width="60" height="24" rx="4" class="d-box"/><text x="212" y="40" class="d-mono" text-anchor="middle">polish</text></g>
+  <text x="260" y="40" class="d-mono" fill="var(--fg-faint)">use when the steps never change and each is easier alone</text>
 
-  <rect x="14" y="88" width="672" height="52" rx="6" class="d-box-p"/>
-  <text x="28" y="108" class="d-text">2 · tool — bad args, not found, permission denied, empty result</text>
-  <text x="28" y="126" class="d-mono" fill="var(--fg-faint)">RECOVER: feed back as an observation. the model fixes it next turn. never throw. (C03)</text>
+  <text x="14" y="76" class="d-label">ROUTING — one classification, then a specialised path</text>
+  <g><rect x="14" y="84" width="60" height="24" rx="4" class="d-box-p"/><text x="44" y="100" class="d-mono" text-anchor="middle">classify</text>
+  <path d="M78 96 L96 84" class="d-arrow" marker-end="url(#c12)"/><path d="M78 96 L96 96" class="d-arrow" marker-end="url(#c12)"/><path d="M78 96 L96 108" class="d-arrow" marker-end="url(#c12)"/>
+  <rect x="100" y="74" width="74" height="18" rx="3" class="d-box"/><text x="137" y="87" class="d-mono" text-anchor="middle">refund</text>
+  <rect x="100" y="87" width="74" height="18" rx="3" class="d-box"/><text x="137" y="100" class="d-mono" text-anchor="middle">tracking</text>
+  <rect x="100" y="100" width="74" height="18" rx="3" class="d-box"/><text x="137" y="113" class="d-mono" text-anchor="middle">escalate</text></g>
+  <text x="194" y="100" class="d-mono" fill="var(--fg-faint)">cheap, testable, each path gets its own prompt and eval set</text>
 
-  <rect x="14" y="146" width="672" height="52" rx="6" class="d-box-a"/>
-  <text x="28" y="166" class="d-text">3 · reasoning — loops, drift, wrong tool, premature completion</text>
-  <text x="28" y="184" class="d-mono" fill="var(--fg-faint)">RECOVER: detect from OUTSIDE and inject an observation the model cannot generate itself. (C04, C10)</text>
+  <text x="14" y="146" class="d-label">PARALLEL — independent work, then merge</text>
+  <g><rect x="14" y="154" width="54" height="24" rx="4" class="d-box"/><text x="41" y="170" class="d-mono" text-anchor="middle">split</text>
+  <rect x="86" y="146" width="66" height="16" rx="3" class="d-box-t"/><rect x="86" y="164" width="66" height="16" rx="3" class="d-box-t"/><rect x="86" y="182" width="66" height="16" rx="3" class="d-box-t"/>
+  <text x="119" y="158" class="d-mono" text-anchor="middle">a</text><text x="119" y="176" class="d-mono" text-anchor="middle">b</text><text x="119" y="194" class="d-mono" text-anchor="middle">c</text>
+  <path d="M156 170 L172 170" class="d-arrow" marker-end="url(#c12)"/>
+  <rect x="176" y="158" width="60" height="24" rx="4" class="d-box"/><text x="206" y="174" class="d-mono" text-anchor="middle">merge</text></g>
+  <text x="252" y="174" class="d-mono" fill="var(--fg-faint)">latency win, and independent votes on the same question</text>
 
-  <rect x="14" y="204" width="672" height="52" rx="6" class="d-box" stroke="var(--danger)"/>
-  <text x="28" y="224" class="d-text" fill="var(--danger)">4 · task — the goal is impossible, ambiguous, or wrong</text>
-  <text x="28" y="242" class="d-mono" fill="var(--fg-faint)">RECOVER: stop and ask. no amount of retrying makes a missing permission appear.</text>
+  <text x="14" y="222" class="d-label">ORCHESTRATOR — model decides which workers, workers are fixed</text>
+  <g><rect x="14" y="230" width="78" height="24" rx="4" class="d-box-a"/><text x="53" y="246" class="d-mono" text-anchor="middle">orchestr.</text>
+  <path d="M96 242 L116 230" class="d-arrow" marker-end="url(#c12)"/><path d="M96 242 L116 242" class="d-arrow" marker-end="url(#c12)"/><path d="M96 242 L116 254" class="d-arrow" marker-end="url(#c12)"/>
+  <rect x="120" y="222" width="60" height="16" rx="3" class="d-box-t"/><rect x="120" y="238" width="60" height="16" rx="3" class="d-box-t"/><rect x="120" y="254" width="60" height="16" rx="3" class="d-box-t"/>
+  <path d="M184 246 L200 246" class="d-arrow" marker-end="url(#c12)"/>
+  <rect x="204" y="234" width="58" height="24" rx="4" class="d-box"/><text x="233" y="250" class="d-mono" text-anchor="middle">synth</text></g>
+  <text x="278" y="246" class="d-mono" fill="var(--fg-faint)">C20 — agency in selection only, not in the workers</text>
 
-  <text x="14" y="284" class="d-mono" fill="var(--danger)">the universal bug: treating a layer-2, 3 or 4 failure as layer 1, and retrying it.</text>
+  <text x="14" y="292" class="d-label">AGENT — model owns order, tool choice and stopping</text>
+  <rect x="14" y="300" width="250" height="16" rx="3" class="d-box-a"/>
+  <text x="139" y="312" class="d-mono" text-anchor="middle">loop until it decides to stop  (C04)</text>
+  <text x="278" y="312" class="d-mono" fill="var(--danger)">most expensive, least predictable — earn it</text>
 </svg>`;
 
 const chapter: Chapter = {
   id: "c12",
   num: 12,
   layer: "reasoning",
-  title: "Failure & Recovery",
-  subtitle: "Four layers of failure, and why only one of them wants a retry",
+  title: "Control Flow",
+  subtitle: "Where to put the `if` statement",
   blurb:
-    "A taxonomy of how agents fail and the specific recovery each layer needs. Retry policy, circuit breakers, budget enforcement, graceful degradation, and the rule that an agent must never fail without returning what it already learned.",
-  lines: 193,
-  file: "code/c12_failure.ts",
-  tags: ["retries", "backoff", "circuit breaker", "degradation", "error taxonomy", "budgets", "partial results"],
+    "Five composition patterns and a decision procedure for choosing between them. The most valuable architectural skill in agent engineering is noticing which decisions never needed a model at all.",
+  lines: 153,
+  file: "code/c12_control_flow.ts",
+  tags: ["workflows", "routing", "chaining", "parallelisation", "orchestrator", "agency dial", "determinism"],
 
   sections: [
-    { id: "motivation", kicker: "Motivation", title: "try/catch is not a strategy",
+    { id: "motivation", kicker: "Motivation", title: "The most expensive `if` in your system",
       html:
-        p(`The instinct when an agent fails is to wrap the loop in <code>try/catch</code> and retry. That is correct for about one failure in five and actively harmful for the rest: retrying a malformed tool call produces the same malformed call, retrying a reasoning loop produces the same loop more expensively, and retrying an impossible task wastes a minute before telling the user what it could have said immediately.`) +
-        p(`Agent failures come in four layers, and each has exactly one right response. Getting them confused is the most common source of "it works in the demo" behaviour.`) +
-        note("key", "The rule that matters most", p(`<strong>An agent must never fail empty.</strong> Whatever went wrong, it did some work first, and that work has value. Returning "I was unable to complete this request" after nine successful steps destroys real value and teaches the user not to trust it. Every terminal state in this chapter returns partial results.`)) },
+        p(`Your agent has a tool called <code>get_weather</code>. On every run where the user mentions a city, the model decides to call it. That decision costs a model call, adds a round trip, and could go the other way on an unlucky sample.`) +
+        p(`It is also not a decision. The rule is <em>"if the request mentions a place and a time, fetch the weather"</em> — three lines of code, zero tokens, zero variance, and a unit test. You gave a stochastic process a job that a deterministic one does better.`) +
+        p(`This chapter is about spotting that pattern, which is everywhere once you look. ${ch("c00", "C00")} introduced the dial; this is how to actually choose a position, at the level of individual decisions rather than whole systems.`) +
+        note("key", "The question to keep asking", p(`For every decision your agent makes: <strong>could I have written this rule down?</strong> If yes, write it down. Model calls are for decisions you cannot enumerate. Everything else is paying a premium for nondeterminism you did not want.`)) },
 
-    { id: "core-idea", kicker: "Core idea", title: "The four layers",
+    { id: "core-idea", kicker: "Core idea", title: "Five patterns",
       html:
-        fig({ label: "Diagram", title: "failure layers and their recoveries", body: TAX_SVG,
-          caption: `Reading a failure to the right layer is most of the work. Once classified, each recovery is a handful of lines.` }) +
-        `<h3>1 · Transport — retry, invisibly</h3>` +
-        p(`Rate limits, 5xx, socket resets, timeouts. The model never needs to know. ${ch("c01", "C01")} built this: full jitter, honour <code>retry-after</code>, never retry an <code>AbortError</code>. The one addition here is a <strong>circuit breaker</strong>, because retrying into a dead dependency turns a degraded system into a stalled one.`) +
-        code({ title: "code/c12_failure.ts — a breaker per dependency",
-          src: `export class CircuitBreaker {
-  private state: "closed" | "open" | "half-open" = "closed";
-  private failures = 0; private openedAt = 0;
+        fig({ label: "Diagram", title: "composition patterns, cheapest first", body: PATTERNS_SVG,
+          caption: `These compose: a routing step whose branches are chains, one of which ends in an agent. Most good production systems are exactly that — a deterministic skeleton with agency in the two places that need it.` }) +
+        table(["Pattern", "Who decides", "Cost", "Reach for it when"], [
+          ["<b>Chaining</b>", "You", "N calls, fixed", "The steps never change and each is easier in isolation"],
+          ["<b>Routing</b>", "Model picks 1 of N", "1 + branch", "Inputs fall into distinct kinds needing different handling"],
+          ["<b>Parallel</b>", "You", "N calls, 1 wall-clock", "Independent subtasks, or several votes on one question"],
+          ["<b>Orchestrator</b>", "Model picks workers", "1 + k + 1", "Which subtasks are needed depends on the input"],
+          ["<b>Agent</b>", "Model, every step", "unbounded", "The next step depends on what the last one returned"],
+        ]) +
+        `<h3>Routing is the most underrated</h3>` +
+        p(`A single cheap classification into three or four branches buys most of what people build agents for, at a fraction of the cost, and each branch gets a focused prompt, a small tool set, and its own eval set. That last point matters more than the cost: <em>you can measure a branch</em>. "Refund requests succeed 94% of the time, tracking 99%, escalations 87%" is an actionable dashboard. "The agent succeeds 93% of the time" is not.`) +
+        code({ title: "code/c12_control_flow.ts — a router with a real escape hatch",
+          src: `const ROUTES = {
+  refund:   { system: REFUND_PROMPT,   tools: [orders, policies, issueRefund], maxSteps: 6 },
+  tracking: { system: TRACKING_PROMPT, tools: [orders, carrier],               maxSteps: 3 },
+  policy:   { system: POLICY_PROMPT,   tools: [searchDocs],                    maxSteps: 4 },
+  other:    { system: GENERAL_PROMPT,  tools: ALL_TOOLS,                       maxSteps: 12 },
+} as const;
 
-  constructor(private cfg = { threshold: 5, cooldownMs: 30_000, name: "dep" }) {}
+export async function handle(request: string, model: Model) {
+  const { route, confidence } = await structured(model, [{ role: "user", content: ROUTE_PROMPT + request }],
+    obj({ route: enumOf(["refund", "tracking", "policy", "other"] as const),
+          confidence: num({ min: 0, max: 1 }) }),
+    { model: "small" });                       // classification does not need the big model
 
-  async call<T>(fn: () => Promise<T>): Promise<T> {
-    if (this.state === "open") {
-      if (Date.now() - this.openedAt < this.cfg.cooldownMs) {
-        // Fail immediately and informatively — the agent can route around a known-down tool.
-        throw new CircuitOpenError(this.cfg.name, this.cfg.cooldownMs - (Date.now() - this.openedAt));
-      }
-      this.state = "half-open";          // let exactly one probe through
-    }
-    try {
-      const out = await fn();
-      this.failures = 0; this.state = "closed";
-      return out;
-    } catch (e) {
-      if (++this.failures >= this.cfg.threshold) { this.state = "open"; this.openedAt = Date.now(); }
-      throw e;
-    }
-  }
+  // Low confidence falls back to the general agent rather than guessing a branch.
+  // Without this, an unusual request gets a specialist that cannot help it.
+  const cfg = confidence < 0.7 ? ROUTES.other : ROUTES[route];
+  return runAgent(request, cfg);
 }`,
         }) +
-        p(`The breaker's real value in an agent is not protecting the dependency; it is that <code>"search_docs is unavailable for another 24 seconds"</code> is an <em>observation the agent can act on</em>. It will try a different tool. A hanging retry storm gives it nothing to work with.`) +
-        `<h3>2 · Tool — feed it back</h3>` +
-        p(`Covered in ${ch("c03", "C03")} and worth restating because it is the highest-return line of code in the course: every tool failure becomes a <code>tool_result</code> with <code>isError</code> and an actionable message. The model recovers in one step. Nothing throws.`) +
-        `<h3>3 · Reasoning — detect from outside</h3>` +
-        p(`The agent cannot see its own loops, drift, or premature completion, because from inside the context each step looks locally reasonable. These must be detected by code watching the trace and injected as observations (${ch("c04", "C04")}, ${ch("c10", "C10")}).`) +
-        `<h3>4 · Task — stop and ask</h3>` +
-        p(`The goal is impossible ("delete the production database" — no permission), ambiguous ("update the config" — which one), or wrong ("fix the failing test" — the test is correct and the code is right, the requirement changed). No recovery loop helps. The correct behaviour is to stop early and say precisely what is blocking, which is both cheaper and more useful than failing late.`) },
+        p(`Two design points. The classifier uses a small model, because routing is the archetypal cheap-model task. And the <code>other</code> branch is a real agent, not an error: a router without a general fallback fails on exactly the inputs that motivated building an agent in the first place.`) +
+        `<h3>Parallel has two different uses</h3>` +
+        ul([
+          `<strong>Sectioning</strong> — genuinely independent subtasks run concurrently. A latency win, and the win is large: five 2-second calls become one 2-second wave.`,
+          `<strong>Voting</strong> — the same question asked several ways, then aggregated. Buys accuracy on high-stakes judgements, and is the honest version of ${ch("c11", "C11")}'s self-consistency: three independent samples with a majority rule beat one sample plus "are you sure?".`,
+        ]) },
 
-    { id: "mechanics", kicker: "Mechanics", title: "Classification, and the budget that catches everything else",
+    { id: "mechanics", kicker: "Mechanics", title: "The decision procedure",
       html:
-        code({ title: "classify before you react",
-          src: `export function classify(e: unknown, ctx: { tool?: Tool; state: RunState }): Layer {
-  if (e instanceof CircuitOpenError) return { layer: 1, action: "observe", retryable: false };
-  if (e instanceof HttpError) {
-    if ([429, 500, 502, 503, 504].includes(e.status)) return { layer: 1, action: "retry" };
-    if (e.status === 401 || e.status === 403) return { layer: 4, action: "stop" };  // never retryable
-    if (e.status === 404) return { layer: 2, action: "observe" };
-    if (e.status === 400) return { layer: 2, action: "observe" };   // WE sent something wrong
+        p(`Apply this per <em>decision</em>, not per system. Most systems land in several places at once, which is correct.`) +
+        code({ title: "five questions, in order", lang: "text", plain: true,
+          src: `1. Can I write this rule down?
+   yes → write code. No model call. (This eliminates more decisions than you expect.)
+
+2. Is it a classification into a fixed, known set?
+   yes → routing, with a small model and a confidence threshold.
+
+3. Do I know the full sequence of steps before I start?
+   yes → chaining. Parallelise any steps that do not depend on each other.
+
+4. Does the SET of steps depend on the input, but each step is itself well-defined?
+   yes → orchestrator: the model picks which workers to run, the workers are fixed.
+
+5. Does step N+1 depend on the CONTENT returned by step N, in ways you cannot enumerate?
+   yes → agent. This is the only question whose "yes" earns the loop.
+   no  → you are at 1–4. Go back.`,
+        }) +
+        p(`Question 5 is the real test, and it has a precise reading. "Search, then summarise" is a chain: the second step needs the first step's <em>output</em>, but you always knew it was coming. "Search, and if the results contradict the policy, search the policy index instead, and if that is ambiguous, ask the user" is an agent, because the branch structure is a function of content you have not seen.`) +
+        `<h3>The hybrid that most production systems converge on</h3>` +
+        code({ title: "deterministic skeleton, agency in two places",
+          src: `export async function handleTicket(ticket: Ticket) {
+  // 1. RULES. No model. Free, instant, testable, auditable.
+  if (ticket.priority === "P0") return escalateToHuman(ticket);
+  if (isDuplicate(ticket)) return linkToExisting(ticket);
+  if (ticket.body.length < 20) return askForDetail(ticket);
+
+  // 2. ROUTE. One small-model call.
+  const { route, confidence } = await classify(ticket);
+
+  // 3. FIXED CHAIN for the common, well-understood case — 70% of traffic.
+  if (route === "tracking" && confidence > 0.85) {
+    const order = await lookupOrder(ticket.orderId);          // deterministic
+    const status = await carrier.track(order.tracking);       // deterministic
+    return writeReply(TRACKING_TEMPLATE, { order, status });  // one model call for prose
   }
-  if (e instanceof ValidationError) return { layer: 2, action: "observe" };
-  if (e instanceof TimeoutError) {
-    // The critical branch: can we safely try again?
-    return ctx.tool?.idempotent
-      ? { layer: 1, action: "retry" }
-      : { layer: 2, action: "observe", note: "may have taken effect — verify before retrying" };
-  }
-  if (e instanceof AbortError) return { layer: 4, action: "stop" };  // the caller cancelled
-  return { layer: 2, action: "observe" };   // default to recoverable: the loop is good at this
+
+  // 4. AGENT for the long tail — 30% of traffic, 90% of the difficulty.
+  return runAgent(ticket.body, ROUTES[route]);
 }`,
         }) +
-        p(`Two lines carry disproportionate weight. <strong>401/403 is layer 4, never layer 1</strong> — retrying an auth failure is the single most common wasted retry, and it never once succeeds. <strong>400 is layer 2</strong>: a 400 means <em>we</em> sent something wrong, which is exactly the thing the model can fix if told.`) +
-        `<h3>Budgets are the backstop for everything unclassified</h3>` +
-        p(`Classification handles known failures. Budgets bound the unknown ones, and there should be several, each with its own degradation.`) +
-        table(["Budget", "Typical", "On exhaustion"], [
-          ["Steps", "10–20", "Partial report with next steps"],
-          ["Tokens", "Context window × 4", "Compact hard, then partial report"],
-          ["Wall clock", "The user's patience", "Partial report, offer to resume (${C08})"],
-          ["Money", "Per-run and per-tenant", "Hard stop; page someone if it is per-tenant"],
-          ["Tool calls per tool", "5–10 each", "Disable that tool and tell the model why"],
-        ].map((r) => r.map((c) => c.replace("${C08}", `<a href="/c08/" class="mono">C08</a>`))) as string[][]) +
-        p(`The last one is underused and cheap. An agent that has called <code>search_docs</code> nine times is not searching, it is thrashing. Removing the tool from its schema and saying so — <em>"search_docs is disabled for this run after 9 calls; use list_sections or ask the user"</em> — forces a genuinely different approach.`) +
-        `<h3>Degrade in a defined order</h3>` +
-        code({ title: "a ladder, not a cliff",
-          src: `const LADDER: Degradation[] = [
-  { at: 0.70, name: "compact",      apply: (s) => s.context.compactNow() },
-  { at: 0.80, name: "drop tools",   apply: (s) => s.tools.keepOnly(s.plan.toolsStillNeeded()) },
-  { at: 0.85, name: "cheap model",  apply: (s) => s.model = s.models.small },
-  { at: 0.90, name: "narrow goal",  apply: (s) => s.plan.dropOptionalSteps() },
-  { at: 0.95, name: "final report", apply: (s) => s.finishWithPartial() },
-];
-// Each rung is announced to the model as an observation, because an agent that
-// knows it is running out of budget prioritises. One that is silently degraded
-// keeps planning as if it had room.`,
-        }) +
-        note("good", "Tell the agent it is degrading", p(`Injecting <em>"you have used 85% of your budget; finish what you can and report"</em> produces measurably better behaviour than silently shrinking its resources. Models consolidate and prioritise when told there is a deadline, and do neither when the deadline is invisible.`)) },
+        note("good", "The shape to aim for", p(`Seventy per cent of traffic takes a path with one cheap model call and predictable latency. Thirty per cent gets the full agent. Cost drops by roughly an order of magnitude, p50 latency by more, and the agent's eval set is now the hard cases only, which makes it far easier to improve.`)) +
+        `<h3>Do not confuse "the model is involved" with "this is an agent"</h3>` +
+        p(`Step 3 above makes a model call. It is not an agent: the model writes prose into a fixed shape, and the control flow is yours. That distinction is what makes the branch testable, cheap, and explainable to whoever signs off on it.`) },
 
-    { id: "explore", kicker: "Explore", title: "Inject failures and watch the policy",
+    { id: "explore", kicker: "Explore", title: "Architect a system under a traffic mix",
       html:
-        p(`Set a failure mix and a recovery policy, and see what fraction of runs complete, what the wasted spend is, and how often the user gets something useful rather than an apology.`) +
-        lab({ label: "Simulator", title: "recovery policy under a failure mix",
+        p(`Set your traffic mix and assign each class a pattern. Watch cost, p50, p99, and the share of traffic whose behaviour you can actually predict.`) +
+        lab({ label: "Simulator", title: "pattern assignment under load",
           body: `
 <div class="controls">
-  <div class="ctl"><label>transport failure rate</label><input type="range" id="e12-t" min="0" max="30" step="1" value="6"><span class="val" id="e12-t-v">6%</span></div>
-  <div class="ctl"><label>tool failure rate</label><input type="range" id="e12-o" min="0" max="30" step="1" value="10"><span class="val" id="e12-o-v">10%</span></div>
-  <div class="ctl"><label>reasoning failure rate</label><input type="range" id="e12-r" min="0" max="30" step="1" value="8"><span class="val" id="e12-r-v">8%</span></div>
-  <div class="ctl"><label>policy</label>
-    <select id="e12-p">
-      <option value="throw">throw on any error</option>
-      <option value="blind">retry everything 3×</option>
-      <option value="class" selected>classify by layer</option>
-      <option value="full">classify + detectors + degrade</option>
-    </select></div>
+  <div class="ctl"><label>simple &amp; routine</label><input type="range" id="f11-a" min="0" max="100" step="5" value="55"><span class="val" id="f11-a-v">55%</span></div>
+  <div class="ctl"><label>needs a branch</label><input type="range" id="f11-b" min="0" max="100" step="5" value="25"><span class="val" id="f11-b-v">25%</span></div>
+  <div class="ctl"><label>genuinely open-ended</label><span class="val" id="f11-c-v">20%</span></div>
 </div>
-<div id="e12-rows" style="margin-top:.5rem"></div>
+<div class="controls" style="border-top:1px solid var(--border);padding-top:.75rem">
+  <div class="ctl"><label>pattern for simple</label><select id="f11-pa"><option value="rule">rules (no model)</option><option value="chain" selected>fixed chain</option><option value="agent">agent</option></select></div>
+  <div class="ctl"><label>pattern for branching</label><select id="f11-pb"><option value="chain">fixed chain</option><option value="route" selected>routing</option><option value="agent">agent</option></select></div>
+  <div class="ctl"><label>pattern for open-ended</label><select id="f11-pc"><option value="route">routing</option><option value="orch">orchestrator</option><option value="agent" selected>agent</option></select></div>
+  <div class="ctl"><label>volume / day</label><input type="range" id="f11-v" min="100" max="100000" step="100" value="10000"><span class="val" id="f11-v-v">10,000</span></div>
+</div>
+<div id="f11-rows" style="margin-top:.5rem"></div>
 <div class="stats">
-  <div class="stat"><b id="e12-done">—</b><span>completed fully</span></div>
-  <div class="stat"><b id="e12-part">—</b><span>useful partial</span></div>
-  <div class="stat"><b id="e12-empty">—</b><span>failed empty</span></div>
-  <div class="stat"><b id="e12-waste">—</b><span>wasted spend</span></div>
+  <div class="stat"><b id="f11-cost">—</b><span>$ / day</span></div>
+  <div class="stat"><b id="f11-p50">—</b><span>p50 latency</span></div>
+  <div class="stat"><b id="f11-p99">—</b><span>p99 latency</span></div>
+  <div class="stat"><b id="f11-succ">—</b><span>overall success</span></div>
+  <div class="stat"><b id="f11-pred">—</b><span>predictable traffic</span></div>
 </div>
-<div class="note" id="e12-note" style="margin-top:1rem"></div>`,
+<div class="note" id="f11-note" style="margin-top:1rem"></div>`,
           script: `
+var P = {
+  rule:  { cost: 0,      p50: 30,   p99: 60,    det: 1,   fit: { simple: .97, branch: .55, open: .12 } },
+  chain: { cost: .0022,  p50: 1400, p99: 2600,  det: 1,   fit: { simple: .95, branch: .74, open: .34 } },
+  route: { cost: .0035,  p50: 1900, p99: 4200,  det: .9,  fit: { simple: .95, branch: .93, open: .55 } },
+  orch:  { cost: .0180,  p50: 5200, p99: 15000, det: .35, fit: { simple: .93, branch: .90, open: .82 } },
+  agent: { cost: .0290,  p50: 7400, p99: 31000, det: 0,   fit: { simple: .91, branch: .89, open: .90 } }
+};
 function upd() {
-  var t = +document.getElementById("e12-t").value / 100, o = +document.getElementById("e12-o").value / 100,
-      r = +document.getElementById("e12-r").value / 100, pol = document.getElementById("e12-p").value;
-  ["t","o","r"].forEach(function (k, i) {
-    var el = document.getElementById("e12-" + k); el.nextElementSibling.textContent = el.value + "%"; });
+  var a = +document.getElementById("f11-a").value, b = +document.getElementById("f11-b").value;
+  if (a + b > 100) b = 100 - a;
+  document.getElementById("f11-b").value = b;
+  var c = 100 - a - b;
+  document.getElementById("f11-a-v").textContent = a + "%";
+  document.getElementById("f11-b-v").textContent = b + "%";
+  document.getElementById("f11-c-v").textContent = c + "%";
+  var V = +document.getElementById("f11-v").value;
+  document.getElementById("f11-v-v").textContent = V.toLocaleString();
 
-  // recovery effectiveness per layer, per policy
-  var REC = {
-    throw: { t: 0,   o: 0,   r: 0,   deg: 0 },
-    blind: { t: .92, o: .06, r: .04, deg: 0 },
-    class: { t: .96, o: .88, r: .10, deg: 0 },
-    full:  { t: .96, o: .90, r: .74, deg: 1 }
-  }[pol];
-  var waste = { throw: 1.0, blind: 2.4, class: 1.12, full: 1.22 }[pol];
-
-  var rows = [["transport (429, 5xx, resets)", t, REC.t], ["tool (bad args, 404, empty)", o, REC.o],
-              ["reasoning (loops, drift, early stop)", r, REC.r]];
-  document.getElementById("e12-rows").innerHTML = rows.map(function (x) {
-    var col = x[2] > .8 ? "var(--ok)" : x[2] > .4 ? "var(--accent)" : "var(--danger)";
+  var mix = [
+    { k: "simple & routine",     share: a / 100, kind: "simple", pat: document.getElementById("f11-pa").value },
+    { k: "needs a branch",       share: b / 100, kind: "branch", pat: document.getElementById("f11-pb").value },
+    { k: "genuinely open-ended", share: c / 100, kind: "open",   pat: document.getElementById("f11-pc").value }
+  ];
+  var cost = 0, succ = 0, det = 0, lat = [];
+  document.getElementById("f11-rows").innerHTML = mix.map(function (m) {
+    var p = P[m.pat], s = p.fit[m.kind];
+    cost += m.share * V * p.cost; succ += m.share * s; det += m.share * p.det;
+    lat.push({ w: m.share, p50: p.p50, p99: p.p99 });
+    var col = s > .9 ? "var(--ok)" : s > .7 ? "var(--accent)" : "var(--danger)";
     return '<div style="display:flex;gap:.6rem;align-items:center;margin:.3rem 0">' +
-      '<span class="mono small" style="width:16rem;color:var(--fg-muted)">' + x[0] + ' · ' + Math.round(x[1] * 100) + '% of runs</span>' +
-      '<span class="meter" style="flex:1"><i style="width:' + (x[2] * 100) + '%;background:' + col + '"></i></span>' +
-      '<span class="mono small" style="width:6rem;text-align:right">' + Math.round(x[2] * 100) + '% recovered</span></div>';
+      '<span class="mono small" style="width:12rem;color:var(--fg-muted)">' + m.k + ' · ' + Math.round(m.share * 100) + '%</span>' +
+      '<span class="mono small" style="width:5rem;color:var(--accent)">' + m.pat + '</span>' +
+      '<span class="meter" style="flex:1"><i style="width:' + (s * 100) + '%;background:' + col + '"></i></span>' +
+      '<span class="mono small" style="width:3rem;text-align:right">' + Math.round(s * 100) + '%</span></div>';
   }).join("");
 
-  var fail = rows.reduce(function (a, x) { return a * (1 - x[1] * (1 - x[2])); }, 1);
-  var done = fail;
-  var remaining = 1 - done;
-  var partial = REC.deg ? remaining * 0.82 : remaining * (pol === "throw" ? 0 : 0.12);
-  var empty = remaining - partial;
+  var p50 = lat.reduce(function (t, x) { return t + x.w * x.p50; }, 0);
+  var p99 = Math.max.apply(null, lat.filter(function (x) { return x.w > .05; }).map(function (x) { return x.p99; }));
+  document.getElementById("f11-cost").textContent = "$" + cost.toFixed(0);
+  document.getElementById("f11-p50").textContent = (p50 / 1000).toFixed(1) + "s";
+  document.getElementById("f11-p99").textContent = (p99 / 1000).toFixed(1) + "s";
+  document.getElementById("f11-succ").textContent = Math.round(succ * 100) + "%";
+  document.getElementById("f11-pred").textContent = Math.round(det * 100) + "%";
 
-  document.getElementById("e12-done").textContent = Math.round(done * 100) + "%";
-  document.getElementById("e12-part").textContent = Math.round(partial * 100) + "%";
-  document.getElementById("e12-empty").textContent = Math.round(empty * 100) + "%";
-  document.getElementById("e12-waste").textContent = waste.toFixed(2) + "×";
-
-  var n = document.getElementById("e12-note");
-  if (pol === "throw") n.innerHTML = "<b>Any error ends the run.</b> Every transport blip and every mistyped tool name costs a complete run, and the user gets nothing back — not even the four things the agent had already established.";
-  else if (pol === "blind") n.innerHTML = "<b>Retry everything.</b> Transport is fixed; nothing else is. Retrying a malformed tool call reproduces it, and note the 2.4× wasted spend — you are paying to repeat failures that were never going to succeed.";
-  else if (pol === "class") n.innerHTML = "<b>Classification works.</b> Transport retried, tool errors fed back, and waste near baseline. Reasoning failures are still untouched because they are invisible from inside the error handler — they need detectors watching the trace.";
-  else n.innerHTML = "<b>The full policy.</b> Detectors catch most reasoning failures, and the degradation ladder converts almost every remaining failure into a useful partial result. Look at the 'failed empty' figure: that is the number the user experiences as the product being broken.";
+  var allAgent = mix.every(function (m) { return m.pat === "agent"; });
+  var n = document.getElementById("f11-note");
+  if (allAgent) n.innerHTML = "<b>Everything is an agent.</b> Success is fine and you are paying roughly 10× for it, with a p99 measured in half-minutes and 0% of traffic whose behaviour you can predict. This is the most common architecture in a first production release.";
+  else if (mix[0].pat === "rule") n.innerHTML = "<b>Rules on the routine path.</b> Zero cost, 30ms, fully testable — for the majority of traffic. Check the success bar for that row: if it is above 95%, those requests genuinely did not need a model, and you just removed most of your bill.";
+  else if (mix[2].pat !== "agent" && c > 15) n.innerHTML = "<b>Open-ended traffic is being forced down a fixed path.</b> Look at its success row. This is the mirror-image mistake: agency is expensive, and refusing to pay for it where it is genuinely needed shows up as a fifth of your users being quietly failed.";
+  else n.innerHTML = "<b>A sensible allocation.</b> Deterministic where the rules are writable, routing where the kinds are known, and an agent only for the genuinely open tail. Note the predictable-traffic figure — that is the share you can test, explain and put an SLA on.";
 }
-["e12-t","e12-o","e12-r","e12-p"].forEach(function (i) {
+["f11-a","f11-b","f11-v","f11-pa","f11-pb","f11-pc"].forEach(function (i) {
   document.getElementById(i).addEventListener("input", upd); document.getElementById(i).addEventListener("change", upd); });
 upd();`,
-          caption: `Compare "retry everything" with "classify by layer" at the same failure rates. Completion is similar; wasted spend differs by 2×. Then switch to the full policy and watch "failed empty" collapse. That single number is what users mean when they say an agent is unreliable.`,
+          caption: `Set all three to "agent" and read the cost and p99. Then set simple to "rules" and branching to "routing". The success number barely moves and everything else improves by an order of magnitude, which is the entire argument of this chapter in one interaction.`,
         }) },
 
-    { id: "build", kicker: "Build it", title: "Recovery as one function",
+    { id: "build", kicker: "Build it", title: "One interface for every pattern",
       html:
-        code({ title: "code/c12_failure.ts — the handler the loop calls",
-          src: `export async function recover(
-  e: unknown, ctx: { tool?: Tool; state: RunState; attempt: number },
-): Promise<Recovery> {
-  const c = classify(e, ctx);
+        p(`If every pattern has the same signature, you can change a decision's position on the dial without rewriting its call sites, and you can A/B two positions against the same eval set.`) +
+        code({ title: "code/c12_control_flow.ts — patterns as values",
+          src: `export type Handler<I, O> = (input: I, ctx: Ctx) => Promise<O>;
 
-  switch (c.action) {
-    case "retry":
-      if (ctx.attempt >= 5) return { kind: "observe", content: \`\${label(e)} after 5 attempts. This dependency is unavailable — try a different approach.\` };
-      await sleep(fullJitter(ctx.attempt));
-      return { kind: "retry" };
+export const chain = <I, O>(...steps: Handler<any, any>[]): Handler<I, O> =>
+  async (input, ctx) => {
+    let v: any = input;
+    for (const s of steps) v = await s(v, ctx);
+    return v;
+  };
 
-    case "observe":
-      // The model's next turn sees this and adapts. No exception escapes.
-      return { kind: "observe", content: message(e, c) };
+export const route = <I, O>(
+  classify: Handler<I, { route: string; confidence: number }>,
+  routes: Record<string, Handler<I, O>>,
+  fallback: Handler<I, O>,
+  minConfidence = 0.7,
+): Handler<I, O> =>
+  async (input, ctx) => {
+    const { route: r, confidence } = await classify(input, ctx);
+    ctx.log("route", { route: r, confidence });            // routing decisions are eval gold
+    return (confidence >= minConfidence && routes[r] ? routes[r] : fallback)(input, ctx);
+  };
 
-    case "stop":
-      // Layer 4: stop, but never empty.
-      return { kind: "stop", reason: c.layer === 4 ? "blocked" : "cancelled",
-               report: await partialReport(ctx.state, blockingReason(e)) };
-  }
-}`,
+export const parallel = <I, O, R>(
+  branches: Handler<I, O>[], merge: (results: O[], input: I) => Promise<R>,
+): Handler<I, R> =>
+  async (input, ctx) => {
+    const settled = await Promise.allSettled(branches.map((b) => b(input, ctx)));
+    const ok = settled.filter(isFulfilled).map((s) => s.value);
+    if (!ok.length) throw new AggregateError(settled.map((s) => (s as any).reason));
+    return merge(ok, input);                                // partial results still merge
+  };
+
+export const agent = (cfg: AgentConfig): Handler<string, AgentResult> =>
+  (goal, ctx) => runAgent(goal, { ...cfg, ctx });
+
+// Composition is just application:
+const support = route(classify, {
+  tracking: chain(lookupOrder, trackShipment, writeReply),
+  refund:   agent(REFUND_CFG),
+  policy:   chain(searchPolicies, writeAnswer),
+}, agent(GENERAL_CFG));`,
         }) +
-        code({ title: "the partial report — the most important 20 lines in the chapter",
-          src: `export async function partialReport(state: RunState, why: string): Promise<string> {
-  const res = await state.model([...state.messages, userText(
-\`You must stop now: \${why}
-
-Write a final report. Do not call tools.
-1. ESTABLISHED — what you determined, each with the evidence that supports it.
-2. IN PROGRESS — what you were doing when you stopped.
-3. UNKNOWN — what you did not find out, and the exact next step for each.
-4. BLOCKED BY — if something specific stopped you, name it precisely enough that
-   a human could unblock it (a permission, a missing credential, a contradictory
-   requirement).
-
-Be concrete. "I made some progress" is worthless; "I confirmed the order shipped
-on 2 March and found the tracking number, but the carrier API returns 403 — the
-API key appears to lack the tracking scope" is actionable.\`)],
-    { temperature: 0, maxTokens: 1200 });
-
-  return textOf(res.content);
-}`,
-        }) +
-        p(`That example in the prompt is doing real work: showing the model what "concrete" means produces concrete reports, and asking for it abstractly does not. The report is also the resume point for ${ch("c08", "C08")} and the handoff note for a human — one call, three uses.`) +
+        p(`<code>ctx.log("route", …)</code> is small and important: routing decisions with their confidence are the highest-value thing you can log. They tell you which branch is misfiring, where the confidence threshold should sit, and whether a new category has appeared in your traffic.`) +
         code({ title: "run it", lang: "bash", plain: true,
-          src: `node --experimental-strip-types code/c12_failure.ts
+          src: `node --experimental-strip-types code/c12_control_flow.ts
 
-#   C12 · Failure & Recovery
+#   C12 · Control Flow
 #
-#   classification — the same try/catch, four different right answers
+#   a hybrid in action — one router, two chains, two agents:
 #
-#     layer 1  retry    429 rate limited
-#     layer 1  retry    503 from the provider
-#     layer 4  stop     403 on a tool              authorisation will not appear by retrying
-#     layer 2  observe  400 bad request
-#     layer 2  observe  invalid tool arguments
-#     layer 1  retry    timeout, read-only tool
-#     layer 2  observe  timeout, send_email        may have taken effect — verify before retrying
-#     layer 4  stop     user cancelled
+#     Order 4471 is in transit.
+#     [agent] worked out refund eligibility for: I want my money back for 4471
+#     [chain] policy answer for "what are the rules on re…"
+#     [general agent] handling an unclassified request: my cat walked across t
 #
-#     403 is layer 4, never layer 1 — it is the most common wasted retry in agent code.
-#     400 is layer 2 — WE sent something wrong, which is exactly what the model can fix.
+#     routing log: tracking@0.91  refund@0.94  policy@0.88  other@0.41
+#     the last one fell back to the general agent — which is what the fallback is for
 #
-#   circuit breaker — the value is legibility, not protection
+#   parallel with one failed branch: majority of 2 surviving branches: high
+#   allSettled, not all — one rejection must not discard the others
 #
-#     attempt 1 failed (HTTP 503) → layer 1, retry
-#     attempt 2 failed (HTTP 503) → layer 1, retry
-#     attempt 3 failed (HTTP 503) → layer 1, retry
-#     circuit OPEN — "search_docs is unavailable for another 30s. Use list_sections instead."
-#     circuit OPEN — "search_docs is unavailable for another 30s. Use list_sections instead."
+#   10,000 requests/day · 55% routine, 25% needs a branch, 20% open-ended
 #
-#     Once open, the agent gets an observation it can route around rather than a hang.
+#   architecture                      $/day     p50      p99  success  predictable
+#   everything is an agent             $290    7.4s    31.0s      90%           0%
+#   route → chain | agent               $79    2.7s    31.0s      94%          78%
+#   rules → route → chain|agent         $67    2.0s    31.0s      95%          78%
 #
-#   per-tool budgets — a thrashing tool is removed, once, with an alternative
+#   Success barely moves. Cost falls by an order of magnitude, p50 by more, and
+#   83% of traffic becomes something you can test, explain and put an SLA on.
 #
-#     call 5: search_docs has been used 5 times and is now disabled for this run — it is not producing new information. Try list_sections instead, or ask the user for what you are missing.
-#     available tools now: list_sections, search_orders
-#
-#   500 runs · injected 6% transport, 10% tool, 8% reasoning failures
-# …
-#      95%  final report   "Stop now and write your partial report."`,
+#   the opposite error — refusing to pay for agency where it is needed:
+#     force open-ended down a chain       $13    0.8s     4.2s      83%
+#     cheapest of all, and a fifth of users are quietly failed.`,
         }) },
 
     { id: "production", kicker: "Production notes", title: "Field notes",
       html:
         ul([
-          `<strong>Alert on terminal-state distribution, not on error count.</strong> The useful chart is the share of runs ending answered / partial / blocked / budget / error, over time. A shift from "answered" to "budget" means something got harder; a shift to "blocked" usually means a credential expired.`,
-          `<strong>Per-tenant money budgets are a safety feature.</strong> One customer with a pathological input can generate thousands of steps. A hard per-tenant cap with an alert is the difference between a surprising invoice and an incident.`,
-          `<strong>Make errors boring and specific.</strong> <code>"Request failed"</code> costs a debugging session. <code>"carrier.track returned 403; key kd_live_...8f2 lacks scope 'tracking'"</code> costs thirty seconds. Both are one line to write.`,
-          `<strong>Idempotency keys remove the worst class entirely.</strong> ${ch("c08", "C08")} makes the case; this chapter is where it pays off. With a key, a timeout is just a retry, and the "may have taken effect" branch never runs.`,
-          `<strong>Frameworks give you max-iterations and stop there.</strong> LangGraph, AutoGen and the vendor SDKs all cap the loop. None of them decides what the user gets when the cap hits. That is <code>partialReport()</code>, and it is yours to write.`,
+          `<strong>Anthropic's "Building Effective Agents"</strong> is the canonical write-up of these patterns and is worth reading in full. Its central claim — use the simplest composition that works, and add agency only where it buys real task performance — is the thesis of this chapter.`,
+          `<strong>LangGraph</strong> is a direct implementation of this space: nodes are handlers, edges are control flow, conditional edges are routing, and an agent is a cycle. Building this vocabulary yourself first is why its API stops looking arbitrary.`,
+          `<strong>Routing decisions are where cheap models earn their keep.</strong> A small model classifying into four buckets at 99% accuracy costs a fraction of the capable model's call and lands on the latency-critical path. This is the single easiest cost win in most systems.`,
+          `<strong>Instrument the boundaries.</strong> Success rate per branch, confidence distribution, fallback rate. A rising fallback rate is an early signal that your traffic has shifted and a category is missing.`,
+          `<strong>Start agentic, then harden.</strong> A legitimate development order: build the agent first to discover what the task actually requires, read fifty traces, notice that eight steps are always identical, and promote them into a chain. You end up with the hybrid, and you got there from evidence rather than guesswork.`,
         ]) },
   ],
 
   exercises: [
     { difficulty: "warm-up",
-      prompt: `Classify each to a layer and give the recovery: (a) 429; (b) 403 on a tool; (c) the model calls <code>serach_docs</code>; (d) the agent has called the same search five times; (e) the user asked to "fix the bug" with no further detail.`,
+      prompt: `For each, name the cheapest pattern that works: (a) translate a document into five languages; (b) answer a question about a 200-page PDF; (c) triage an incident; (d) write a blog post, check it for errors, then polish it; (e) "do whatever is needed to make CI green".`,
       answer: ul([
-        `<b>(a) Layer 1.</b> Retry with full jitter, honour <code>retry-after</code>. Invisible to the model.`,
-        `<b>(b) Layer 4.</b> Stop. A permission does not appear by retrying. Report which credential lacks which scope — that is the sentence that gets it fixed.`,
-        `<b>(c) Layer 2.</b> Observation naming the real tools and the nearest match. Recovered next turn.`,
-        `<b>(d) Layer 3.</b> Not visible as an error at all — it must be detected by the repeat detector and injected as an observation.`,
-        `<b>(e) Layer 4.</b> Stop and ask, immediately. Guessing which bug costs ten steps and produces a change nobody wanted.`,
-      ]) + p(`Note that (b) and (e) are both "stop", and both should happen within the first two steps. Failing fast is a feature when the failure is definitional.`) },
-
-    { difficulty: "core",
-      prompt: `An agent calls a flaky API that fails 20% of the time transiently. Design the full policy: retries, circuit breaker, and what the agent is told.`,
-      answer: code({ title: "layered, and legible to the model",
-        src: `const flaky = defineTool({
-  name: "get_inventory", idempotent: true, timeoutMs: 8_000,
-  description: \`Live inventory for a SKU. This service is intermittently unavailable;
-if it fails twice, proceed with the last known figures from get_catalog and say so
-in your answer rather than retrying further.\`,          // ← policy the MODEL can follow
-  async run({ sku }, ctx) {
-    return breaker.call(() => retry(() => api.inventory(sku), {
-      attempts: 3, baseMs: 200, capMs: 2_000,            // fast retries: transient blips
-      retryOn: (e) => e.status >= 500 || e.status === 429,
-    }));
-  },
-});
-
-// Breaker: 5 failures in a row → open for 30s. While open the tool returns an
-// observation, not an exception:
-//   "get_inventory is unavailable (circuit open, retry in 24s). Use get_catalog
-//    for last-known stock levels, and note the staleness in your answer."` }) +
-      ul([
-        `<strong>Three layers, each doing its own job.</strong> Retries absorb single blips (sub-second, invisible). The breaker absorbs a sustained outage (stops the storm, fails fast). The description tells the model what to do when both give up — which is the layer everyone forgets.`,
-        `<strong>Fast retries, not exponential-to-30s.</strong> Inside an agent step, a retry ladder that takes 30 seconds has already blown the user's patience. Cap the total retry window at roughly one second for interactive tools and let the breaker handle anything longer.`,
-        `<strong>Idempotent matters here.</strong> A read is trivially safe to retry. The same policy on a non-idempotent write would need the timeout branch from ${ch("c08", "C08")}.`,
-        `<strong>Name the fallback in the description.</strong> "Use get_catalog and say so" turns a dependency outage into a degraded-but-correct answer instead of a failed run.`,
+        `<b>(a) Parallel (sectioning).</b> Five independent calls, one wall-clock. No agency anywhere.`,
+        `<b>(b) Chain.</b> Retrieve, then answer. Two steps, always the same two. If follow-up questions are likely, an agent with a search tool — but a single question is a chain.`,
+        `<b>(c) Routing.</b> Classify severity and type, then run a severity-specific handler. P0 should bypass the model entirely and page a human — that is question 1.`,
+        `<b>(d) Chain.</b> Three fixed steps in a fixed order. The classic case where splitting a hard task into easy ones raises quality with no agency.`,
+        `<b>(e) Agent.</b> The next step depends entirely on what the last build output said. This is the only one where question 5 is genuinely yes.`,
       ]) },
 
     { difficulty: "core",
-      prompt: `Implement the per-tool call budget: after N calls to one tool, remove it and tell the model. What are the failure modes of doing this naively?`,
-      answer: code({ title: "disable with an explanation and an alternative",
-        src: `export class ToolBudget {
-  private counts = new Map<string, number>();
-  constructor(private limits: Record<string, number>, private fallbacks: Record<string, string>) {}
+      prompt: `Your agent has 12 tools. Reviewing 100 traces, you find 4 tools are called in the same order 80% of the time. What do you do, and what do you check first?`,
+      answer: p(`That fixed sub-sequence is a chain the model is rediscovering (and paying for) on every run. Two options:`) +
+        ol([
+          `<strong>Collapse into one composite tool.</strong> <code>investigate_order(id)</code> internally calls all four and returns a combined result. The model makes one decision instead of four, and you save three round trips and three sets of tokens. Keep the individual tools available for the 20% case.`,
+          `<strong>Promote it to a chain before the agent runs.</strong> If the sequence always starts the run, run it deterministically and give the agent its results as initial context. It now starts step 1 already informed.`,
+        ]) +
+        p(`<strong>Check first, before doing either:</strong> what is in the other 20%? If those runs deviate because the first tool returned something unexpected, that deviation is the valuable behaviour and collapsing the sequence destroys it. The composite tool must then surface enough detail for the agent to notice the same thing, which usually means returning the sub-results rather than just a summary.`) +
+        p(`Also check <em>ordering variance</em>: if the four tools appear in different orders in the 80%, they are independent and the real win is parallelism, not composition.`) },
 
-  record(name: string): void { this.counts.set(name, (this.counts.get(name) ?? 0) + 1); }
+    { difficulty: "core",
+      prompt: `Implement a routing layer that improves itself: it should detect when a new category appears in traffic and surface it, without silently changing behaviour.`,
+      answer: code({ title: "the fallback rate is the signal",
+        src: `export class AdaptiveRouter {
+  private fallbacks: Array<{ input: string; confidence: number; at: number }> = [];
 
-  available(all: Tool[]): Tool[] {
-    return all.filter((t) => (this.counts.get(t.name) ?? 0) < (this.limits[t.name] ?? Infinity));
+  async route(input: string, ctx: Ctx): Promise<Handler<string, Result>> {
+    const { route, confidence } = await this.classify(input);
+    ctx.metric("route.confidence", confidence, { route });
+
+    if (confidence < this.threshold) {
+      this.fallbacks.push({ input, confidence, at: Date.now() });
+      ctx.metric("route.fallback", 1);
+      return this.general;                 // behaviour is unchanged: still the safe path
+    }
+    return this.routes[route];
   }
 
-  justDisabled(name: string): string | null {
-    const n = this.counts.get(name) ?? 0;
-    if (n !== (this.limits[name] ?? Infinity)) return null;     // fire exactly once
-    return \`\${name} has been used \${n} times and is now disabled for this run. \` +
-           \`It is not producing new information. \` +
-           (this.fallbacks[name] ? \`Try \${this.fallbacks[name]} instead, or \` : "") +
-           \`ask the user for what you are missing.\`;
+  /** Offline, on a schedule. Proposes — never applies. */
+  async proposeCategories(model: Model): Promise<CategoryProposal[]> {
+    const recent = this.fallbacks.filter((f) => f.at > Date.now() - 7 * 864e5);
+    if (recent.length < 30) return [];                       // not enough signal
+    const clusters = await clusterByEmbedding(recent.map((f) => f.input), { minSize: 8 });
+    return Promise.all(clusters.map(async (c) => ({
+      size: c.length,
+      examples: c.slice(0, 5),
+      proposed: await structured(model, [{ role: "user", content: NAME_CATEGORY_PROMPT + c.slice(0, 20).join("\\n") }],
+        obj({ name: str(), description: str(), suggestedTools: arr(str()) })),
+    })));
   }
 }` }) +
-      p(`<strong>Failure modes of the naive version:</strong>`) +
       ul([
-        `<strong>Silent removal.</strong> The tool vanishes from the schema and the model keeps requesting it, getting "unknown tool" errors and no idea why. Always announce it, once, with the reason.`,
-        `<strong>No alternative offered.</strong> Disabling the only search tool without naming a fallback leaves the agent with nothing to do but give up. Every budgeted tool needs a named next-best option or an explicit "ask the user".`,
-        `<strong>Counting legitimate use.</strong> A file-reading agent may legitimately call <code>read_file</code> forty times. Budget the tools that <em>thrash</em> — search, list, retry-prone lookups — not the ones that do bulk work. Better still, budget on <em>distinct arguments</em>: twenty reads of twenty files is fine, twenty reads of the same file is not.`,
-        `<strong>Firing repeatedly.</strong> Announcing the disablement every turn wastes tokens and reads as nagging. Fire exactly on the transition.`,
+        `<strong>Propose, never auto-apply.</strong> A router that adds categories on its own changes system behaviour with no review, no eval, and no rollback. The output is a pull request, not a deployment.`,
+        `<strong>The fallback rate is the monitor.</strong> A step change in it means traffic has shifted — a new product launched, a policy changed, an incident is generating a novel request type. That alert is worth more than the clustering.`,
+        `<strong>Watch the low-confidence <em>successes</em> too.</strong> Requests routed at confidence 0.71 that succeeded are evidence the threshold could come down; ones that failed are evidence it should go up. Log the outcome alongside the confidence or you cannot tune it.`,
       ]) },
 
     { difficulty: "stretch",
-      prompt: `Design the alerting for a production agent: what to alert on, what to dashboard, and what to ignore. Include at least one leading indicator.`,
-      answer: p(`<strong>Page someone (wake a human):</strong>`) +
-        ul([
-          `Per-tenant spend over its cap — this is a runaway loop and it compounds.`,
-          `Terminal state "blocked" above baseline — a credential expired or a permission changed, and every affected run is failing identically.`,
-          `Any tool's error rate above 50% for five minutes — a dependency is down and the breaker is holding, but the agent is degraded.`,
-          `"Failed empty" above 2% — users are getting nothing back.`,
-        ]) +
-        p(`<strong>Dashboard (look at it daily):</strong> terminal-state distribution over time; steps-to-completion histogram split by outcome; cost per successful run; tool error rates and p99 latencies; router fallback rate (${ch("c11", "C11")}).`) +
-        p(`<strong>Leading indicators — the point of the exercise:</strong>`) +
-        ul([
-          `<strong>The p95 of steps-to-completion, for runs that succeeded.</strong> This rises <em>before</em> the success rate falls. An agent taking 9 steps for what used to take 5 is already going wrong; it is still succeeding, so nothing alerts, and next week it will not be.`,
-          `<strong>Repeat-detector fire rate.</strong> An increase means the agent is thrashing more often, usually because a tool started returning less useful results or a prompt change removed a hint.`,
-          `<strong>Degradation-ladder rung reached.</strong> Runs hitting "drop tools" that never used to is a context or budget regression.`,
-        ]) +
-        p(`<strong>Ignore:</strong> individual 429s and 5xx (that is what retries are for; alert on the <em>rate of retry exhaustion</em> instead), individual tool errors (layer 2 is a normal, recoverable part of operation), and raw model latency (you care about end-to-end, and a slow model call inside a 9-step run is noise).`) },
+      prompt: `Write the migration plan for turning a working all-agent system into the hybrid, without a regression. Include how you decide what to promote and how you prove it was safe.`,
+      answer: ol([
+        `<strong>Build the eval set first, from production.</strong> Sample 200 real requests stratified by outcome, including failures. Record current behaviour as the baseline. Nothing else in this plan is safe without this step. You cannot prove no regression against a baseline you do not have.`,
+        `<strong>Cluster the traces, not the requests.</strong> Group by <em>tool sequence</em>. The clusters that are large and low-variance are your promotion candidates; high-variance clusters stay agentic no matter how large.`,
+        `<strong>Promote one cluster, shadow first.</strong> Implement the chain, run it in parallel with the agent on live traffic, and compare outputs without serving the new path. Disagreements are your review queue, and they are usually where you discover the agent was doing something subtle.`,
+        `<strong>Ship behind a confidence gate.</strong> The chain handles the request only when the router is confident <em>and</em> the input matches the cluster's preconditions. Everything else falls through to the agent. Fail open toward the agent, always.`,
+        `<strong>Measure four things per cluster:</strong> success rate versus baseline, cost, p50/p99, and fallback rate. Promote the next cluster only when the previous one has been stable for a week.`,
+        `<strong>Keep the agent path warm.</strong> Route a small percentage of eligible traffic to it permanently. It is your control group, and it is how you notice that the chain has silently degraded as the world changed around it.`,
+      ]) +
+      p(`<strong>The mistake to avoid:</strong> promoting based on frequency alone. A cluster covering 30% of traffic with high tool-order variance is frequent <em>because</em> it is varied, and freezing it into a chain converts a flexible success into a rigid failure. Variance within a cluster, not its size, is the promotion criterion.`) },
   ],
 
   qa: [
-    { q: "How many retries?", a: p(`Three to five for transport, with full jitter and a total window matched to the caller's patience — about one second inside an interactive tool, longer for background work. Zero for everything else: layer 2 goes back to the model, layer 4 stops. If you find yourself wanting six, you want a circuit breaker.`) },
-    { q: "Should the agent retry its own reasoning?", a: p(`Re-running the same model call on the same context mostly reproduces the same output, so a bare retry is close to useless. What works is changing something: inject the observation that describes what went wrong (the repeat detector's message), or fork before the bad turn (${ch("c08", "C08")}) and re-run at a higher temperature. Both change the input; a retry does not.`) },
-    { q: "What if a partial report is embarrassing?", a: p(`It is more embarrassing to have done nine steps of work and returned nothing. A report that says "I confirmed A and B, I could not do C because the API key lacks the tracking scope" is a good product experience and an actionable bug report. The version to avoid is a partial report that <em>sounds</em> complete, hence the explicit UNKNOWN and BLOCKED BY sections.`) },
-    { q: "Do I need circuit breakers if I have retries?", a: p(`Yes, for a different job. Retries handle a blip; a breaker handles an outage. It stops fifty concurrent agents from retrying into a dead service, and it converts the failure into a fast, informative observation the agent can route around. Without it, a downed dependency turns every run into a slow failure.`) },
-    { q: "How do I test failure handling without breaking production?", a: p(`A failure-injecting mock model and tool registry: configurable rates per layer, deterministic under a seed, in your test suite. That is what generated this chapter's numbers. Add the specific failures you have actually seen in production as named scenarios — an expired token, a 200 with an empty body, a tool that returns HTML instead of JSON — and they become regression tests.`) },
+    { q: "Isn't a router just an agent with one step?", a: p(`Mechanically similar, structurally different in the way that matters: the router's branches are fixed and enumerable, so each can be prompted, tested and measured independently. "Refunds succeed 94%, tracking 99%" is a dashboard you can act on; "the agent succeeds 93%" is not.`) },
+    { q: "How do I know if a decision is genuinely non-enumerable?", a: p(`Try to enumerate it. Sit down and write the rules for twenty real examples. If you finish in twenty minutes, it was enumerable and you now have the code. If you keep hitting "well, it depends on what the search returned" — that is question 5, and you have earned the loop.`) },
+    { q: "Does the hybrid make the system harder to maintain?", a: p(`It makes it harder to <em>describe</em> and much easier to maintain, because failures are localised. In an all-agent system, every bug is a prompt change affecting everything. In the hybrid, a broken tracking flow is a broken function with a test.`) },
+    { q: "Where does human-in-the-loop fit in this taxonomy?", a: p(`As a node like any other — a handler that blocks on an approval, with the durability from ${ch("c09", "C09")} so the process need not stay alive. The interesting design question is <em>where</em> in the graph the approval sits, and ${ch("c19", "C19")} argues it belongs at the last reversible point, not at the end.`) },
+    { q: "Should the router and the agent share a system prompt?", a: p(`No. Each branch should have the narrowest prompt and the smallest tool set that does its job. That is most of the benefit of routing (${ch("c03", "C03")}: fewer, disjoint tools select better). Share the tool <em>definitions</em>; do not share the instructions.`) },
   ],
 
   project: {
-    title: "Project · Make your agent hard to kill",
-    brief: p(`Add the four-layer recovery policy to your agent, then prove it with injected failures. The headline number is "failed empty" — get it under 1%.`),
+    title: "Project · Convert your agent to a hybrid",
+    brief: p(`Take the agent you have been building and find the parts that never needed agency. The measurable goal: cut cost and p50 substantially with no loss in success rate.`),
     spec: [
-      "<code>classify(error, ctx)</code> mapping every error to a layer and an action, with 401/403 as layer 4 and 400 as layer 2.",
-      "Retries with full jitter for layer 1 only, and a circuit breaker per dependency whose open state returns an observation naming the retry time.",
-      "Layer 2 failures returned as tool results; nothing escapes the tool boundary as an exception.",
-      "Per-tool call budgets that disable a thrashing tool once, with a reason and a named alternative.",
-      "A degradation ladder with at least three rungs, each announced to the model.",
-      "<code>partialReport()</code> with ESTABLISHED / IN PROGRESS / UNKNOWN / BLOCKED BY, called on every non-success terminal state.",
-      "A failure-injection harness reporting completed / partial / empty / spend across at least four policies.",
+      "The five composition primitives — <code>rule</code>, <code>chain</code>, <code>route</code>, <code>parallel</code>, <code>agent</code> — sharing one <code>Handler</code> signature.",
+      "An eval set of at least 50 real or realistic requests with recorded baseline behaviour, built <em>before</em> any change.",
+      "At least one decision moved from the model to code, with the test that replaces it.",
+      "A router with a small model, a confidence threshold, a general-agent fallback, and logging of route and confidence on every request.",
+      "At least one fixed chain for a high-volume case, gated on router confidence.",
+      "A before/after table: cost per 1,000 requests, p50, p99, success rate, and share of traffic on a deterministic path.",
     ],
     stretch: [
-      "Add per-tenant money budgets with an alert, and prove a pathological input stops rather than compounding.",
-      "Make the partial report resumable: feed it back as the starting context for a new run and measure how many steps are saved versus starting over.",
-      "Add your real production failures as named scenarios in the harness.",
+      "Add the fallback-clustering job that proposes new categories as a report, never applying them.",
+      "Shadow-run a promoted chain against the agent on the same inputs and review every disagreement.",
+      "Add parallel voting to your highest-stakes decision and measure whether three samples with a majority rule beat one sample plus a critic, at comparable cost.",
     ],
   },
 
   quiz: [
-    { q: "Which failure layer is the only one where retrying is the right response?",
-      options: ["Transport — 429s, 5xx, resets, timeouts on idempotent operations", "Tool errors like bad arguments", "Reasoning failures like loops", "Task failures like missing permissions"],
+    { q: "What is the first question in the decision procedure?",
+      options: ["Can I write this rule down? If yes, write code — no model call", "Which model should handle this?", "How many steps will this take?", "Does this need tools?"],
       answer: 0,
-      why: "Retrying a malformed tool call reproduces it, retrying a loop reproduces the loop more expensively, and retrying a 403 never succeeds. Only transient transport faults are fixed by trying again." },
-    { q: "A tool returns 403. What layer is it and what should happen?",
-      options: ["Layer 4 — stop and report which credential lacks which permission", "Layer 1 — retry with backoff", "Layer 2 — feed back and let the model try different arguments", "Layer 3 — inject an observation about looping"],
+      why: "It eliminates more decisions than any other question. Giving a stochastic process a job a deterministic one does better costs money, latency and predictability, and buys nothing." },
+    { q: "What distinguishes a chain from an agent?",
+      options: ["In a chain you know the full sequence before starting; in an agent the next step depends on content you have not seen", "Chains cannot use tools", "Agents use larger models", "Chains cannot make model calls"],
       answer: 0,
-      why: "A permission does not appear by retrying, and no rephrasing of arguments creates authorisation. Stopping in step two with a precise, fixable message beats failing in step nine after a retry storm." },
-    { q: "Why must an agent never fail empty?",
-      options: ["It typically completed real work before failing, and discarding it destroys value and trust", "Empty failures are harder to log", "The API charges for failed runs", "Users cannot distinguish empty failures from timeouts"],
+      why: "'Search then summarise' is a chain — you always knew step 2 was coming. 'Search, and if the results contradict the policy, search the policy index instead' is an agent, because the branch structure is a function of unseen content." },
+    { q: "Why does a router need a general-agent fallback?",
+      options: ["Without one, unusual inputs get a specialist that cannot handle them — exactly the cases that motivated agency", "To handle API errors from the classifier", "To reduce cost on common paths", "To satisfy the confidence threshold"],
       answer: 0,
-      why: "Nine successful steps followed by 'I was unable to complete this request' is both a bad product and a waste of money already spent. One extra model call turns it into a report that is useful and resumable." },
-    { q: "What does a circuit breaker give an agent that retries alone do not?",
-      options: ["A fast, informative observation — 'this tool is down for 24 more seconds' — that the agent can route around", "Lower token usage", "Automatic failover to another provider", "Protection against malformed arguments"],
+      why: "A confident misroute sends a novel request to a branch with the wrong prompt and wrong tools. Falling back below a confidence threshold keeps the long tail working, which is the whole reason you built an agent." },
+    { q: "In the simulator, what happened when every traffic class was handled by an agent?",
+      options: ["Success was fine but cost was roughly 10× higher, p99 was tens of seconds, and no traffic was predictable", "Success dropped sharply", "Latency improved due to parallelism", "Cost was unchanged but reliability fell"],
       answer: 0,
-      why: "The breaker's value inside an agent is legibility. A hanging retry storm gives the model nothing; 'unavailable, try get_catalog instead' makes it choose a different approach immediately." },
-    { q: "Why announce budget degradation to the model rather than silently shrinking resources?",
-      options: ["Models consolidate and prioritise when told there is a deadline, and do neither when it is invisible", "It satisfies logging requirements", "It prevents the model from calling disabled tools", "It reduces token usage"],
+      why: "That is the characteristic shape of a first production release: it works, and it is paying an order of magnitude for flexibility that most requests never use — with a p99 nobody can put an SLA on." },
+    { q: "Four tools are always called in the same order in 80% of traces. What should you check before collapsing them into one composite tool?",
+      options: ["What happens in the other 20% — that deviation may be the valuable behaviour", "Whether the tools are read-only", "Whether the model supports parallel tool calls", "Whether the tools share a schema"],
       answer: 0,
-      why: "An agent that knows it is at 85% of budget starts wrapping up. One that is silently degraded keeps planning as if it had room, and then gets cut off mid-thought." },
-    { q: "What is the best leading indicator that an agent is degrading in production?",
-      options: ["Rising p95 steps-to-completion among runs that still succeed", "Total error count", "Average model latency", "Number of tools registered"],
+      why: "If runs deviate because the first tool returned something unexpected, the composite must surface enough detail for the agent to notice the same thing. Collapsing blindly turns an adaptive success into a rigid failure." },
+    { q: "What is the right criterion for promoting an agentic path into a fixed chain?",
+      options: ["Low variance in the tool sequence within that cluster — not how much traffic it represents", "The size of the cluster", "The cost of the cluster", "The average number of steps"],
       answer: 0,
-      why: "It moves before the success rate does. An agent taking nine steps for what used to take five is already going wrong while every dashboard still looks green, which is exactly when you want to know." },
+      why: "A large cluster with high tool-order variance is frequent because it is varied. Freezing it removes exactly the adaptability that was doing the work. Variance, not volume, decides." },
   ],
 
-  continues: p(`The agent is now reliable within the world you gave it: a few tools, some documents, a model. That world is small. The next four chapters widen it — code execution, the filesystem and shell, a protocol for other people's tools, and the human who has to approve the parts that can do damage. ${ch("c13", "C13")} starts with the tool that subsumes all the others.`),
+  continues: p(`You now have a system with the right amount of agency in the right places. It will still fail — tools time out, models return nonsense, APIs rate-limit, and the agent occasionally decides to do something inexplicable. ${ch("c13", "C13")} is the taxonomy of those failures and the specific recovery each one needs, because "wrap it in a try/catch and retry" is wrong for most of them.`),
 };
 
 export default chapter;

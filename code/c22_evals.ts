@@ -1,7 +1,7 @@
 /**
- * C19 · Evaluation — Wilson intervals, McNemar's test, per-tag gating, and the
+ * C22 · Evaluation — Wilson intervals, McNemar's test, per-tag gating, and the
  * power calculation that explains why "I tried ten examples" is not evidence.
- *   node --experimental-strip-types code/c19_evals.ts
+ *   node --experimental-strip-types code/c22_evals.ts
  */
 
 export interface Grade { pass: boolean; why: string }
@@ -110,7 +110,7 @@ function runSuite(variant: "A" | "B", cases: number, runsPerCase: number, seed: 
 }
 
 function main(): void {
-  console.log("\n  C19 · Evaluation\n");
+  console.log("\n  C22 · Evaluation\n");
 
   // The experiment everyone actually runs.
   console.log("  \"I tried ten examples and it went from 7/10 to 9/10\"\n");

@@ -118,7 +118,7 @@ const chapter: Chapter = {
         `<h3>The control flow is data</h3>` +
         p(`In ordinary software you write the control flow, and it is fixed by the time the program compiles. Here a stochastic function produces it at runtime. You cannot read the program and know its execution path, because the path is an output rather than a source file. Testing, debugging, cost estimation and security all have to be redesigned around that one fact.`) +
         `<h3>The loop has no natural end</h3>` +
-        p(`Nothing in the code above guarantees <code>reply.stop</code> ever becomes true. A model that keeps deciding "I should check one more thing" produces an infinite loop that costs real money per iteration. Every production agent enforces termination from the outside, because the inside cannot be trusted to supply one — but "outside" means different things for different products. An unattended run needs a turn budget, a token budget or a wall-clock deadline, because nobody is watching. An interactive one can lean on a person: pi's agent loop has no step limit at all, only a cancel signal and a human who can see what it is doing. Both are external. Know which one you are building, because the interactive answer stops working the moment the agent runs on a schedule. ${ch("c12", "C12")} is that problem in full.`) +
+        p(`Nothing in the code above guarantees <code>reply.stop</code> ever becomes true. A model that keeps deciding "I should check one more thing" produces an infinite loop that costs real money per iteration. Every production agent enforces termination from the outside, because the inside cannot be trusted to supply one — but "outside" means different things for different products. An unattended run needs a turn budget, a token budget or a wall-clock deadline, because nobody is watching. An interactive one can lean on a person: pi's agent loop has no step limit at all, only a cancel signal and a human who can see what it is doing. Both are external. Know which one you are building, because the interactive answer stops working the moment the agent runs on a schedule. ${ch("c13", "C13")} is that problem in full.`) +
         `<h3>Everything re-enters the context</h3>` +
         p(`If you retain and resend the full history, each tool result is appended to <code>messages</code> and sent again on the next iteration. A ten-step task can send the first step's output ten times. That makes transmitted input grow roughly quadratically with turns; compaction and prompt caching can change the bill, but neither removes the finite context window. ${ch("c05", "C05")} is about managing both constraints.`) +
         note(
@@ -138,7 +138,7 @@ const chapter: Chapter = {
           title: "five positions on one dial",
           body: DIAL_SVG,
           caption:
-            `Position 3 is what most people mean by "agent" and what this course builds. Note the asterisk: unbounded is a property of the loop, not of your system — you bound it from outside, and ${ch("c12", "C12")} shows how.`,
+            `Position 3 is what most people mean by "agent" and what this course builds. Note the asterisk: unbounded is a property of the loop, not of your system — you bound it from outside, and ${ch("c13", "C13")} shows how.`,
         }) +
         `<h3>What each click actually changes</h3>` +
         table(
@@ -155,7 +155,7 @@ const chapter: Chapter = {
         note(
           "warn",
           "The default is not position 3",
-          p(`Reach for agency when the space of valid step-sequences is too large to enumerate, when the next step genuinely depends on what the last step returned, and when you can tolerate variance in the path. If any one of those is false, a workflow will beat your agent on every metric a user can feel. ${ch("c11", "C11")} makes this a design procedure rather than a taste.`)
+          p(`Reach for agency when the space of valid step-sequences is too large to enumerate, when the next step genuinely depends on what the last step returned, and when you can tolerate variance in the path. If any one of those is false, a workflow will beat your agent on every metric a user can feel. ${ch("c12", "C12")} makes this a design procedure rather than a taste.`)
         ),
     },
     {
@@ -215,9 +215,9 @@ var POS = [
   { n: "2 · chain",    ceiling: 66,  base: 3,  spread: 1,   tok: 2600, lat: 1800, blast: "read-only",
     d: "<b>Prompt chain.</b> You own the DAG; the model fills each node. Handles more shapes, but every node's error feeds the next, and the DAG still cannot represent a request that needs a step you did not draw." },
   { n: "3 · agent",    ceiling: 91,  base: 4,  spread: 6,   tok: 9000, lat: 7200, blast: "whatever the tools can do",
-    d: "<b>Tool-using agent.</b> The model owns the order and the stopping. It covers requests nobody enumerated — and the same request can cost 2 calls or 40. This is the loop the course builds, and the variance is the thing you spend C05–C12 taming." },
+    d: "<b>Tool-using agent.</b> The model owns the order and the stopping. It covers requests nobody enumerated — and the same request can cost 2 calls or 40. This is the loop the course builds, and the variance is the thing you spend C05–C13 taming." },
   { n: "4 · open",     ceiling: 95,  base: 6,  spread: 14,  tok: 24000, lat: 21000, blast: "writes its own tools",
-    d: "<b>Open-ended.</b> The agent writes and runs new tools mid-task. Highest ceiling, and the only position where you genuinely cannot enumerate what a run is permitted to do. Treat as research unless the sandbox is airtight (C13, C21)." }
+    d: "<b>Open-ended.</b> The agent writes and runs new tools mid-task. Highest ceiling, and the only position where you genuinely cannot enumerate what a run is permitted to do. Treat as research unless the sandbox is airtight (C14, C24)." }
 ];
 var pos = document.getElementById("d0-pos"), diff = document.getElementById("d0-diff"), nEl = document.getElementById("d0-n");
 var posV = document.getElementById("d0-pos-v"), diffV = document.getElementById("d0-diff-v"), nV = document.getElementById("d0-n-v");
@@ -364,14 +364,14 @@ export async function agent(goal: string, env: Env, limits: Limits): Promise<Res
         p(`Every serious framework encodes a position on the dial, and reading them as positions rather than as competing brands makes the landscape much smaller than it looks.`) +
         ul([
           `<strong>LangGraph</strong> is position 2 by construction: you declare a <code>StateGraph</code> of nodes and edges, and the model fills nodes. Agency arrives through conditional edges that route on model output, so you can build position 3 — but the graph is still yours, and that is the point of it.`,
-          `<strong>AutoGen</strong> (<code>autogen-core</code>) is lower-level still: agents are actors that exchange messages through a runtime. Agency is whatever the agents' handlers do. ${ch("c18", "C18")} rebuilds that runtime.`,
+          `<strong>AutoGen</strong> (<code>autogen-core</code>) is lower-level still: agents are actors that exchange messages through a runtime. Agency is whatever the agents' handlers do. ${ch("c21", "C21")} rebuilds that runtime.`,
           `<strong>The OpenAI Agents SDK and the Claude Agent SDK</strong> are position 3 as a product: a loop, a tool registry, and a stopping rule, with handoffs and guardrails layered on.`,
-          `<strong>Claude Code, Codex and Cursor's agent mode</strong> are position 3 with an unusually large tool surface (your filesystem and your shell) and a correspondingly serious permission layer — which is exactly ${ch("c16", "C16")}.`,
+          `<strong>Claude Code, Codex and Cursor's agent mode</strong> are position 3 with an unusually large tool surface (your filesystem and your shell) and a correspondingly serious permission layer — which is exactly ${ch("c19", "C19")}.`,
         ]) +
         note(
           "",
           "The sentence to remember from the industry write-ups",
-          p(`Anthropic's "Building Effective Agents" is blunt about it: the most successful deployments use the simplest pattern that works, and agents are for the cases where the extra latency and cost buy a real increase in task performance. Nothing in the following twenty-four chapters contradicts that. They are about making position 3 work <em>when you have established that you need it</em>.`)
+          p(`Anthropic's "Building Effective Agents" is blunt about it: the most successful deployments use the simplest pattern that works, and agents are for the cases where the extra latency and cost buy a real increase in task performance. Nothing in the following twenty-eight chapters contradicts that. They are about making position 3 work <em>when you have established that you need it</em>.`)
         ),
     },
   ],
@@ -386,7 +386,7 @@ export async function agent(goal: string, env: Env, limits: Limits): Promise<Res
           `<b>(b) Position 0 or 1.</b> One model call. If you branch on document type before calling, it is 1.`,
           `<b>(c) Position 2 if your code does the lookup then calls the model; position 3 if the model decides <em>whether</em> to look up.</b> The tell is who owns the <code>if</code>. This is the most commonly mis-classified case.`,
           `<b>(d) Position 3.</b> Model chooses read/edit/run/re-read, in an order that depends on what the test printed. The trace is only drawable afterwards.`,
-          `<b>(e) Position 4.</b> It authors a new capability at runtime. Note that "writes a script and runs it" is exactly the move that makes sandboxing non-optional (${ch("c13", "C13")}).`,
+          `<b>(e) Position 4.</b> It authors a new capability at runtime. Note that "writes a script and runs it" is exactly the move that makes sandboxing non-optional (${ch("c14", "C14")}).`,
         ]),
     },
     {
@@ -401,7 +401,7 @@ export async function agent(goal: string, env: Env, limits: Limits): Promise<Res
             ["A tool hangs", "per-tool timeout via <code>AbortSignal</code>", "Around the tool call"],
             ["Each step succeeds but the task is unbounded (\"monitor forever\")", "wall-clock deadline", "Inside, at the top"],
             ["Context grows until the request is rejected", "token budget + compaction", "Inside, before the model call (C05)"],
-            ["Model decides it is done but has not done the job", "verification step; not a termination bug but looks like one", "After the loop (C10)"],
+            ["Model decides it is done but has not done the job", "verification step; not a termination bug but looks like one", "After the loop (C11)"],
           ]
         ) +
         p(`The general principle: <em>termination is an external property</em>. Prompts that say "stop when finished" help at the margin, but they are never a guard, because the failure you are guarding against is a model that sincerely believes it is not finished.`),
@@ -411,7 +411,7 @@ export async function agent(goal: string, env: Env, limits: Limits): Promise<Res
       prompt: `In the simulator, set position 3 and difficulty 20. The p99 call count is roughly four times the median. Explain why that ratio — not the median — is what determines your infrastructure bill and your timeout settings, and what you would measure in production to see it.`,
       answer:
         p(`Capacity is sized for the tail, not the middle. If the median run is 4 calls and p99 is 17, then at any moment a meaningful fraction of in-flight runs are long ones; they hold connections, occupy concurrency slots, and consume context-window budget simultaneously. A timeout set from the median kills a tenth of your legitimate traffic. One set from the tail lets a stuck run burn seventeen calls' worth of money before anything notices.`) +
-        p(`What to measure: per-run histograms (not averages) of model calls, total tokens, wall-clock, and tool invocations, tagged with the terminal state — answered, budget-exhausted, error, user-cancelled. The single most useful chart in agent ops is <em>steps-to-completion, bucketed, split by outcome</em>: a rising right tail in the "budget exhausted" series is the earliest signal that a prompt or tool change has made the agent start wandering. ${ch("c20", "C20")} builds this.`),
+        p(`What to measure: per-run histograms (not averages) of model calls, total tokens, wall-clock, and tool invocations, tagged with the terminal state — answered, budget-exhausted, error, user-cancelled. The single most useful chart in agent ops is <em>steps-to-completion, bucketed, split by outcome</em>: a rising right tail in the "budget exhausted" series is the earliest signal that a prompt or tool change has made the agent start wandering. ${ch("c23", "C23")} builds this.`),
     },
     {
       difficulty: "stretch",
@@ -421,7 +421,7 @@ export async function agent(goal: string, env: Env, limits: Limits): Promise<Res
           `<b>Can you enumerate the valid step-sequences?</b> If yes and there are fewer than a dozen, build position 0–2. Stop here; most systems stop here.`,
           `<b>Does step N+1 genuinely depend on the <em>content</em> returned by step N</b>, not just on its success? "Search, then summarise" does not qualify; "search, and if the result contradicts the policy, search the policy index instead" does. If no, position 2.`,
           `<b>Is variance in the path acceptable to the person who owns this surface?</b> Ask about the regulated case, the audit case, and the "why did it do that" case. If no, position ≤2 and add model calls only inside fixed nodes.`,
-          `<b>What is the blast radius of the worst single tool call?</b> Write it down as a sentence with a verb and an object ("sends an email to a customer", "deletes a row"). If that sentence frightens anyone in the room, you need position 3 <em>plus</em> ${ch("c16", "C16")} approvals, and the approval design is now part of the estimate, not a follow-up.`,
+          `<b>What is the blast radius of the worst single tool call?</b> Write it down as a sentence with a verb and an object ("sends an email to a customer", "deletes a row"). If that sentence frightens anyone in the room, you need position 3 <em>plus</em> ${ch("c19", "C19")} approvals, and the approval design is now part of the estimate, not a follow-up.`,
           `<b>Can you afford the p99, not the median?</b> Multiply the expected median cost by four and the median latency by four. If that number is not fine, you are building position 2 whether you like it or not.`,
         ]) +
         p(`Failing safe toward lower positions matters because the upgrade path is cheap and the downgrade path is not. Turning a working chain into an agent is a day's work. Retrofitting determinism onto a shipped agent means renegotiating with everyone who came to depend on its flexibility.`),
@@ -438,7 +438,7 @@ export async function agent(goal: string, env: Env, limits: Limits): Promise<Res
       q: "Why build from scratch when LangGraph, AutoGen and the vendor SDKs exist?",
       a:
         p(`Because the parts that break in production are not the parts frameworks abstract. Frameworks give you the loop, which is four lines. They leave you the context budget, the retry semantics, the tool error surface, the eval set and the permission model, which are the hard parts. After this course you should use a framework; you will just be able to tell what it is doing and what it is not doing for you.`) +
-        p(`A concrete example: every framework has a "max iterations" setting. Almost none has an opinion about what your agent should do with the partial work it has already done when that limit hits. That is your design problem, and ${ch("c12", "C12")} is about it.`),
+        p(`A concrete example: every framework has a "max iterations" setting. Almost none has an opinion about what your agent should do with the partial work it has already done when that limit hits. That is your design problem, and ${ch("c13", "C13")} is about it.`),
     },
     {
       q: "Does a better model make the dial irrelevant?",
@@ -448,7 +448,7 @@ export async function agent(goal: string, env: Env, limits: Limits): Promise<Res
     {
       q: "Where do 'multi-agent systems' sit on this dial?",
       a:
-        p(`Off to the side, not further right. Multiple agents is a <em>topology</em> decision, mostly about isolating context and parallelising independent work; a five-agent system where a supervisor calls fixed specialists in a fixed order is position 2 with more moving parts. ${ch("c17", "C17")} treats topology as its own axis, and is fairly rude about how often it is the wrong first reach.`),
+        p(`Off to the side, not further right. Multiple agents is a <em>topology</em> decision, mostly about isolating context and parallelising independent work; a five-agent system where a supervisor calls fixed specialists in a fixed order is position 2 with more moving parts. ${ch("c20", "C20")} treats topology as its own axis, and is fairly rude about how often it is the wrong first reach.`),
     },
     {
       q: "The course says 'no framework'. Does it use any libraries at all?",
@@ -471,7 +471,7 @@ export async function agent(goal: string, env: Env, limits: Limits): Promise<Res
     ],
     stretch: [
       "Estimate median and p99 model calls per request from logs, or from ten deliberate hard requests if you have no logs.",
-      "Write the three inputs most likely to make it fail, and predict the failure mode for each. Keep the file — you will re-run these as an eval set in C19.",
+      "Write the three inputs most likely to make it fail, and predict the failure mode for each. Keep the file — you will re-run these as an eval set in C22.",
     ],
   },
 

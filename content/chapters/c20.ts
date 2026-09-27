@@ -1,494 +1,456 @@
 import type { Chapter } from "../../src/types.ts";
 import { code, fig, lab, note, table, p, ul, ol, ch } from "../../src/ui.ts";
 
-const TRACE_SVG = `
-<svg viewBox="0 0 700 280" width="100%" style="max-width:700px;display:block;margin:0 auto" role="img"
-     aria-label="A trace waterfall for one agent run">
-  <text x="14" y="18" class="d-label">ONE RUN AS A WATERFALL — WHERE THE TIME AND THE MONEY WENT</text>
+const TOPO_SVG = `
+<svg viewBox="0 0 700 300" width="100%" style="max-width:700px;display:block;margin:0 auto" role="img"
+     aria-label="Four multi-agent topologies compared">
+  <defs><marker id="t17" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M0 0 L10 5 L0 10 z" fill="var(--border-strong)"/></marker></defs>
 
-  <text x="14" y="42" class="d-mono">run r_7c21</text>
-  <rect x="150" y="30" width="520" height="16" rx="3" class="d-box-a"/>
-  <text x="676" y="42" class="d-mono" text-anchor="end" fill="var(--fg-faint)">38.2s · $1.84</text>
+  <text x="14" y="16" class="d-label">ORCHESTRATOR–WORKER — the one that usually works</text>
+  <rect x="14" y="24" width="76" height="26" rx="4" class="d-box-a"/><text x="52" y="41" class="d-mono" text-anchor="middle">lead</text>
+  <path d="M94 32 L114 30" class="d-arrow" marker-end="url(#t17)"/><path d="M94 37 L114 48" class="d-arrow" marker-end="url(#t17)"/><path d="M94 42 L114 66" class="d-arrow" marker-end="url(#t17)"/>
+  <rect x="118" y="20" width="70" height="20" rx="3" class="d-box-t"/><text x="153" y="34" class="d-mono" text-anchor="middle">worker</text>
+  <rect x="118" y="42" width="70" height="20" rx="3" class="d-box-t"/><text x="153" y="56" class="d-mono" text-anchor="middle">worker</text>
+  <rect x="118" y="64" width="70" height="20" rx="3" class="d-box-t"/><text x="153" y="78" class="d-mono" text-anchor="middle">worker</text>
+  <path d="M192 52 L212 52" class="d-arrow" marker-end="url(#t17)"/>
+  <rect x="216" y="40" width="76" height="26" rx="4" class="d-box-a"/><text x="254" y="57" class="d-mono" text-anchor="middle">synthesise</text>
+  <text x="308" y="50" class="d-mono" fill="var(--ok)">parallel, isolated contexts, one owner of the answer</text>
 
-  <text x="26" y="66" class="d-mono" fill="var(--fg-faint)">├ model call 1</text>
-  <rect x="150" y="54" width="34" height="14" rx="3" class="d-box"/>
-  <text x="676" y="66" class="d-mono" text-anchor="end" fill="var(--fg-faint)">1.2s · 4,210 tok</text>
+  <text x="14" y="110" class="d-label">HANDOFF — one agent at a time, control transfers</text>
+  <rect x="14" y="118" width="76" height="26" rx="4" class="d-box-a"/><text x="52" y="135" class="d-mono" text-anchor="middle">triage</text>
+  <path d="M94 131 L118 131" class="d-arrow" marker-end="url(#t17)"/>
+  <rect x="122" y="118" width="76" height="26" rx="4" class="d-box-p"/><text x="160" y="135" class="d-mono" text-anchor="middle">refunds</text>
+  <path d="M202 131 L226 131" class="d-arrow" marker-end="url(#t17)"/>
+  <rect x="230" y="118" width="76" height="26" rx="4" class="d-box-p"/><text x="268" y="135" class="d-mono" text-anchor="middle">billing</text>
+  <text x="320" y="135" class="d-mono" fill="var(--warn)">clean prompts; context must travel with the handoff</text>
 
-  <text x="26" y="88" class="d-mono" fill="var(--fg-faint)">├ tool search_docs</text>
-  <rect x="186" y="76" width="22" height="14" rx="3" class="d-box-t"/>
-  <text x="676" y="88" class="d-mono" text-anchor="end" fill="var(--fg-faint)">0.4s · 1,900 tok out</text>
+  <text x="14" y="176" class="d-label">GROUP CHAT — shared transcript, a policy picks the speaker</text>
+  <rect x="14" y="184" width="292" height="44" rx="6" class="d-box" stroke-dasharray="3 3"/>
+  <text x="26" y="202" class="d-mono">shared message list · round-robin | model-selected | handoff</text>
+  <text x="26" y="220" class="d-mono" fill="var(--fg-faint)">every agent reads everything — cost is O(agents × turns)</text>
+  <text x="320" y="208" class="d-mono" fill="var(--warn)">good for debate; expensive, and it can talk forever</text>
 
-  <text x="26" y="110" class="d-mono" fill="var(--fg-faint)">├ model call 2</text>
-  <rect x="210" y="98" width="40" height="14" rx="3" class="d-box"/>
-  <text x="676" y="110" class="d-mono" text-anchor="end" fill="var(--fg-faint)">1.5s · 7,880 tok</text>
-
-  <text x="26" y="132" class="d-mono" fill="var(--danger)">├ tool run_tests</text>
-  <rect x="252" y="120" width="300" height="14" rx="3" class="d-box" fill="var(--danger-soft)" stroke="var(--danger)"/>
-  <text x="676" y="132" class="d-mono" text-anchor="end" fill="var(--danger)">11.4s ← 30% of wall clock</text>
-
-  <text x="26" y="154" class="d-mono" fill="var(--fg-faint)">├ subagent researcher</text>
-  <rect x="554" y="142" width="96" height="14" rx="3" class="d-box-p"/>
-  <text x="676" y="154" class="d-mono" text-anchor="end" fill="var(--fg-faint)">3.7s · $0.44</text>
-
-  <text x="38" y="176" class="d-mono" fill="var(--fg-faint)">│ ├ model call ×6</text>
-  <rect x="554" y="164" width="72" height="12" rx="3" class="d-box"/>
-  <text x="38" y="196" class="d-mono" fill="var(--fg-faint)">│ └ tool grep ×4</text>
-  <rect x="566" y="184" width="46" height="12" rx="3" class="d-box-t"/>
-
-  <text x="26" y="218" class="d-mono" fill="var(--fg-faint)">└ model call 3 (answer)</text>
-  <rect x="650" y="206" width="20" height="14" rx="3" class="d-box"/>
-  <text x="676" y="232" class="d-mono" text-anchor="end" fill="var(--accent)">14,300 tok ← 62% of spend, one call</text>
-
-  <line x1="14" y1="244" x2="686" y2="244" stroke="var(--border)"/>
-  <text x="14" y="266" class="d-mono" fill="var(--accent)">the bar chart answers "why was this slow" in two seconds. a log file does not.</text>
+  <text x="14" y="256" class="d-label">SWARM / PEER-TO-PEER — agents message each other freely</text>
+  <rect x="14" y="264" width="292" height="28" rx="6" class="d-box" stroke="var(--danger)"/>
+  <text x="26" y="282" class="d-mono" fill="var(--danger)">no owner, no termination argument, traces that cannot be read</text>
+  <text x="320" y="282" class="d-mono" fill="var(--danger)">demos beautifully · do not ship this</text>
 </svg>`;
 
 const chapter: Chapter = {
   id: "c20",
   num: 20,
   layer: "systems",
-  title: "Observability & Cost",
-  subtitle: "Seeing inside a run, and the four numbers on the wall",
+  title: "Multi-Agent Systems",
+  subtitle: "When a second agent helps, and the four ways it usually does not",
   blurb:
-    "Traces, spans and the agent-specific attributes that make them useful. Cost attribution that finds the tool eating your budget, the leading indicators that move before quality does, and the dashboard worth building.",
-  lines: 217,
-  file: "code/c20_tracing.ts",
-  tags: ["tracing", "spans", "OpenTelemetry", "cost attribution", "leading indicators", "dashboards", "replay"],
+    "Multi-agent is a context-isolation decision before it is an architecture. Orchestrator–worker, handoffs, group chat, and an honest account of the coordination costs that make a single agent with good tools win more often than not.",
+  lines: 176,
+  file: "code/c20_multi_agent.ts",
+  tags: ["orchestrator", "subagents", "handoff", "group chat", "context isolation", "coordination cost"],
 
   sections: [
-    { id: "motivation", kicker: "Motivation", title: "\"It did something weird yesterday\"",
+    { id: "motivation", kicker: "Motivation", title: "The reason that is actually good",
       html:
-        p(`A user reports that the agent gave a strange answer on Tuesday afternoon. You have logs. They contain forty thousand lines of <code>INFO calling model</code> and <code>INFO tool result</code>, interleaved with every other concurrent run, with no way to reconstruct which lines belonged to that request.`) +
-        p(`Agents are unusually hostile to conventional logging. The interesting unit is a <em>run</em>, which is a tree of nested operations spanning seconds to minutes, each carrying a large payload, several of which are nondeterministic. A flat text log is the wrong shape for that, and a metric counter is the wrong granularity.`) +
-        p(`The right shape is a <strong>trace</strong>: a tree of timed spans with structured attributes, queryable, with payloads attached. The good news is that ${ch("c08", "C08")}'s event log is already most of one.`) +
-        note("key", "One rule", p(`Every model call, every tool call, every subagent run, and every retrieval is a span, and every span carries the run id. If a piece of work is not in a span, it does not exist when you are debugging at 2am, and it definitely does not appear in the cost breakdown.`)) },
+        p(`Most arguments for multi-agent systems are bad. "Specialisation" is a prompt, not an agent. "Separation of concerns" is an org chart projected onto software. "It mirrors how a team works" is an analogy, and analogies are not architecture.`) +
+        p(`There is one good reason, and it is mechanical: <strong>context isolation</strong>. A subagent that reads forty search results and returns three sentences has spent forty results' worth of tokens in a context that is then <em>thrown away</em>. The parent never pays for them — not on that turn, and not on any of the twenty turns after it (${ch("c01", "C01")}). Compaction gets you a 4:1 compression ratio; a subagent gets you 100:1, because it discards rather than summarises.`) +
+        p(`The second good reason follows from it: <strong>parallelism</strong>. Five independent searches in five contexts finish in the time of one.`) +
+        note("key", "The test", p(`Before adding an agent, ask: <em>would this work produce a large amount of intermediate material the main agent does not need to keep?</em> If yes, that is a subagent. If no — if you just want different instructions — that is a prompt, or a routing branch (${ch("c12", "C12")}), and it costs you nothing.`)) },
 
-    { id: "core-idea", kicker: "Core idea", title: "Spans, and the attributes that matter",
+    { id: "core-idea", kicker: "Core idea", title: "Four topologies",
       html:
-        fig({ label: "Diagram", title: "one run as a waterfall", body: TRACE_SVG,
-          caption: `Two findings visible in two seconds: a test run is 30% of wall clock, and the final answer call is 62% of the spend. Neither is findable in a log file.` }) +
-        code({ title: "code/c20_tracing.ts — the span model",
-          src: `export interface Span {
-  traceId: string;          // = run id. everything in one run shares it.
-  spanId: string;
-  parentId?: string;        // the tree
-  name: string;             // "model.call" · "tool.search_docs" · "agent.researcher"
-  kind: "run" | "model" | "tool" | "subagent" | "retrieval" | "approval";
-  startedAt: number; endedAt?: number;
-  status: "ok" | "error" | "cancelled";
-  attributes: Attributes;
-  events: Array<{ at: number; name: string; data?: unknown }>;
-}
-
-export interface Attributes {
-  // Generic
-  "run.id": string; "run.step": number; "user.id"?: string; "tenant.id"?: string;
-
-  // Model — the ones you will actually query on
-  "llm.model"?: string;
-  "llm.tokens.input"?: number; "llm.tokens.output"?: number;
-  "llm.tokens.cache_read"?: number; "llm.tokens.cache_write"?: number;
-  "llm.stop_reason"?: StopReason;
-  "llm.cost_usd"?: number;
-  "llm.temperature"?: number;
-
-  // Tool
-  "tool.name"?: string; "tool.read_only"?: boolean;
-  "tool.result.tokens"?: number;        // ← the attribute that finds your budget leak
-  "tool.error"?: string;
-
-  // Agent-specific, and the reason generic APM is not enough
-  "agent.terminal_state"?: "answered" | "budget" | "stuck" | "blocked" | "error" | "cancelled";
-  "agent.repeat_detected"?: boolean;
-  "agent.compactions"?: number;
-  "agent.goal_relevance"?: number;      // 0–1, per step
-  "agent.plan_revisions"?: number;
+        fig({ label: "Diagram", title: "topologies, best first", body: TOPO_SVG,
+          caption: `The ordering is not aesthetic. It tracks how easy the system is to terminate, debug and evaluate, which is what determines whether it survives contact with production.` }) +
+        `<h3>Orchestrator–worker: a subagent is a tool</h3>` +
+        p(`The cleanest implementation is the one that requires no new concepts. A subagent is a ${ch("c03", "C03")} tool whose implementation happens to be another agent.`) +
+        code({ title: "code/c20_multi_agent.ts — the whole pattern",
+          src: `export function asTool(name: string, cfg: AgentConfig, description: string): Tool {
+  return {
+    name, description, readOnly: cfg.tools.every((t) => t.readOnly),
+    input: obj({
+      task: str({ description: "a complete, self-contained instruction — the subagent sees nothing else" }),
+      context: opt(str({ description: "facts it needs that it cannot look up" })),
+    }),
+    async run({ task, context }, ctx) {
+      // A FRESH context. This is the entire point: nothing from the parent leaks in,
+      // and nothing from the child leaks out except the return value.
+      const result = await runAgent(task, {
+        ...cfg,
+        system: cfg.system + (context ? \`\\n\\nContext from the orchestrator:\\n\${context}\` : ""),
+        limits: { maxSteps: 8, maxTokens: 60_000, wallClockMs: 120_000 },
+        signal: ctx.signal,                 // cancellation propagates down
+        ledger: ctx.ledger.child(name),     // cost attribution (C01)
+      });
+      // Only this string enters the parent's context.
+      return result.ok ? result.answer : \`\${name} could not finish: \${result.reason}. \${result.partial ?? ""}\`;
+    },
+  };
 }`,
         }) +
-        p(`The last block is what distinguishes an agent trace from an HTTP trace. <code>terminal_state</code> turns "error rate" into something meaningful; <code>tool.result.tokens</code> is how you find the chatty tool; <code>goal_relevance</code> is the drift signal from ${ch("c05", "C05")}.`) +
-        `<h3>Payloads: sample, redact, and keep enough</h3>` +
-        p(`Traces without payloads answer "what happened" and not "why". Traces with every payload cost more to store than to produce. The workable policy:`) +
-        table(["Run", "Keep"], [
-          ["All runs", "Attributes, timings, tool names and arguments (redacted), token counts"],
-          ["Failures and anomalies", "<b>Full payloads</b> — every message, every tool result"],
-          ["~2% sample of successes", "Full payloads, for the eval pipeline (${C19})"],
-          ["Never", "Credentials, PII beyond an id, raw document bodies from retrieval"],
-        ].map((r) => r.map((c) => c.replace("${C19}", `<a href="/c19/" class="mono">C19</a>`))) as string[][]) +
-        code({ title: "redaction that happens once, at the boundary",
-          src: `const REDACT = [
-  { re: /\\b[\\w.+-]+@[\\w-]+\\.[\\w.]+\\b/g, with: "<email>" },
-  { re: /\\bsk-[A-Za-z0-9]{20,}\\b/g,        with: "<api-key>" },
-  { re: /\\b(?:\\d[ -]*?){13,19}\\b/g,        with: "<card>" },
-  { re: /Bearer\\s+[A-Za-z0-9._~+/-]+=*/g,   with: "Bearer <token>" },
-];
-// Applied in the span exporter, not at every call site. One place to audit,
-// one place to fix, and it cannot be forgotten by whoever adds the next tool.`,
-        }) },
-
-    { id: "mechanics", kicker: "Mechanics", title: "Cost attribution and leading indicators",
-      html:
-        `<h3>The naive cost breakdown is wrong</h3>` +
-        p(`Summing <code>llm.cost_usd</code> per span tells you which <em>call</em> was expensive. It does not tell you what <em>caused</em> the expense, and in an agent those are very different. A tool that returns 4,000 tokens at step 3 of a 12-turn run is re-sent nine more times, so its true cost is roughly ten times its apparent one (${ch("c01", "C01")}).`) +
-        code({ title: "blame, not spend",
-          src: `export function blame(spans: Span[]): Blame[] {
-  const model = spans.filter((s) => s.kind === "model").sort(byStart);
-  const tools = spans.filter((s) => s.kind === "tool");
-
-  return tools.map((t) => {
-    const after = model.filter((m) => m.startedAt > t.endedAt!).length;
-    const produced = t.attributes["tool.result.tokens"] ?? 0;
-    return {
-      tool: t.attributes["tool.name"]!,
-      producedTokens: produced,
-      // Every subsequent model call re-sends this observation.
-      causedInputTokens: produced * after,
-      causedUsd: (produced * after * INPUT_PRICE) / 1e6,
-    };
-  });
-}
-
-// A real result:
-//   search_docs   produced 1,900 tok × 9 later calls = 17,100 caused   $0.051
-//   read_file     produced 4,200 tok × 7 later calls = 29,400 caused   $0.088
-//   list_files    produced 6,800 tok × 8 later calls = 54,400 caused   $0.163  ← 41% of spend
-//
-// list_files looked cheap. It was the most expensive thing in the run.`,
-        }) +
-        note("good", "The first query worth running", p(`Rank tools by <em>caused</em> input tokens across a week of runs. In nearly every agent one or two tools dominate, and the fix is usually a truncation limit or a pagination parameter — a one-line change for a double-digit percentage of spend.`)) +
-        `<h3>Four numbers on the wall</h3>` +
-        table(["Metric", "Why it beats the obvious alternative"], [
-          ["<b>Terminal-state distribution</b><br><span class='small muted'>answered / partial / blocked / budget / error</span>", "\"Error rate\" hides the difference between a credential expiring and a task getting harder"],
-          ["<b>p95 steps among successful runs</b>", "The leading indicator — rises before success falls (${C12})"],
-          ["<b>Cost per successful run</b>", "Total spend conflates volume with efficiency. Per-success is the number that should not drift"],
-          ["<b>Caused-token ranking by tool</b>", "Finds the budget leak that per-call cost cannot see"],
-        ].map((r) => r.map((c) => c.replace("${C12}", `<a href="/c12/" class="mono">C12</a>`))) as string[][]) +
-        `<h3>Leading indicators, ranked by how early they move</h3>` +
-        ol([
-          `<strong>Goal relevance per step.</strong> A cheap per-step judgement of whether the current action serves the goal. Trends down days before anything fails.`,
-          `<strong>Repeat-detector fire rate.</strong> Rising means the agent is thrashing, usually because a tool started returning worse results.`,
-          `<strong>p95 steps among successes.</strong> More work for the same outcome.`,
-          `<strong>Degradation-ladder rung reached.</strong> Runs hitting "drop tools" that never used to.`,
-          `<strong>Success rate.</strong> By the time this moves, users have already noticed.`,
-        ]) +
-        `<h3>From trace to reproduction, in one command</h3>` +
-        code({ title: "the tool that pays for the whole chapter",
-          src: `// Because the trace IS the event log (C08), a trace id is a reproducible run.
-$ agentctl replay r_7c21 --until 5        # print the exact context the model saw at step 5
-$ agentctl fork r_7c21 --at 5 --patch 'search_docs => "No results."'
-$ agentctl case r_7c21 --expect-fail      # promote this run into the C19 eval suite
-
-// Debugging an agent without replay is reading tea leaves. With it, "why did it do
-// that" becomes "here is precisely what it was looking at when it decided".`,
-        }) },
-
-    { id: "explore", kicker: "Explore", title: "Find the budget leak",
-      html:
-        p(`A week of runs, one of which has a problem. Use the two views — per-call cost and caused-token blame — and see which one finds it.`) +
-        lab({ label: "Simulator", title: "cost attribution",
-          body: `
-<div class="controls">
-  <div class="ctl"><label>view</label><select id="o20-v"><option value="call">per-call cost (naive)</option><option value="blame" selected>caused tokens (blame)</option></select></div>
-  <div class="ctl"><label>avg steps per run</label><input type="range" id="o20-s" min="3" max="25" step="1" value="12"><span class="val" id="o20-s-v">12</span></div>
-  <div class="ctl"><label>list_files result size</label><input type="range" id="o20-l" min="200" max="12000" step="200" value="6800"><span class="val" id="o20-l-v">6,800 tok</span></div>
-  <div class="ctl"><label>prompt caching</label><select id="o20-c"><option value="1" selected>on</option><option value="0">off</option></select></div>
-</div>
-<div id="o20-rows" style="margin-top:.5rem"></div>
-<div class="stats">
-  <div class="stat"><b id="o20-tot">—</b><span>$ / 1,000 runs</span></div>
-  <div class="stat"><b id="o20-top">—</b><span>top contributor</span></div>
-  <div class="stat"><b id="o20-fix">—</b><span>saving if capped at 800 tok</span></div>
-</div>
-<div class="note" id="o20-note" style="margin-top:1rem"></div>`,
-          script: `
-function upd() {
-  var view = document.getElementById("o20-v").value, S = +document.getElementById("o20-s").value,
-      L = +document.getElementById("o20-l").value, cache = document.getElementById("o20-c").value === "1";
-  document.getElementById("o20-s-v").textContent = S;
-  document.getElementById("o20-l-v").textContent = L.toLocaleString() + " tok";
-
-  var TOOLS = [
-    { k: "list_files",  size: L,    calls: 1.2, at: 0.2 },
-    { k: "read_file",   size: 4200, calls: 2.4, at: 0.35 },
-    { k: "search_docs", size: 1900, calls: 3.1, at: 0.3 },
-    { k: "grep",        size: 600,  calls: 4.0, at: 0.4 },
-    { k: "run_tests",   size: 900,  calls: 1.1, at: 0.7 }
-  ];
-  var SYS = 6000;
-  var rows = TOOLS.map(function (t) {
-    var after = Math.max(0, Math.round(S * (1 - t.at)));
-    var caused = t.size * t.calls * after;
-    // naive per-call cost: just the model call that immediately followed
-    var perCall = t.size * t.calls;
-    return { k: t.k, caused: caused, perCall: perCall,
-             usd: caused * 3 / 1e6, usdCall: perCall * 3 / 1e6 };
-  });
-  var sysCaused = SYS * S * (cache ? 0.1 : 1);
-  rows.push({ k: "system+schemas", caused: sysCaused, perCall: SYS, usd: sysCaused * 3 / 1e6, usdCall: SYS * 3 / 1e6 });
-
-  var key = view === "blame" ? "caused" : "perCall";
-  var usdKey = view === "blame" ? "usd" : "usdCall";
-  rows.sort(function (a, b) { return b[key] - a[key]; });
-  var max = rows[0][key] || 1, total = rows.reduce(function (a, r) { return a + r[usdKey]; }, 0);
-
-  document.getElementById("o20-rows").innerHTML = rows.map(function (r) {
-    var isTop = r === rows[0];
-    return '<div style="display:flex;gap:.6rem;align-items:center;margin:.3rem 0">' +
-      '<span class="mono small" style="width:9rem;color:' + (isTop ? "var(--danger)" : "var(--fg-muted)") + ';font-weight:' + (isTop ? 600 : 400) + '">' + r.k + '</span>' +
-      '<span class="meter" style="flex:1"><i style="width:' + (r[key] / max * 100) + '%;background:' + (isTop ? "var(--danger)" : "var(--accent)") + '"></i></span>' +
-      '<span class="mono small" style="width:9rem;text-align:right">' + Math.round(r[key]).toLocaleString() + ' tok · $' + (r[usdKey] * 1000).toFixed(0) + '/1k</span></div>';
-  }).join("");
-
-  var capped = rows.map(function (r) { return r.k === "list_files" ? r[usdKey] * (800 / L) : r[usdKey]; })
-                   .reduce(function (a, b) { return a + b; }, 0);
-  document.getElementById("o20-tot").textContent = "$" + (total * 1000).toFixed(0);
-  document.getElementById("o20-top").textContent = rows[0].k;
-  document.getElementById("o20-fix").textContent = "$" + ((total - capped) * 1000).toFixed(0) + "/1k";
-
-  var n = document.getElementById("o20-note");
-  if (view === "call") n.innerHTML = "<b>Per-call view.</b> list_files looks modest — it runs about once per run. This view answers 'which call was expensive' and cannot answer 'what caused the expense'. Switch to caused tokens.";
-  else if (L > 4000 && S > 8) n.innerHTML = "<b>Found it.</b> list_files returns " + L.toLocaleString() + " tokens early in the run, so it is re-sent on almost every subsequent call. Capping it at 800 tokens with a pagination hint (C03) saves the amount shown — a one-line change.";
-  else if (!cache) n.innerHTML = "<b>Caching off.</b> The system prompt and tool schemas now dominate everything else, billed in full on all " + S + " turns. Turning caching on is usually the single largest cost lever in an agent (C01).";
-  else n.innerHTML = "<b>Healthy distribution.</b> No single tool dominates. Note that the system prompt still shows up materially even with caching — it is paid on every turn, which is why C05 treats its length as a cost decision.";
-}
-["o20-v","o20-s","o20-l","o20-c"].forEach(function (i) {
-  document.getElementById(i).addEventListener("input", upd); document.getElementById(i).addEventListener("change", upd); });
-upd();`,
-          caption: `Switch between the two views at the default settings. The naive view ranks <code>list_files</code> fourth; the blame view ranks it first. Same data, and only one of them leads to the fix.`,
-        }) },
-
-    { id: "build", kicker: "Build it", title: "Tracing that costs one line per call site",
-      html:
-        code({ title: "code/c20_tracing.ts — context-propagated spans",
-          src: `import { AsyncLocalStorage } from "node:async_hooks";
-
-const als = new AsyncLocalStorage<Span>();
-
-export async function span<T>(
-  name: string, kind: Span["kind"], attrs: Partial<Attributes>, fn: (s: Span) => Promise<T>,
-): Promise<T> {
-  const parent = als.getStore();
-  const s: Span = {
-    traceId: parent?.traceId ?? newId(),
-    spanId: newId(), parentId: parent?.spanId,
-    name, kind, startedAt: Date.now(), status: "ok",
-    attributes: { ...inherited(parent), ...attrs } as Attributes,
-    events: [],
-  };
-  return als.run(s, async () => {
-    try { return await fn(s); }
-    catch (e) {
-      s.status = (e as Error).name === "AbortError" ? "cancelled" : "error";
-      s.attributes["error.message"] = String(e);
-      throw e;
-    } finally { s.endedAt = Date.now(); exporter.push(s); }
-  });
-}
-
-// Call sites stay one line, and nesting is automatic — no context threading.
-const res = await span("model.call", "model", { "llm.model": cfg.model }, async (s) => {
-  const r = await callModel(messages, opts);
-  s.attributes["llm.tokens.input"] = r.usage.input;
-  s.attributes["llm.tokens.output"] = r.usage.output;
-  s.attributes["llm.stop_reason"] = r.stopReason;
-  s.attributes["llm.cost_usd"] = price(r.usage, cfg.model);
-  return r;
+        p(`Three properties fall out for free. The parent's loop is unchanged; it is calling a tool. Budgets nest, so a runaway subagent cannot exhaust the parent. And the orchestrator retains the only view of the whole task, which is what makes the result coherent.`) +
+        `<h3>Handoff: control transfers, context must travel</h3>` +
+        p(`A handoff is a different move: agent A stops, agent B continues, and the user is now talking to B. The OpenAI Agents SDK models it as a tool that swaps which agent owns the loop; AutoGen's <code>Swarm</code> uses an explicit <code>HandoffMessage</code>.`) +
+        code({ title: "the part that is always wrong the first time",
+          src: `const handoffToBilling = defineTool({
+  name: "handoff_to_billing",
+  description: "Transfer to the billing specialist. Use when the request needs invoice or payment access.",
+  input: obj({
+    // Not optional. A handoff that carries only "the user has a billing question"
+    // makes the user repeat everything, which is the single most common failure.
+    summary: str({ description: "what has been established so far, including what you ruled out" }),
+    userGoal: str({ description: "what the user actually wants, in their words" }),
+    openQuestions: arr(str()),
+  }),
+  async run({ summary, userGoal, openQuestions }, ctx) {
+    ctx.state.activeAgent = "billing";
+    ctx.state.messages = [userText(
+      \`[Handed off from support]\\nUser's goal: \${userGoal}\\n\\nEstablished:\\n\${summary}\\n\\n\` +
+      \`Still open:\\n\${openQuestions.map((q) => \`- \${q}\`).join("\\n")}\`)];
+    return "Transferred.";
+  },
 });`,
         }) +
-        p(`<code>AsyncLocalStorage</code> is what makes this usable: the parent span is found automatically across awaits, so nesting requires no plumbing and a subagent's spans attach to the right parent without anyone passing a context object through eleven functions.`) +
-        code({ title: "the exporter, and the sampling policy",
-          src: `class Exporter {
-  push(s: Span): void {
-    this.buffer.push(redact(s));                       // redaction happens once, here
-    if (this.buffer.length >= 128) void this.flush();
+        `<h3>Group chat: shared transcript, a policy picks the speaker</h3>` +
+        p(`Several agents write into one message list and a selector decides who speaks next — round-robin, a model choosing, or explicit handoffs. AutoGen's team presets are exactly this: <code>RoundRobinGroupChat</code>, <code>SelectorGroupChat</code>, <code>Swarm</code>, with termination conditions supplied separately.`) +
+        p(`The cost model is brutal and worth stating: every agent reads the whole transcript, so tokens scale with <em>agents × turns</em>. A five-agent, ten-turn discussion is roughly fifty full-context reads. It is genuinely useful for adversarial review — a proposer and a critic reach better answers than either alone — and rarely worth it for getting work done.`) },
+
+    { id: "mechanics", kicker: "Mechanics", title: "The coordination costs nobody budgets for",
+      html:
+        table(["Cost", "What it looks like"], [
+          ["<b>Serialisation</b>", "Everything between agents is a string. Structure, uncertainty and provenance are lost at every boundary"],
+          ["<b>Lost context</b>", "The subagent does not know what the parent knows, so it re-derives, asks, or guesses"],
+          ["<b>Duplicated work</b>", "Three researchers, one corpus, three overlapping searches"],
+          ["<b>Conflict</b>", "Two subagents return contradictory findings; someone must adjudicate, and nobody was assigned to"],
+          ["<b>Debuggability</b>", "A failure now spans four traces and three boundaries (${C23})"],
+          ["<b>Latency floor</b>", "Orchestrator call + subagent run + synthesis. Never faster than the slowest worker"],
+        ].map((r) => r.map((c) => c.replace("${C23}", `<a href="/c23/" class="mono">C23</a>`))) as string[][]) +
+        p(`These are why the honest default is <em>one agent with good tools</em>, and why multi-agent should be a response to a measured problem rather than an opening move.`) +
+        `<h3>The task brief is the interface</h3>` +
+        p(`A subagent sees exactly one thing: the string you hand it. Vague briefs are the dominant cause of bad multi-agent output, and the fix is unglamorous.`) +
+        code({ title: "the difference between 40% and 90% useful subagent results",
+          src: `// ✗ The subagent does not know the scope, the format, or what already exists.
+"Research competitor pricing"
+
+// ✓ Objective, boundaries, format, and what NOT to do.
+\`Find current list pricing for Acme, Globex and Initech cloud storage.
+
+SCOPE: public pricing pages and published press releases only. Do not use
+third-party aggregators or analyst estimates — we need citable primary sources.
+
+FOR EACH: vendor, plan name, price per TB per month, minimum commitment,
+the URL, and the date the page was last updated.
+
+RETURN: a markdown table plus one paragraph on notable differences in how they
+meter egress. Under 400 words.
+
+DO NOT: research vendors not listed. Do not compare with our own pricing —
+another agent is doing that, and we do not want two overlapping analyses.\`
+// Objective · boundaries · output format · explicit non-goals. All four, every time.`,
+        }) +
+        `<h3>Termination, which group chat does not give you for free</h3>` +
+        p(`A single agent stops when it emits no tool calls. A group of agents has no such condition. They will politely agree with each other indefinitely. AutoGen makes termination an explicit object for this reason, and you should too.`) +
+        code({ title: "compose stopping conditions, and always include a hard cap",
+          src: `type Termination = (transcript: Message[], state: TeamState) => string | null;
+
+const maxMessages = (n: number): Termination => (t) => t.length >= n ? \`message cap \${n}\` : null;
+const textMention = (s: string): Termination => (t) => last(t)?.text?.includes(s) ? \`saw "\${s}"\` : null;
+const noProgress = (n: number): Termination => (t, st) =>
+  st.turnsSinceStateChange >= n ? \`\${n} turns with no change to the artefact\` : null;
+const budget = (tok: number): Termination => (_, st) => st.usage.total >= tok ? "token budget" : null;
+
+const any = (...cs: Termination[]): Termination => (t, s) => cs.map((c) => c(t, s)).find(Boolean) ?? null;
+
+// Always include a hard cap. The others are the ones you want to fire;
+// this is the one that guarantees the run ends.
+const stop = any(textMention("APPROVED"), noProgress(3), maxMessages(20), budget(200_000));`,
+        }) +
+        note("warn", "The failure that looks like success", p(`Two agents converging on agreement is not evidence of a good answer. A proposer and a critic will reach consensus on a wrong answer just as readily as a right one, usually faster, because agreement is the path of least resistance. If you use a critic, it needs the independence from ${ch("c11", "C11")}: a fresh context and a rubric, not a conversation.`)) },
+
+    { id: "explore", kicker: "Explore", title: "Is the second agent paying for itself?",
+      html:
+        p(`Compare architectures on the same task. Watch quality against cost and latency, and note how sensitive everything is to brief quality.`) +
+        lab({ label: "Simulator", title: "topology vs task shape",
+          body: `
+<div class="controls">
+  <div class="ctl"><label>independent subtasks</label><input type="range" id="t17-n" min="1" max="12" step="1" value="5"><span class="val" id="t17-n-v">5</span></div>
+  <div class="ctl"><label>intermediate data per subtask</label><input type="range" id="t17-d" min="500" max="40000" step="500" value="14000"><span class="val" id="t17-d-v">14,000 tok</span></div>
+  <div class="ctl"><label>interdependence</label><input type="range" id="t17-i" min="0" max="100" step="10" value="20"><span class="val" id="t17-i-v">20%</span></div>
+  <div class="ctl"><label>brief quality</label><select id="t17-b"><option value="0">vague ("research X")</option><option value="1" selected>full brief (scope, format, non-goals)</option></select></div>
+</div>
+<div id="t17-rows" style="margin-top:.5rem"></div>
+<div class="note" id="t17-note" style="margin-top:1rem"></div>`,
+          script: `
+function upd() {
+  var N = +document.getElementById("t17-n").value, D = +document.getElementById("t17-d").value,
+      I = +document.getElementById("t17-i").value / 100, brief = document.getElementById("t17-b").value === "1";
+  document.getElementById("t17-n-v").textContent = N;
+  document.getElementById("t17-d-v").textContent = D.toLocaleString() + " tok";
+  document.getElementById("t17-i-v").textContent = (I * 100) + "%";
+
+  var briefMul = brief ? 1 : 0.62;
+  var archs = [];
+
+  // single agent: all intermediate data stays in context, re-sent each turn
+  var singleTok = N * D * (1 + N * 0.35);
+  archs.push({ k: "single agent", q: Math.max(.3, .93 - (N * D) / 260000 - I * .04), tok: singleTok,
+               wall: N * 9, note: "context bloat grows with N × D" });
+
+  // orchestrator-worker: workers' context discarded
+  var owTok = N * D * 0.12 + N * 2200 + 6000;
+  archs.push({ k: "orchestrator–worker", q: Math.min(.96, (.9 - I * .45) * briefMul + .05), tok: owTok,
+               wall: 9 + Math.max(9, 11) + 6, note: "parallel, isolated contexts" });
+
+  // handoff: sequential, context loss at each boundary
+  archs.push({ k: "handoff chain", q: Math.max(.25, (.88 - N * .04) * briefMul), tok: N * D * 0.3 + N * 3000,
+               wall: N * 8, note: "sequential; detail lost at each transfer" });
+
+  // group chat: everyone reads everything
+  archs.push({ k: "group chat (N agents)", q: Math.min(.94, (.86 - I * .15) * briefMul + (I > .5 ? .06 : 0)),
+               tok: N * N * 6000 + N * D * 0.5, wall: N * 14, note: "tokens scale with agents × turns" });
+
+  var best = archs.reduce(function (a, b) { return (b.q / Math.log(b.tok)) > (a.q / Math.log(a.tok)) ? b : a; });
+  document.getElementById("t17-rows").innerHTML = archs.map(function (a) {
+    var col = a.q > .85 ? "var(--ok)" : a.q > .65 ? "var(--accent)" : "var(--danger)";
+    return '<div style="display:flex;gap:.6rem;align-items:center;margin:.35rem 0">' +
+      '<span class="mono small" style="width:12rem;color:' + (a === best ? "var(--accent)" : "var(--fg-muted)") + ';font-weight:' + (a === best ? 600 : 400) + '">' + a.k + '</span>' +
+      '<span class="meter" style="flex:1"><i style="width:' + (a.q * 100) + '%;background:' + col + '"></i></span>' +
+      '<span class="mono small" style="width:3rem;text-align:right">' + Math.round(a.q * 100) + '%</span>' +
+      '<span class="mono small muted" style="width:11rem;text-align:right">' + Math.round(a.tok / 1000) + 'K tok · ' + a.wall + 's</span></div>';
+  }).join("");
+
+  var n = document.getElementById("t17-note");
+  if (!brief) n.innerHTML = "<b>Vague briefs.</b> Every multi-agent row drops and the single agent does not — because the single agent never had to serialise its intent through a string. Brief quality is the dominant variable in multi-agent performance, ahead of topology.";
+  else if (I > .6) n.innerHTML = "<b>Highly interdependent subtasks.</b> Splitting them means each agent is missing what the others found. The single agent wins because everything is in one context. Decomposition requires independence — that is the actual precondition.";
+  else if (N <= 2 || D < 3000) n.innerHTML = "<b>Not enough work to divide.</b> Two subtasks producing little intermediate data do not justify the coordination cost. Look at the token columns: the orchestrator's overhead is most of the difference.";
+  else n.innerHTML = "<b>The case where multi-agent wins.</b> Many independent subtasks, each generating a lot of material the parent does not need. Orchestrator–worker discards ~88% of it. That is the whole argument — context isolation, not specialisation.";
+}
+["t17-n","t17-d","t17-i","t17-b"].forEach(function (i) {
+  document.getElementById(i).addEventListener("input", upd); document.getElementById(i).addEventListener("change", upd); });
+upd();`,
+          caption: `Set interdependence to 80%: every multi-agent row falls below the single agent. Then set brief quality to vague: they fall further, and the single agent does not move. Those two knobs explain most multi-agent disappointment.`,
+        }) },
+
+    { id: "build", kicker: "Build it", title: "An orchestrator that stays in charge",
+      html:
+        code({ title: "code/c20_multi_agent.ts — decompose, dispatch, synthesise",
+          src: `export async function orchestrate(goal: string, workers: Record<string, AgentConfig>, model: Model) {
+  // 1. The lead plans, and must justify each split — this suppresses the reflex
+  //    to fan out three agents for a task one could do.
+  const plan = await structured(model, [{ role: "user", content: DECOMPOSE_PROMPT(goal, workers) }],
+    obj({ subtasks: arr(obj({
+      worker: enumOf(Object.keys(workers) as [string, ...string[]]),
+      brief: str({ minLength: 120, description: "objective, scope, output format, non-goals" }),
+      whySeparate: str({ description: "what large intermediate output justifies its own context" }),
+      dependsOn: arr(int()),
+    })) }));
+
+  // 2. Dependency waves, parallel within each.
+  const results: Result[] = [];
+  for (const wave of topologicalWaves(plan.subtasks)) {
+    const settled = await Promise.allSettled(wave.map((st) =>
+      runAgent(st.brief + priorFindings(results, st.dependsOn), {
+        ...workers[st.worker], limits: WORKER_LIMITS, ledger: ledger.child(st.worker) })));
+    // A failed worker is a finding, not an abort: the lead decides what to do.
+    results.push(...settled.map((s, i) => s.status === "fulfilled" ? s.value
+      : { worker: wave[i].worker, ok: false, error: String(s.reason) }));
   }
 
-  /** Decided at the END of a run, when you know whether it is interesting. */
-  policy(run: Span): "full" | "attributes" | "drop" {
-    if (run.status === "error") return "full";
-    if (run.attributes["agent.terminal_state"] !== "answered") return "full";
-    if (run.attributes["agent.repeat_detected"]) return "full";
-    if ((run.attributes["run.step"] ?? 0) > P95_STEPS) return "full";   // the slow tail
-    if (hash(run.traceId) % 100 < 2) return "full";                     // 2% for evals
-    return "attributes";
-  }
-}
-// Tail sampling — deciding after the fact — is the only policy that keeps every
-// interesting run. Head sampling drops the anomaly you needed before it happens.`,
+  // 3. Synthesis, with contradictions surfaced rather than smoothed over.
+  return model([{ role: "user", content:
+    \`Goal: \${goal}\\n\\nWorker results:\\n\${render(results)}\\n\\n\` +
+    \`Produce the final answer. Where workers disagree, say so explicitly and explain \` +
+    \`which you trust and why — do not average them. Note any subtask that failed and \` +
+    \`what is therefore unknown.\` }], { temperature: 0 });
+}`,
+        }) +
+        p(`Three deliberate choices. <code>whySeparate</code> forces the lead to justify each agent, which measurably reduces unnecessary fan-out. A failed worker becomes a finding rather than an exception. And the synthesis prompt <em>forbids averaging</em>. The default behaviour when two workers disagree is a smooth paragraph that hides the conflict, which is the worst possible output.`) +
+        `<h3>Cost attribution</h3>` +
+        code({ title: "nested ledgers, or you will not know where the money went",
+          src: `// ledger.child(name) from C01. A run's cost then decomposes:
+//
+//   run r_7c21                      $1.84   38s
+//   ├─ orchestrator                 $0.21    4 calls
+//   ├─ researcher[acme]             $0.44   11 calls   ← discarded 14,200 tok of context
+//   ├─ researcher[globex]           $0.39    9 calls
+//   ├─ researcher[initech]          $0.51   13 calls   ← why is this one 30% dearer?
+//   └─ synthesis                    $0.29    1 call
+//
+// Without child ledgers this is a single number and that last question is unanswerable.`,
         }) +
         code({ title: "run it", lang: "bash", plain: true,
-          src: `node --experimental-strip-types code/c20_tracing.ts
+          src: `node --experimental-strip-types code/c20_multi_agent.ts
 
-#   C20 · Observability & Cost
+#   C20 · Multi-Agent Systems
 #
-#   one run as a waterfall (trace r_0001)
+#   waves: t1+t2+t3 → t4
 #
-#   span                                                                    dur  tokens    cost
-#   agent.run                ████████████████████████████████████████      94ms
-#     model.call             █████                                         12ms    4210  $0.013
-#     tool.search_docs            ██                                        4ms    1900
-#     model.call                    ██████                                 15ms    7880  $0.024
-#     tool.list_files                     █                                 3ms    6800
-#     tool.run_tests                       ████████████████                38ms     900
-#     agent.researcher                                      █████          11ms
-#       model.call                                          ████            9ms    3100  $0.004
-#       tool.grep                                              █            2ms     600
-#     model.call                                                █████      11ms   14300  $0.046
+#     ✓ scale       read  12,800 tok, returned  60 tok   scale: finding for t1
+#     ✓ ops         read  12,800 tok, returned  60 tok   ops: finding for t2
+#     ✗ pricing     read  12,800 tok, returned   0 tok   FINDING: no public pricing above 100M vectors
+#     ✓ synthesis   read  12,800 tok, returned  60 tok   synthesis: finding for t4
 #
-#     Nesting came from AsyncLocalStorage — no context object was threaded
-#     through any function, and the subagent's spans attached to the right parent.
+#   context isolation, measured:
+#     intermediate tokens read by workers   51,200
+#     tokens that entered the orchestrator  180
+#     compression ratio                     284:1
+#     orchestrator context at synthesis     6,180 tok
 #
-#   cost attribution: which CALL was expensive vs what CAUSED the expense
+#   Compaction gets you roughly 4:1 because it summarises. A subagent DISCARDS,
+#   so the parent never pays for those tokens on any subsequent turn.
 #
-#   tool             produced  later calls  caused input  caused $  share
-#   list_files          6,800            2        13,600   $0.0408  63%
-#   search_docs         1,900            3         5,700   $0.0171  26%
-#   run_tests             900            2         1,800   $0.0054  8%
-#   grep                  600            1           600   $0.0018  3%
+#   cost attribution (nested ledgers — otherwise this is one number):
 #
-#     per-call view  → the most expensive call was a model.call at $0.046 (14,300 input tokens).
-#                      True, and not actionable: you cannot delete the answer.
-#     blame view     → list_files produced 6,800 tokens early and is responsible for
-#                      63% of the input tokens those calls billed.
-#                      Actionable: cap it, and the expensive call gets cheaper.
+#     run                      4 calls     51,200 in    1,600 out  $0.1776
+#       ├ scale[t1]            1 calls     12,800 in      400 out  $0.0444
+#       ├ ops[t2]              1 calls     12,800 in      400 out  $0.0444
+#       ├ pricing[t3]          1 calls     12,800 in      400 out  $0.0444
+#       ├ synthesis[t4]        1 calls     12,800 in      400 out  $0.0444
+#
+#   and the failed worker did not abort the run — it became a finding the
+#   synthesiser must report under "not established".
+#
+#   topology vs task shape · 5 subtasks, 14K intermediate tokens each
+#
+#   independent, full briefs
 # …
-#   Head sampling would have decided before any of that was known.`,
-        }) +
-        note("", "Read that last block in order", p(`Goal relevance has moved 11%, the repeat detector fires nearly twice as often, p95 steps is up, and the success rate has barely moved. That is what a degradation looks like three days before anyone files a ticket.`)) },
+#      100%  the full brief`,
+        }) },
 
     { id: "production", kicker: "Production notes", title: "Field notes",
       html:
         ul([
-          `<strong>Use OpenTelemetry for the transport.</strong> Its GenAI semantic conventions define attribute names for model calls — <code>gen_ai.request.model</code>, <code>gen_ai.usage.input_tokens</code>, <code>gen_ai.usage.output_tokens</code> — and adopting them means any OTel-compatible backend renders your agent traces without custom work. The <code>llm.*</code> names in this chapter's code are the course's own shorthand; in production, emit the <code>gen_ai.*</code> names and add the agent-specific attributes alongside rather than inventing a parallel scheme.`,
-          `<strong>The agent-specific tools are worth evaluating.</strong> LangSmith, Langfuse, Braintrust, Arize Phoenix and Weave all understand runs-as-trees, message payloads and token accounting out of the box, which generic APM does not. The instrumentation you write here exports to any of them.`,
-          `<strong>Tail sampling, not head sampling.</strong> Deciding at the start which runs to keep guarantees you drop the anomaly. Decide at the end, when you know the terminal state and the step count.`,
-          `<strong>Redact at the exporter.</strong> One place to audit, one place to fix, and impossible for the next person adding a tool to forget.`,
-          `<strong>Make the trace id visible to the user.</strong> A support request that arrives with a run id is a five-minute investigation; one that arrives as "it was weird on Tuesday" is an afternoon.`,
-          `<strong>Cost alerts belong per tenant, not globally.</strong> A global spend alert fires after the damage; a per-tenant one fires while a single pathological input is still compounding (${ch("c12", "C12")}).`,
+          `<strong>Anthropic's multi-agent research system write-up</strong> reports the pattern this chapter argues for: an orchestrator with parallel subagents beats a single agent on breadth-first research, and costs several times more tokens. The honest framing is that multi-agent buys quality with money, and is worth it only where the task is genuinely parallel.`,
+          `<strong>The OpenAI Agents SDK</strong> models handoffs as tools and guardrails as input/output checks, and is worth reading for how small the handoff abstraction can be.`,
+          `<strong>AutoGen</strong> gives you the team presets and termination conditions directly: <code>RoundRobinGroupChat</code>, <code>SelectorGroupChat</code>, <code>Swarm</code>, <code>MagenticOneGroupChat</code>, with <code>TextMentionTermination</code> and friends composed in. The next chapter rebuilds what sits underneath them.`,
+          `<strong>Subagents cannot ask the user.</strong> Anything needing human input escalates to the orchestrator (${ch("c19", "C19")}). A subagent that blocks on a question deadlocks a parallel wave.`,
+          `<strong>Start with one agent.</strong> Split only when you can point at the specific intermediate output that is poisoning the main context. "It feels cleaner" is not that.`,
         ]) },
   ],
 
   exercises: [
     { difficulty: "warm-up",
-      prompt: `Your agent's spend doubled last month with flat traffic. Name the four things you would check, in order, and the query for each.`,
-      answer: ol([
-        `<strong>Prompt-cache hit rate.</strong> Compare <code>llm.tokens.cache_read</code> against <code>cache_write</code> over time. A prefix change — a timestamp added to the system prompt, a reordered tool list — silently turns every call into a full-price call. This is the most common cause and the cheapest fix (${ch("c01", "C01")}).`,
-        `<strong>Steps per run.</strong> p50 and p95, split by terminal state. If p95 rose, the agent is working harder for the same outcome; if the "budget" terminal state rose, it is failing more expensively.`,
-        `<strong>Caused-token ranking by tool.</strong> A tool whose output grew — a growing directory, a table that gained columns — multiplies across every subsequent turn.`,
-        `<strong>Model and context size.</strong> Did a model alias move to a newer, pricier version? Did the system prompt or the retrieved-chunk count grow?`,
-      ]) + p(`In that order because it is ordered by likelihood × ease of fixing. Caching regressions are common and are a one-line fix; a model change is rare but obvious once you look.`) },
-
-    { difficulty: "core",
-      prompt: `Implement the goal-relevance metric. It must be cheap enough to run on every step of every run, and meaningful enough to alert on.`,
-      answer: code({ title: "two tiers: free always, cheap sometimes",
-        src: `export async function goalRelevance(goal: string, step: Step, ctx: RunCtx): Promise<number> {
-  // TIER 1 — free, every step. Lexical overlap between the goal and what the agent
-  // is doing. Crude, but it moves in the right direction and costs nothing.
-  const lexical = jaccard(shingle(normalise(goal), 3),
-                          shingle(normalise(step.toolName + " " + JSON.stringify(step.args)), 3));
-
-  // TIER 2 — one small-model call, sampled. Only when tier 1 is ambiguous, and only
-  // on ~5% of steps, so the cost is negligible and the signal is real.
-  if (lexical > 0.25 || lexical < 0.02 || !sampled(ctx, 0.05)) return lexical;
-
-  const { relevant } = await structured(ctx.smallModel, [{ role: "user", content:
-    \`Goal: \${goal}\\nAction: \${step.toolName}(\${truncate(JSON.stringify(step.args), 200)})\\n\\n\` +
-    \`Does this action plausibly serve the goal? Answer with a number 0–1 only.\` }],
-    obj({ relevant: num({ min: 0, max: 1 }) }));
-  return relevant;
-}
-
-// Emit as a span attribute per step. Alert on the TREND at a fixed step index —
-// "relevance at step 8, weekly median" — not on individual values, which are noisy.` }) +
-      ul([
-        `<strong>Alert on a trend at a fixed step index.</strong> Relevance naturally declines through a run as the agent works on sub-problems; comparing step 8 this week to step 8 last week controls for that. Comparing raw averages does not, and will alert every time run lengths shift.`,
-        `<strong>Sample tier 2.</strong> A model call per step per run is unaffordable and unnecessary. You want a population trend, not a per-run verdict.`,
-        `<strong>Do not gate on it.</strong> It is an indicator, not a judgement. An agent doing something creatively indirect will score low and be right.`,
+      prompt: `For each, decide single agent, orchestrator–worker, or handoff: (a) summarise 50 documents; (b) debug a failing test; (c) a support bot spanning billing, shipping and technical; (d) write a report needing research on 6 competitors.`,
+      answer: ul([
+        `<b>(a) Orchestrator–worker.</b> Fifty independent subtasks, each producing a document's worth of material the parent never needs. The textbook case.`,
+        `<b>(b) Single agent.</b> Every step depends on the last; splitting means each agent is missing what the others found. Debugging is the canonical interdependent task.`,
+        `<b>(c) Handoff</b>, if the domains need genuinely different tools and permissions. If they only need different instructions, it is routing (${ch("c12", "C12")}) — cheaper, and no context-loss boundary.`,
+        `<b>(d) Orchestrator–worker</b> for the six research tasks, then a single agent to write. Note the split: research parallelises, writing does not, because the report needs one voice and all six findings in one context.`,
       ]) },
 
     { difficulty: "core",
-      prompt: `Design the trace view you would want at 2am for a failed run. What is on screen, and what is one click away?`,
-      answer: p(`<strong>On screen, in this order:</strong>`) +
-        ol([
-          `<strong>The verdict line.</strong> Run id, terminal state, duration, cost, step count, and the goal in one line. Half the time this alone identifies the problem: "blocked, 2 steps, $0.01" is a credential, not a reasoning failure.`,
-          `<strong>The waterfall.</strong> Every span, nested, with duration bars, coloured by status. Red spans and wide bars are the two things the eye should find without reading.`,
-          `<strong>Per-span cost and tokens</strong> on the right, so the expensive call is visible without a hover.`,
-          `<strong>An anomaly strip.</strong> Automatically flagged: repeat detected, compaction fired, a tool returning over N tokens, a step where goal relevance dropped sharply, an approval that timed out.`,
-          `<strong>The last tool result before the failure</strong>, inline and untruncated. This is disproportionately often the answer.`,
-        ]) +
-        p(`<strong>One click away:</strong> the full message array as the model saw it at any step (<code>replay --until N</code>); the raw request and response JSON for any model call; the diff between this run and the last successful run of the same case; a fork button that re-runs from a chosen step; and "add to eval suite".`) +
-        p(`<strong>Deliberately not on screen:</strong> a chronological log stream. It is the format that made this hard in the first place — mixing levels of abstraction and interleaving concurrent work. Offer it as a raw view for the rare case, and never as the default.`) },
+      prompt: `Two subagents return contradictory findings — one says the API rate limit is 100/min, the other says 1000/min. Design the resolution. Why is "ask a third agent" usually wrong?`,
+      answer: ol([
+        `<strong>Require provenance in every result.</strong> A finding without a source cannot be adjudicated. The worker's brief must demand it: claim, source URL or tool call, and date.`,
+        `<strong>Prefer the better source, mechanically.</strong> Official documentation over a blog post; a live API response over documentation; newer over older. Most contradictions resolve at this step with no model call: one worker read a 2019 page.`,
+        `<strong>If sources are equally good, get ground truth.</strong> Call the API and read the rate-limit header (${ch("c11", "C11")}). One tool call settles it definitively.`,
+        `<strong>If ground truth is unavailable, surface the conflict.</strong> "Sources disagree: the docs say 100/min (updated 2019), the developer portal says 1000/min (2024). Assuming 100/min as the safe bound; verify before relying on it." That is a better output than a confident wrong number.`,
+      ]) +
+      p(`<strong>Why a third agent is usually wrong:</strong> it has the same information as the synthesiser and no new evidence, so it is ${ch("c11", "C11")}'s rung 4 with extra latency — a tiebreak decided by fluency rather than fact. It also shares the other agents' blind spots, so on the cases where both workers were misled by the same stale documentation, the third will be too.`) +
+      p(`The exception that is genuinely useful: a third agent whose job is <em>to go and find new evidence</em> — "resolve this contradiction by finding a primary source". That is a research task, not an adjudication, and it works because it adds information rather than opinion.`) },
+
+    { difficulty: "core",
+      prompt: `Implement worker budgets that nest correctly: a runaway subagent must not exhaust the parent, and cancelling the parent must stop every worker immediately.`,
+      answer: code({ title: "reserve downward, propagate signals downward",
+        src: `export class NestedBudget {
+  constructor(private parent: NestedBudget | null, private limits: Limits,
+              private ctrl = new AbortController()) {
+    // Cancelling the parent cancels every child, transitively.
+    parent?.signal.addEventListener("abort", () => this.ctrl.abort(), { once: true });
+  }
+
+  get signal() { return this.ctrl.signal; }
+
+  /** Carve a child budget out of what remains, never exceeding it. */
+  child(name: string, want: Partial<Limits>): NestedBudget {
+    const left = this.remaining();
+    const limits: Limits = {
+      maxSteps:    Math.min(want.maxSteps    ?? left.maxSteps,    Math.floor(left.maxSteps * 0.5)),
+      maxTokens:   Math.min(want.maxTokens   ?? left.maxTokens,   Math.floor(left.maxTokens * 0.4)),
+      wallClockMs: Math.min(want.wallClockMs ?? left.wallClockMs, left.wallClockMs),
+    };
+    const c = new NestedBudget(this, limits);
+    this.children.push({ name, budget: c });
+    return c;
+  }
+
+  /** A child's spend counts against the parent as it happens, not at the end. */
+  record(u: Usage): void { this.usage.add(u); this.parent?.record(u); }
+}` }) +
+      ul([
+        `<strong>Cap each child at a fraction of what remains</strong>, not at a fixed number. One worker must not be able to consume the whole remaining budget, or a parallel wave's last worker gets nothing.`,
+        `<strong>Charge spend upward as it happens.</strong> Accounting only on completion means the parent discovers it is over budget after five workers have already finished.`,
+        `<strong>Chain the abort signals.</strong> One <code>AbortController</code> per level, each listening to its parent — so a user cancellation reaches a worker that is three levels down and mid-fetch.</li>`,
+        `<strong>Reserve for synthesis.</strong> Parallel workers must not collectively consume everything, or the orchestrator cannot afford the call that produces the answer. Hold back ~20% before dispatching.`,
+      ]) },
 
     { difficulty: "stretch",
-      prompt: `Design the alerting for an agent with 10,000 daily runs: what pages a human, what goes on a dashboard, and what is deliberately ignored — with thresholds.`,
-      answer: p(`<strong>Page (wake someone):</strong>`) +
-        ul([
-          `<code>terminal_state = blocked</code> above 2% over 15 minutes — a credential or permission changed, and every affected run fails identically.`,
-          `Per-tenant spend over cap — a runaway loop compounds, and a global alert fires too late.`,
-          `Any tool error rate above 50% for 5 minutes — a dependency is down and the circuit breaker is holding, but the agent is degraded.`,
-          `<code>failed empty</code> (non-success with no partial report) above 1% — users are getting nothing back (${ch("c12", "C12")}).`,
-          `p99 latency above 3× the 7-day baseline for 10 minutes.`,
-        ]) +
-        p(`<strong>Dashboard, reviewed daily:</strong> terminal-state distribution stacked over time; steps-to-completion histogram split by outcome; cost per successful run; caused-token ranking by tool; the four leading indicators as sparklines against a 7-day baseline; router fallback rate; approval decision latency (${ch("c16", "C16")}).`) +
-        p(`<strong>Weekly review, not alerted:</strong> the leading indicators' trends, the newly-appearing failure modes from sampled traces, and twenty runs read by a human.`) +
-        p(`<strong>Deliberately ignored:</strong> individual 429s and 5xx (alert on retry <em>exhaustion</em> rate instead), individual tool errors (layer 2 is normal operation), individual slow model calls (a 6-second call inside a 40-second run is noise), and absolute token counts (they track volume, not health — cost per <em>successful</em> run is the metric).`) +
-        p(`One meta-rule worth stating: <strong>every page must have a runbook and a recent example</strong>. An alert that has fired three times with no action taken should be demoted to the dashboard, because it is training the on-call to ignore alerts, which is the same attention-budget argument as ${ch("c16", "C16")}.`) },
+      prompt: `Your five-agent system produces good results and nobody can debug it. Design the observability that makes a multi-agent failure diagnosable in under five minutes.`,
+      answer: ol([
+        `<strong>One trace id, propagated everywhere.</strong> Every model call, tool call and subagent run carries the root run id plus a span id and a parent span id. Without this you have five unrelated logs and a guess (${ch("c23", "C23")}).`,
+        `<strong>Record the boundaries as first-class events.</strong> <code>subagent_dispatched</code> with the exact brief, <code>subagent_returned</code> with the exact string. Those two strings are the interface, and nearly every multi-agent bug is visible in one of them — a brief that omitted a constraint, or a result that dropped a caveat.`,
+        `<strong>Render the tree, not a list.</strong> A flat log of 300 events across five agents is unreadable. The waterfall — orchestrator at the top, workers nested, with duration, tokens and cost per span — makes "which worker was slow and expensive" a glance rather than a query.`,
+        `<strong>Diff the brief against the result.</strong> An automated check: did the worker's output contain every element the brief asked for (each field, the format, the word limit)? Briefs and results drifting apart is the single most common silent failure, and it is mechanically detectable.`,
+        `<strong>Keep every worker's full transcript, addressable by span id.</strong> Discarded from the parent's <em>context</em> is not the same as discarded from your <em>logs</em>. When a worker returns something odd you need the forty search results it read.`,
+        `<strong>Flag contradictions automatically.</strong> Run a cheap check across worker results for conflicting claims about the same subject, and surface it in the trace even when the synthesiser smoothed it over.`,
+      ]) +
+      p(`The five-minute test is a good bar: open the waterfall, find the span that is red or slow, read its brief and its result, and open its transcript if needed. If any of those four steps requires writing a query, the tooling is not finished.`) },
   ],
 
   qa: [
-    { q: "Do I need a dedicated LLM observability tool?", a: p(`Not at first: spans exported to whatever you already run will do. The specialised tools earn their place when you want message payloads rendered readably, token and cost accounting built in, and a path from a trace into an eval case. That last one is the feature that changes how a team works.`) },
-    { q: "How long should I keep traces?", a: p(`Full payloads: 7–30 days for failures and the sample, shorter if they contain user data. Attributes only: months, because they are small and they are what your trends are built from. Decide the policy before you have a terabyte, and make it a lifecycle rule rather than a cleanup script.`) },
-    { q: "Should users see the trace?", a: p(`A shaped version, yes: the plan, the tools used with human-readable summaries, and the sources. It builds trust and it makes support dramatically cheaper. Not the raw spans, and never the raw tool results. They contain internal identifiers, other people's data, and a lot of noise.`) },
-    { q: "How do I trace across a multi-agent boundary?", a: p(`The trace id propagates and the subagent's root span carries <code>parentId</code> from the dispatching span. In a distributed runtime (${ch("c18", "C18")}) that means putting trace context in the message envelope, or your trace ends at the process edge and you are back to correlating logs.`) },
-    { q: "Is tracing expensive?", a: p(`Instrumentation is negligible — microseconds and a few kilobytes per span. Storage is what costs, and it is entirely a sampling-policy question. Tail sampling with full payloads on failures plus 2% of successes is typically a small fraction of the inference bill.`) },
+    { q: "Isn't 'specialist agents' a good reason to split?", a: p(`Specialisation is achieved by a prompt and a tool subset, which costs nothing. An agent boundary additionally costs serialisation, context loss and a debugging seam. If the only thing you need is different instructions, use routing (${ch("c12", "C12")}), and you get the specialisation without paying for the boundary.`) },
+    { q: "How many subagents in parallel?", a: p(`Bounded by what you can afford and by rate limits, not by the decomposition. Five to ten is typical. Remember that each holds a context and a concurrency slot, and that token-per-minute limits bite long before request-per-minute limits (${ch("c01", "C01")}).`) },
+    { q: "Should subagents share memory?", a: p(`Read, usually yes: shared semantic memory keeps them consistent about the user and the domain. Write, usually no: concurrent workers writing memories produces duplicates and contradictions with no adjudicator (${ch("c08", "C08")}). Let the orchestrator write after synthesis, when the outcome is known.`) },
+    { q: "What about agents that spawn agents?", a: p(`Allow one level by default. Two levels is occasionally justified for genuinely hierarchical work; unbounded recursion is a cost explosion waiting for an unlucky prompt. Enforce a depth limit in the runtime, not in the prompt.`) },
+    { q: "Do the workers need to be the same model?", a: p(`No, and varying it is a good cost lever: a cheap model for extraction and search, a capable one for synthesis and for the orchestrator's decomposition. The orchestrator is where the reasoning is hardest and where the fewest tokens are spent — exactly the right place for the expensive model.`) },
   ],
 
   project: {
-    title: "Project · Instrument everything",
-    brief: p(`Add tracing to your agent, then use it to find something you did not know. The deliverable is not the instrumentation; it is the finding.`),
+    title: "Project · An orchestrator that earns its keep",
+    brief: p(`Build an orchestrator–worker system for a genuinely parallel task, and prove with numbers that it beats your single agent on the same task, or discover that it does not, which is an equally good outcome.`),
     spec: [
-      "<code>span()</code> with <code>AsyncLocalStorage</code> propagation, so nesting is automatic and call sites are one line.",
-      "Spans for every model call, tool call, retrieval, subagent run and approval, carrying the agent-specific attributes including <code>terminal_state</code> and <code>tool.result.tokens</code>.",
-      "Redaction applied once, in the exporter.",
-      "Tail sampling: full payloads for failures, anomalies and the slow tail, plus a 2% sample of successes; attributes only for the rest.",
-      "A caused-token blame report ranking tools by <code>size × subsequent model calls</code>.",
-      "A dashboard or printed report with the four numbers: terminal-state distribution, p95 steps among successes, cost per successful run, and the blame ranking.",
-      "<code>replay &lt;runId&gt; --until N</code> printing the exact context the model saw.",
+      "<code>asTool()</code> wrapping an agent as a tool with a fresh context, nested budgets and a chained abort signal.",
+      "A decomposition step whose schema requires a <code>whySeparate</code> justification and a brief of at least 120 characters.",
+      "Briefs containing objective, scope, output format and explicit non-goals — all four.",
+      "Dependency waves with parallel execution inside each, and failed workers surfaced as findings rather than aborts.",
+      "A synthesis prompt that forbids averaging contradictions and requires naming failed subtasks.",
+      "Nested cost ledgers producing a per-worker breakdown.",
+      "A comparison on the same 10 tasks: single agent vs orchestrator, reporting quality, tokens, wall-clock and cost.",
     ],
     stretch: [
-      "Export via OpenTelemetry using the GenAI semantic conventions and render the waterfall in an existing backend.",
-      "Implement the two-tier goal-relevance metric and chart it against step index for a run that went wrong.",
-      "Wire the trace to your eval suite: one command turning a run id into a C19 case.",
+      "Add a handoff agent with a mandatory context-transfer schema, and measure how often the user has to repeat themselves versus a naive handoff.",
+      "Implement a two-agent proposer/critic group chat with composed termination conditions, and check whether its agreements are actually better than the proposer alone.",
+      "Build the trace waterfall from the exercises and use it to diagnose a deliberately broken worker.",
     ],
   },
 
   quiz: [
-    { q: "Why is a flat log the wrong shape for agent debugging?",
-      options: ["The unit of interest is a run — a tree of nested, long-running, large-payload operations — which a chronological stream cannot represent", "Logs are too slow to write", "Logs cannot store JSON", "Log levels are not expressive enough"],
+    { q: "What is the strongest reason to use a subagent?",
+      options: ["Context isolation — the subagent's intermediate material is discarded rather than accumulating in the parent", "Specialisation through different system prompts", "Separation of concerns", "Each agent can use a different model"],
       answer: 0,
-      why: "A run spans seconds to minutes across nested model, tool and subagent calls, interleaved with other concurrent runs. Reconstructing one from a chronological stream is the problem tracing exists to remove." },
-    { q: "A tool returns 4,000 tokens at step 3 of a 12-step run. What is its true cost?",
-      options: ["Roughly ten times its apparent cost, because the observation is re-sent on every subsequent model call", "4,000 input tokens, once", "4,000 output tokens plus the model's response", "Nothing, if prompt caching is enabled"],
+      why: "Specialisation is a prompt and costs nothing. A subagent boundary buys discarding: forty search results are read in a context that is thrown away, so the parent never pays for them on any subsequent turn. That is a ~100:1 compression compaction cannot match." },
+    { q: "Which task shape is worst suited to multi-agent decomposition?",
+      options: ["Highly interdependent work such as debugging, where each step depends on what the last revealed", "Many independent searches", "Processing 50 documents", "Comparing several vendors"],
       answer: 0,
-      why: "The message array is resent whole each iteration, so a big early observation is billed again on every later turn. Caching does not help, because it only covers the stable prefix, and a tool result lands after it." },
-    { q: "Which attribute turns 'error rate' into something actionable?",
-      options: ["`agent.terminal_state` — distinguishing answered, budget, stuck, blocked, error and cancelled", "`llm.model`", "`tool.name`", "`run.step`"],
+      why: "Splitting interdependent work means each agent is missing what the others found, and the serialisation boundary loses exactly the detail that mattered. The simulator shows every multi-agent row falling below the single agent as interdependence rises." },
+    { q: "What must a handoff carry beyond 'the user has a billing question'?",
+      options: ["What has been established, what was ruled out, the user's goal in their words, and the open questions", "The full message history verbatim", "The previous agent's system prompt", "A confidence score"],
       answer: 0,
-      why: "A spike in 'blocked' means a credential expired; a spike in 'budget' means tasks got harder. Collapsing both into 'errors' loses the distinction that determines what you do next." },
-    { q: "Why is tail sampling preferred over head sampling for agent traces?",
-      options: ["The decision to keep a run can be made after you know its terminal state and step count, so anomalies are never dropped", "It uses less memory", "It is required by OpenTelemetry", "It produces smaller spans"],
+      why: "A bare handoff makes the user repeat themselves, which is the most common and most visible multi-agent failure. Making the summary a required schema field is what forces it to happen." },
+    { q: "Why does group chat scale badly?",
+      options: ["Every agent reads the whole transcript, so tokens scale with agents × turns", "Agents cannot run in parallel", "The selector model is expensive", "Transcripts exceed the context window immediately"],
       answer: 0,
-      why: "Head sampling decides at the start, which means the one run you needed was dropped before anything went wrong. Tail sampling keeps every failure, every anomaly and the slow tail by construction." },
-    { q: "Which signal moves earliest when an agent starts degrading?",
-      options: ["Goal relevance per step, followed by repeat-detector fire rate", "Success rate", "Total token spend", "p99 latency"],
+      why: "Five agents over ten turns is roughly fifty full-context reads. It is genuinely useful for adversarial review, and rarely worth it for getting work done." },
+    { q: "Two workers return contradictory findings. What should the synthesiser do?",
+      options: ["State the disagreement explicitly, say which it trusts and why, and prefer ground truth where available", "Average the two values", "Pick the more recent result", "Ask a third agent to adjudicate"],
       answer: 0,
-      why: "The example report shows relevance down 11% and repeats nearly doubled while success moved under a point. By the time success rate shifts significantly, users have already noticed." },
-    { q: "What makes `AsyncLocalStorage` the right mechanism for span nesting?",
-      options: ["The parent span is found automatically across awaits, so no context object has to be threaded through every function", "It is faster than passing parameters", "It guarantees spans are exported in order", "It provides automatic redaction"],
+      why: "Averaging hides the conflict in a smooth paragraph, which is the worst output. A third agent has no new evidence and shares the same blind spots — unless its job is to go and find a primary source, which adds information rather than opinion." },
+    { q: "What is the dominant variable in multi-agent performance?",
+      options: ["Brief quality — objective, scope, output format and explicit non-goals", "The number of agents", "Which topology is used", "The model used by the workers"],
       answer: 0,
-      why: "Without it, every function in the call path needs a context parameter, which is the kind of plumbing that gets skipped, and a skipped context means an orphaned span and a missing branch of the tree." },
+      why: "A subagent sees exactly one string. In the simulator, switching briefs from vague to complete moves every multi-agent row substantially while leaving the single-agent row unchanged, because the single agent never had to serialise its intent." },
   ],
 
-  continues: p(`You can now see what your agent does and what it costs. The remaining question is what happens when someone <em>wants</em> it to do something else. An agent that reads untrusted content, holds credentials, and can act is a genuinely new kind of security problem. ${ch("c21", "C21")} is the one chapter where the honest answer is sometimes "do not build that".`),
+  continues: p(`Wrapping agents as tools works, and it has a ceiling: it is a call tree, so agents cannot react to events, cannot be addressed by identity, and cannot run in separate processes. Underneath every serious multi-agent framework is a message-passing runtime that removes those limits. ${ch("c21", "C21")} builds one, following the design AutoGen settled on.`),
 };
 
 export default chapter;

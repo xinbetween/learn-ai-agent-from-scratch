@@ -61,7 +61,7 @@ const chapter: Chapter = {
   title: "The Model Call",
   subtitle: "Messages, stop reasons, tokens, and the one function everything else is built on",
   blurb:
-    "This course treats a model call as a request-scoped function from a message array to a response. Its signature has to carry streaming, retries, usage accounting and cancellation, and getting that right decides how pleasant the next twenty-three chapters are.",
+    "This course treats a model call as a request-scoped function from a message array to a response. Its signature has to carry streaming, retries, usage accounting and cancellation, and getting that right decides how pleasant the next twenty-seven chapters are.",
   lines: 395,
   file: "code/c01_model_call.ts",
   tags: ["messages", "roles", "stop_reason", "tokens", "temperature", "streaming", "retries", "cost"],
@@ -136,7 +136,7 @@ export type Model = (messages: Message[], opts?: CallOptions) => Promise<ModelRe
         ) +
         p(`The dangerous one is <code>max_tokens</code>. A truncated response is syntactically a normal response. It has text, it parses, it looks like an answer. Agents that never check this field act on half a plan and say nothing about it. Assert on it.`) +
         `<h3><code>usage</code> on every call, or you are flying blind</h3>` +
-        p(`Not a counter you check at the end, but a field on every response that your loop accumulates. Agent cost is dominated by <em>re-sent input tokens</em>, and you cannot see that unless input and output are counted separately. Once you have this field, ${ch("c20", "C20")}'s observability is fifteen lines instead of an archaeology project.`),
+        p(`Not a counter you check at the end, but a field on every response that your loop accumulates. Agent cost is dominated by <em>re-sent input tokens</em>, and you cannot see that unless input and output are counted separately. Once you have this field, ${ch("c23", "C23")}'s observability is fifteen lines instead of an archaeology project.`),
     },
     {
       id: "mechanics",
@@ -155,7 +155,7 @@ export type Model = (messages: Message[], opts?: CallOptions) => Promise<ModelRe
           `<strong>system</strong> — identity, constraints, tool policy, output format. Sent on every call, so every token here is paid for on every iteration. Treat it as expensive. Almost nobody does.`,
           `<strong>user</strong> — the goal, and later, human interjections. In an agent most "user" turns after the first are actually tool results wearing the user role, depending on the API.`,
           `<strong>assistant</strong> — everything the model said, including its tool requests. You must echo these back verbatim: dropping a <code>tool_use</code> block while keeping its result produces an orphaned result, which most APIs reject outright.`,
-          `<strong>tool</strong> — observations. This is the channel through which reality enters the model's world, which makes it the channel an attacker comes in through too (${ch("c21", "C21")}).`,
+          `<strong>tool</strong> — observations. This is the channel through which reality enters the model's world, which makes it the channel an attacker comes in through too (${ch("c24", "C24")}).`,
         ]) +
         `<h3>Temperature: two settings, not a dial to fiddle with</h3>` +
         p(`Temperature scales the logits before sampling. In practice an agent has two useful settings for it:`) +
@@ -166,7 +166,7 @@ export type Model = (messages: Message[], opts?: CallOptions) => Promise<ModelRe
         note(
           "warn",
           "Temperature 0 is not determinism",
-          p(`Identical input at temperature 0 still varies run to run. Floating-point non-associativity in batched GPU kernels, MoE routing that depends on which other requests share your batch, silent model updates behind a version alias, load balancing across replicas that were not configured identically. Expect <em>high agreement</em> rather than reproducibility, and treat any eval that assumes byte-identical output (${ch("c19", "C19")}) as built on sand.`)
+          p(`Identical input at temperature 0 still varies run to run. Floating-point non-associativity in batched GPU kernels, MoE routing that depends on which other requests share your batch, silent model updates behind a version alias, load balancing across replicas that were not configured identically. Expect <em>high agreement</em> rather than reproducibility, and treat any eval that assumes byte-identical output (${ch("c22", "C22")}) as built on sand.`)
         ),
     },
     {
@@ -319,7 +319,7 @@ const backoff = (n: number, cfg: { baseMs: number; capMs: number }) =>
         }) +
         p(`Three details that are easy to get wrong:`) +
         ul([
-          `<strong>Never retry an <code>AbortError</code>.</strong> The caller cancelled; retrying is the client arguing with its own deadline. This bug is invisible until you build ${ch("c16", "C16")}'s interrupt handling and discover cancelled runs cost money for another minute.`,
+          `<strong>Never retry an <code>AbortError</code>.</strong> The caller cancelled; retrying is the client arguing with its own deadline. This bug is invisible until you build ${ch("c19", "C19")}'s interrupt handling and discover cancelled runs cost money for another minute.`,
           `<strong>Respect <code>retry-after</code> before your own backoff.</strong> The server knows when it will be ready and you do not.`,
           `<strong>Full jitter, not "exponential backoff".</strong> Deterministic backoff synchronises your fleet into retry waves that reproduce the outage. Multiply by <code>Math.random()</code> and the thundering herd disappears.`,
         ]) +
@@ -387,7 +387,7 @@ const backoff = (n: number, cfg: { baseMs: number; capMs: number }) =>
           `<strong>Prompt caching</strong> is the single largest cost lever in an agent. Providers let you mark a prefix as cacheable; subsequent calls that share that exact prefix bill it at roughly a tenth. Because agents resend a fixed system prompt plus tool definitions every turn, caching is close to free money. The catch is that the prefix has to be <em>byte-identical</em>: no timestamps, no shuffled tool order, no per-turn interpolation in your system prompt. Design for it in ${ch("c05", "C05")}.`,
           `<strong>A cache entry has a lifetime, and an idle agent outlives it.</strong> Providers hold a cached prefix for minutes, not hours. An agent waiting on a slow tool, an approval, or a user who went to lunch comes back to a cold cache and pays full price for a prefix it had already bought. You can refresh it by sending a cheap request that shares the prefix before it expires, which is worth doing only when the expected saving beats the cost of the refresh — the arithmetic is in ${ch("c05", "C05")}, because the thing being kept warm is a context you designed there.`,
           `<strong>Token counting endpoints</strong> exist because tokenizers differ per model and <code>text.length / 4</code> is off by 30% on code and by more on non-Latin scripts. Use the real counter for budgets that matter; use the estimate for UI.`,
-          `<strong>Model aliases move.</strong> <code>*-latest</code> pointing somewhere new is a silent behaviour change in your agent. Pin exact versions in anything you evaluate against, and treat a version bump as a code change that re-runs ${ch("c19", "C19")}'s suite.`,
+          `<strong>Model aliases move.</strong> <code>*-latest</code> pointing somewhere new is a silent behaviour change in your agent. Pin exact versions in anything you evaluate against, and treat a version bump as a code change that re-runs ${ch("c22", "C22")}'s suite.`,
           `<strong>Rate limits are usually token-based, not request-based.</strong> An agent with a 40k-token context hits an input-token-per-minute limit long before it hits a requests-per-minute limit, which is why naive "N concurrent agents" scaling fails at unintuitive numbers.`,
           `<strong>Where this lives in real code:</strong> pi's <code>packages/ai</code> is this chapter's contract at production scale, and in TypeScript, so it reads as the same code rather than a translation of it; the Anthropic and OpenAI SDKs both wrap this function with retries and streaming; LangChain calls it <code>BaseChatModel.invoke</code>; AutoGen calls it <code>ChatCompletionClient.create</code>, and notably has the client itself accumulate usage, which is exactly the design argued for above.`,
         ]),
@@ -443,7 +443,7 @@ if (res.stopReason === "max_tokens") {
     },
     {
       difficulty: "stretch",
-      prompt: `Design a <code>Usage</code> ledger for an agent that runs subagents (${ch("c17", "C17")}). It must answer: what did this run cost, what did each subagent cost, and which tool's output was responsible for the most input tokens. Sketch the types and say where the accumulation happens.`,
+      prompt: `Design a <code>Usage</code> ledger for an agent that runs subagents (${ch("c20", "C20")}). It must answer: what did this run cost, what did each subagent cost, and which tool's output was responsible for the most input tokens. Sketch the types and say where the accumulation happens.`,
       answer:
         code({
           title: "attribution by span, not by counter",
@@ -474,7 +474,7 @@ class Ledger {
         p(`Three design points worth stating explicitly.`) +
         ul([
           `<strong>Accumulate at the client, not the loop.</strong> The model client is the only place that sees every call, including retries and calls made inside subagents. Passing a ledger into <code>callModel</code> is how you avoid discovering that 20% of your spend was retries nobody counted.`,
-          `<strong>Spans, not counters.</strong> A flat counter answers "what did it cost" and nothing else. A span tree answers "which subagent", "which tool", "which phase", and drops straight into ${ch("c20", "C20")}'s tracing with no rework.`,
+          `<strong>Spans, not counters.</strong> A flat counter answers "what did it cost" and nothing else. A span tree answers "which subagent", "which tool", "which phase", and drops straight into ${ch("c23", "C23")}'s tracing with no rework.`,
           `<strong>Blame must multiply by remaining turns.</strong> The naive view attributes 4,000 tokens to a chatty tool. The true attribution is 4,000 × the number of subsequent turns that re-sent it, which is usually the difference between "that tool is a bit verbose" and "that tool is 60% of the bill".`,
         ]),
     },
@@ -504,7 +504,7 @@ class Ledger {
     {
       q: "Can I keep server-side conversation state instead of resending?",
       a:
-        p(`Some APIs offer it, and it saves bandwidth rather than tokens. The model still attends to the whole history, so you still pay for it. More importantly, it takes away the thing this course depends on: the ability to <em>edit</em> the context. Compaction (${ch("c05", "C05")}), memory injection (${ch("c07", "C07")}), and subagent context isolation (${ch("c17", "C17")}) are all operations on an array you own. Own the array.`),
+        p(`Some APIs offer it, and it saves bandwidth rather than tokens. The model still attends to the whole history, so you still pay for it. More importantly, it takes away the thing this course depends on: the ability to <em>edit</em> the context. Compaction (${ch("c05", "C05")}), memory injection (${ch("c08", "C08")}), and subagent context isolation (${ch("c20", "C20")}) are all operations on an array you own. Own the array.`),
     },
   ],
 

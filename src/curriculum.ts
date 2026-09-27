@@ -35,7 +35,7 @@ export const LAYERS: Layer[] = [
     id: "context",
     name: "Context & Memory",
     from: "C05",
-    to: "C08",
+    to: "C09",
     desc:
       "The context window is the agent's entire world and it is small. Budget it, retrieve into it, remember across it, and survive a crash in the middle of it.",
     bridge: "…which gives the agent a past. It still has no plan. So:",
@@ -43,8 +43,8 @@ export const LAYERS: Layer[] = [
   {
     id: "reasoning",
     name: "Reasoning & Control",
-    from: "C09",
-    to: "C12",
+    from: "C10",
+    to: "C13",
     desc:
       "Decompose the task, check the work, decide how much freedom the model actually gets, and handle the four ways every agent fails.",
     bridge: "…which makes the agent reliable inside its own head. Now let it touch the world. So:",
@@ -52,8 +52,8 @@ export const LAYERS: Layer[] = [
   {
     id: "environment",
     name: "The Environment",
-    from: "C13",
-    to: "C16",
+    from: "C14",
+    to: "C19",
     desc:
       "Code execution, what an action can even be, files and the shell, the Model Context Protocol, and the human who has to approve the dangerous parts.",
     bridge: "…which is one capable agent. Production needs more than one, and needs proof. So:",
@@ -61,8 +61,8 @@ export const LAYERS: Layer[] = [
   {
     id: "systems",
     name: "Systems & Production",
-    from: "C17",
-    to: "C22",
+    from: "C20",
+    to: "C26",
     desc:
       "Many agents, the event-driven runtime underneath them, measurement, observability, the security model agents break by design, and the server that ships it.",
     bridge: "…which is everything the course has to teach. Now assemble it twice. So:",
@@ -70,8 +70,8 @@ export const LAYERS: Layer[] = [
   {
     id: "capstone",
     name: "The Capstones",
-    from: "C23",
-    to: "C24",
+    from: "C27",
+    to: "C28",
     desc:
       "Two complete agents, built end to end from the parts in this course: a deep-research agent and a coding agent that edits your files.",
     bridge: "",

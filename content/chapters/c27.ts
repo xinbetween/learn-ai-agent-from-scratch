@@ -1,572 +1,548 @@
 import type { Chapter } from "../../src/types.ts";
-import { code, fig, lab, note, table, p, ul, ch } from "../../src/ui.ts";
+import { code, fig, lab, note, table, p, ul, ol, ch } from "../../src/ui.ts";
 
-export const SKILL_SVG = `
-<svg viewBox="0 0 700 300" width="100%" style="max-width:700px;display:block;margin:0 auto" role="img"
-     aria-label="Forty tool schemas resident in the context versus forty one-line descriptions with bodies read on demand">
-  <defs>
-    <marker id="k27" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-      <path d="M0 0 L10 5 L0 10 z" fill="var(--border-strong)"/></marker>
-    <marker id="k27a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-      <path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker>
-  </defs>
+const ARCH_SVG = `
+<svg viewBox="0 0 700 330" width="100%" style="max-width:700px;display:block;margin:0 auto" role="img"
+     aria-label="Deep research agent architecture across five phases">
+  <defs><marker id="a23" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M0 0 L10 5 L0 10 z" fill="var(--border-strong)"/></marker></defs>
 
-  <text x="14" y="20" class="d-label">FORTY CAPABILITIES, TWO WAYS TO OFFER THEM</text>
+  <text x="14" y="18" class="d-label">FIVE PHASES · EACH CHAPTER OF THE COURSE APPEARS SOMEWHERE HERE</text>
 
-  <text x="14" y="48" class="d-label" fill="var(--fg-faint)">EVERY SCHEMA RESIDENT</text>
-  <rect x="14" y="58" width="300" height="86" rx="6" class="d-box" stroke-dasharray="3 3"/>
-  <text x="26" y="78" class="d-mono">{"name":"merge_pdfs","parameters":{…}}</text>
-  <text x="26" y="94" class="d-mono">{"name":"split_pdf","parameters":{…}}</text>
-  <text x="26" y="110" class="d-mono" fill="var(--fg-faint)">… 38 more, in full</text>
-  <text x="26" y="132" class="d-mono" fill="var(--danger)">10,518 tokens · every turn</text>
+  <rect x="14" y="30" width="124" height="60" rx="6" class="d-box-p"/>
+  <text x="76" y="50" class="d-text" text-anchor="middle">1 · scope</text>
+  <text x="76" y="66" class="d-mono" text-anchor="middle" fill="var(--fg-faint)">clarify, then plan</text>
+  <text x="76" y="82" class="d-mono" text-anchor="middle" fill="var(--plan)">C10 · C19</text>
+  <path d="M142 60 L168 60" class="d-arrow" marker-end="url(#a23)"/>
 
-  <text x="386" y="48" class="d-label" fill="var(--fg-faint)">NAMES ONLY</text>
-  <rect x="386" y="58" width="300" height="86" rx="6" class="d-box-a"/>
-  <text x="398" y="78" class="d-mono">- merge_pdfs: merge pdfs — documents</text>
-  <text x="398" y="94" class="d-mono">- split_pdf: split pdf — documents</text>
-  <text x="398" y="110" class="d-mono" fill="var(--fg-faint)">… 38 more, one line each</text>
-  <text x="398" y="132" class="d-mono" fill="var(--ok)">534 tokens · every turn</text>
+  <rect x="172" y="30" width="124" height="60" rx="6" class="d-box-a"/>
+  <text x="234" y="50" class="d-text" text-anchor="middle">2 · gather</text>
+  <text x="234" y="66" class="d-mono" text-anchor="middle" fill="var(--fg-faint)">parallel subagents</text>
+  <text x="234" y="82" class="d-mono" text-anchor="middle" fill="var(--accent)">C06 · C20</text>
+  <path d="M300 60 L326 60" class="d-arrow" marker-end="url(#a23)"/>
 
-  <path d="M536 148 L536 186" class="d-arrow-a" marker-end="url(#k27a)"/>
-  <text x="548" y="172" class="d-mono" fill="var(--accent)">only after it commits</text>
+  <rect x="330" y="30" width="124" height="60" rx="6" class="d-box-t"/>
+  <text x="392" y="50" class="d-text" text-anchor="middle">3 · verify</text>
+  <text x="392" y="66" class="d-mono" text-anchor="middle" fill="var(--fg-faint)">ground every claim</text>
+  <text x="392" y="82" class="d-mono" text-anchor="middle" fill="var(--tool)">C11 · C24</text>
+  <path d="M458 60 L484 60" class="d-arrow" marker-end="url(#a23)"/>
 
-  <rect x="386" y="192" width="300" height="76" rx="6" class="d-box-t"/>
-  <text x="398" y="212" class="d-mono">cat skills/plot_timeseries/SKILL.md</text>
-  <text x="398" y="232" class="d-mono" fill="var(--fg-faint)">## When to use · ## Steps · ## Notes</text>
-  <text x="398" y="254" class="d-mono" fill="var(--tool)">154 tokens · once</text>
+  <rect x="488" y="30" width="124" height="60" rx="6" class="d-box-m"/>
+  <text x="550" y="50" class="d-text" text-anchor="middle">4 · synthesise</text>
+  <text x="550" y="66" class="d-mono" text-anchor="middle" fill="var(--fg-faint)">one voice, cited</text>
+  <text x="550" y="82" class="d-mono" text-anchor="middle" fill="var(--mem)">C05 · C11</text>
 
-  <rect x="14" y="192" width="300" height="76" rx="6" class="d-box" stroke-dasharray="3 3"/>
-  <text x="164" y="228" class="d-text" text-anchor="middle" fill="var(--fg-faint)">nothing to read —</text>
-  <text x="164" y="248" class="d-text" text-anchor="middle" fill="var(--fg-faint)">it was already all there</text>
+  <path d="M550 94 L550 118" class="d-arrow" marker-end="url(#a23)"/>
+  <rect x="470" y="122" width="160" height="40" rx="6" class="d-box"/>
+  <text x="550" y="140" class="d-text" text-anchor="middle">5 · report</text>
+  <text x="550" y="155" class="d-mono" text-anchor="middle" fill="var(--fg-faint)">gaps stated explicitly</text>
 
-  <text x="14" y="290" class="d-mono" fill="var(--accent)">a body is read once · a schema is re-sent on every turn (C01)</text>
+  <path d="M392 94 L392 118 L200 118 L200 94" class="d-arrow" marker-end="url(#a23)" stroke-dasharray="4 3"/>
+  <text x="296" y="114" class="d-mono" text-anchor="middle" fill="var(--danger)">unsupported claim → gather again</text>
+
+  <line x1="14" y1="182" x2="686" y2="182" stroke="var(--border)"/>
+  <text x="14" y="204" class="d-label">THE DIFFERENCE BETWEEN A DEMO AND A RESEARCH TOOL</text>
+
+  <rect x="14" y="216" width="216" height="52" rx="6" class="d-box" stroke="var(--danger)"/>
+  <text x="26" y="236" class="d-mono" fill="var(--danger)">demo: searches, then writes</text>
+  <text x="26" y="253" class="d-mono" fill="var(--fg-faint)">fluent, confident, uncheckable</text>
+
+  <rect x="242" y="216" width="216" height="52" rx="6" class="d-box-t"/>
+  <text x="254" y="236" class="d-mono">every claim ↔ a source span</text>
+  <text x="254" y="253" class="d-mono" fill="var(--fg-faint)">checked mechanically, not by a judge</text>
+
+  <rect x="470" y="216" width="216" height="52" rx="6" class="d-box-t"/>
+  <text x="482" y="236" class="d-mono">gaps and conflicts stated</text>
+  <text x="482" y="253" class="d-mono" fill="var(--fg-faint)">"I could not find X" is an output</text>
+
+  <text x="14" y="296" class="d-mono" fill="var(--accent)">a research agent's product is not prose. it is a set of claims you can check.</text>
+  <text x="14" y="318" class="d-mono" fill="var(--fg-faint)">design every phase around that and the quality problem becomes an engineering problem.</text>
 </svg>`;
 
 const chapter: Chapter = {
   id: "c27",
   num: 27,
-  layer: "environment",
-  title: "Skills",
-  subtitle: "Giving an agent forty capabilities without putting forty schemas in its context",
+  layer: "capstone",
+  title: "Capstone I · A Deep Research Agent",
+  subtitle: "Plan, search in parallel, verify every claim, and report the gaps",
   blurb:
-    "A tool costs tokens before it is used and every turn after. A skill costs one line until the agent commits to it, and then it reads the rest itself. The pattern is progressive disclosure, and it is what lets a capability surface grow without the context growing with it.",
-  lines: 214,
-  file: "code/c27_skills.ts",
-  tags: ["skills", "progressive disclosure", "tool registry", "context budget", "SKILL.md", "capability surface"],
+    "The first complete system: an orchestrator that decomposes a question, parallel research subagents with isolated contexts, mechanical claim grounding, and a report whose every sentence traces to a source.",
+  lines: 379,
+  file: "code/c27_research/",
+  tags: ["capstone", "research agent", "orchestrator", "citations", "grounding", "verification", "parallel"],
 
   sections: [
-    {
-      id: "motivation",
-      kicker: "Motivation",
-      title: "The registry problem, from the other end",
+    { id: "motivation", kicker: "The brief", title: "What you are building",
       html:
-        p(`${ch("c03", "C03")} showed selection accuracy collapsing past roughly twenty tools and offered three ways out: coarser facades, two-stage selection, or subagents. All three reduce how many options the model sees. None of them addresses the other half of the cost, which is that a tool you never call is still in the system prompt, and ${ch("c01", "C01")} bills it on every turn of the run.`) +
-        p(`Forty capabilities with a few arguments each is about ten thousand tokens resident. Over a twelve-turn task that is a hundred and twenty thousand tokens spent on <em>describing</em> what the agent could do, against maybe eight thousand spent on the thing it actually did. The ratio is absurd and it is the normal state of a mature agent, because tools accumulate and nobody removes them.`) +
-        p(`Skills invert the default. The context holds a name and one line per capability. When the agent decides it needs one, it reads the rest — from a file, with a tool it already has. Nothing about the capability is resident until it is chosen, and nothing about it is re-sent afterwards except what it actually used.`) +
-        note(
-          "key",
-          "The asymmetry that makes it work",
-          p(`A schema in the system prompt is paid on every turn. A skill body read from disk is paid once, and it enters the transcript as a tool result like any other. Progressive disclosure is not a compromise you accept when the catalogue is large; it is cheaper at every size above one.`)
-        ),
-    },
-    {
-      id: "core-idea",
-      kicker: "Core idea",
-      title: "A directory, a front-matter header, and one line in the prompt",
-      html:
-        p(`A skill is a folder with a <code>SKILL.md</code> in it. The front matter carries exactly the two fields the agent needs in order to decide; the body carries everything it needs in order to act.`) +
-        code({
-          title: "skills/merge_pdfs/SKILL.md",
-          lang: "text",
-          plain: true,
-          src: `---
-name: merge_pdfs
-description: Combine several PDFs into one, optionally selecting page ranges.
----
-
-# merge_pdfs
-
-## When to use
-The task names two or more PDFs and asks for a single output, or asks to
-extract pages from one document into another.
-
-## When not to use
-Splitting one PDF into many — use split_pdf, which handles bookmarks.
-
-## Steps
-1. Confirm every input path exists with \`ls\`.
-2. Run \`python scripts/merge.py <out> <in...>\` from this directory.
-3. The script prints the page count; check it against the sum of the inputs.
-
-## Notes
-Encrypted PDFs fail with a PdfReadError. Decrypt first with qpdf, and if
-there is no password, say so rather than guessing.`,
-        }) +
-        p(`Only the first four lines of that file are ever resident. The agent's system prompt gets one entry — <code>- merge_pdfs: Combine several PDFs into one, optionally selecting page ranges.</code> — and an instruction telling it how to read the rest.`) +
-        code({
-          title: "what the model sees before it has chosen anything",
-          lang: "text",
-          plain: true,
-          src: `## Available skills
-Skills live in ./skills. Read a skill's SKILL.md before using it.
-
-- merge_pdfs: Combine several PDFs into one, optionally selecting page ranges.
-- clean_csv: Normalise headers, types and missing values in a CSV.
-- query_warehouse: Run read-only SQL against the analytics warehouse.
-… 37 more, one line each
-
-To use a skill:  cat skills/<name>/SKILL.md`,
-        }) +
-        `<h3>Why this is not just a smaller tool description</h3>` +
-        p(`Two things change, and the second is the one people miss.`) +
+        p(`A question goes in — <em>"Which of these three vector databases should we use for a 50M-vector workload, and what are the operational trade-offs?"</em> — and a report comes out: structured, cited, with the disagreements between sources surfaced rather than averaged, and an explicit list of what could not be established.`) +
+        p(`This is the task multi-agent architecture is genuinely good at (${ch("c20", "C20")}): many independent lookups, each generating far more intermediate material than the final answer needs. It is also the task where hallucination does the most damage, because a fluent, confident, uncheckable report is worse than no report.`) +
+        note("key", "The design principle for the whole capstone", p(`<strong>The product is not prose; it is a set of claims you can check.</strong> Every phase is designed around that: gathering records spans, verification checks claims against spans mechanically, and the report renders claims with their provenance. Get this right and quality stops being a matter of taste.`)) +
+        `<h3>What it must do</h3>` +
         ul([
-          `<strong>The body is unbounded.</strong> A tool description is a field in a schema that you are reluctant to grow, because it is resident. A skill body is read on demand, so it can carry the three paragraphs of hard-won detail that actually make the capability work — the failure modes, the flag nobody remembers, the check to run afterwards. ${ch("c03", "C03")} argued that description quality is the highest-value work in a tool surface; skills are what happens when that work stops being taxed.`,
-          `<strong>A skill can carry files.</strong> The folder holds scripts, templates, reference data, fixtures. The agent does not need a tool per artefact because it has a shell and a filesystem (${ch("c14", "C14")}) and can simply use them. A skill is a capability packaged the way a human colleague would package one: here is the folder, the README explains it.`,
+          `Clarify an ambiguous question before spending money on it.`,
+          `Decompose into independent sub-questions and research them in parallel.`,
+          `Cite every factual claim to a specific passage, checked mechanically.`,
+          `Surface conflicts between sources instead of smoothing them into an average.`,
+          `Report what it could not find, and what it would do next.`,
+          `Stay inside a budget, and degrade into a partial report rather than failing.`,
+        ]) },
+
+    { id: "architecture", kicker: "Architecture", title: "Five phases",
+      html:
+        fig({ label: "Diagram", title: "the pipeline, and where each chapter lands", body: ARCH_SVG,
+          caption: `Note the loop from verify back to gather. A claim that cannot be grounded is not deleted; it becomes a new sub-question.` }) +
+        code({ title: "code/c27_research/orchestrator.ts — the shape",
+          src: `export async function research(question: string, cfg: ResearchConfig): Promise<Report> {
+  const budget = new Budget(cfg.limits);
+  const store = new EvidenceStore();          // every span ever retrieved, addressable
+
+  // 1. SCOPE — clarify only when genuinely ambiguous (C19: attention is a budget).
+  const scope = await clarify(question, cfg, budget);
+  if (scope.needsUser) return { status: "needs_clarification", questions: scope.questions };
+
+  // 2. PLAN — sub-questions, each independently answerable (C10).
+  let plan = await planResearch(scope.question, cfg, budget);
+
+  // 3. GATHER — parallel subagents, isolated contexts (C20).
+  for (const wave of plan.waves()) {
+    const found = await Promise.allSettled(wave.map((sq) =>
+      researchSubagent(sq, { ...cfg, budget: budget.child(sq.id, WORKER_LIMITS), store })));
+    plan.record(found);
+    if (budget.exceeded()) break;             // C13: degrade, do not fail
+  }
+
+  // 4. VERIFY — mechanical grounding, then one more gather wave for what failed.
+  const claims = await extractClaims(plan.findings, cfg, budget);
+  const graded = claims.map((c) => ({ ...c, grounding: store.ground(c) }));
+  const unsupported = graded.filter((c) => c.grounding.kind === "none");
+  if (unsupported.length && !budget.exceeded()) {
+    plan = plan.addSubQuestions(unsupported.map(toSubQuestion));
+    // …one more gather wave, then re-verify. Bounded: at most one retry round.
+  }
+
+  // 5. REPORT — cited, conflicts surfaced, gaps named (C11).
+  return synthesise(scope.question, graded, plan, budget, cfg);
+}`,
+        }) +
+        `<h3>Phase 1 · Scope, and when to interrupt</h3>` +
+        p(`Clarifying every question is annoying; clarifying none wastes whole runs on the wrong interpretation. The gate: ask only when the ambiguity would change the <em>shape</em> of the research, not merely its emphasis.`) +
+        code({ title: "a clarification gate that fires rarely",
+          src: `const scope = await structured(model, [{ role: "user", content:
+\`Question: \${question}
+
+Decide whether you can research this as asked. Ask for clarification ONLY if an
+ambiguity would send the research in a materially different direction — a different
+set of sources, a different comparison, a different definition of success.
+
+Do NOT ask about: scope you can reasonably bound yourself, preferences you can
+cover both ways, or details you can state as an assumption in the report.
+
+If you can proceed, restate the question precisely, listing the assumptions you
+are making. Those assumptions go in the report.\` }],
+  obj({ needsUser: bool(), questions: arr(str()), question: str(), assumptions: arr(str()) }));`,
+        }) +
+        p(`The <code>assumptions</code> field is what makes the low-clarification default safe: an unasked question becomes a stated assumption in the report, which the reader can correct. That is nearly always better than an interruption.`) },
+
+    { id: "gather", kicker: "Gather", title: "Subagents that return evidence, not prose",
+      html:
+        p(`The single most important design decision in this capstone: a research subagent's return value is not a summary. It is <strong>claims with source spans</strong>, and the raw spans go into a shared store the orchestrator can check against.`) +
+        code({ title: "code/c27_research/subagent.ts — the contract",
+          src: `export interface Evidence {
+  id: string;
+  url: string; title: string; retrievedAt: number;
+  span: string;                    // the EXACT text, quoted verbatim — this is the ground truth
+  offset: [number, number];        // where in the document, so it can be re-checked
+  trust: "primary" | "secondary" | "unknown";   // official docs vs a blog post (C24: also untrusted)
+}
+
+export interface Finding {
+  claim: string;                   // one falsifiable sentence
+  evidenceIds: string[];           // ≥1, or this finding does not ship
+  confidence: number;
+  contradicts?: string[];          // other finding ids this conflicts with
+}
+
+// The subagent's whole job:
+export async function researchSubagent(sq: SubQuestion, cfg): Promise<Finding[]> {
+  const agent = runAgent(brief(sq), {
+    tools: [webSearch, fetchPage, recordEvidence],   // recordEvidence writes to the shared store
+    system: RESEARCH_SYSTEM,
+    limits: cfg.budget.limits,
+  });
+  // 40 pages read, 12 evidence spans stored, ~6 findings returned.
+  // The 40 pages never enter the orchestrator's context. That is the 100:1 (C20).
+  return (await agent).findings;
+}`,
+        }) +
+        code({ title: "the brief — objective, scope, format, non-goals (C20)",
+          src: `function brief(sq: SubQuestion): string {
+  return \`RESEARCH QUESTION: \${sq.question}
+
+WHY IT MATTERS: \${sq.why}    // how it serves the parent question
+
+SOURCES: prefer primary — official documentation, the project's own benchmarks,
+release notes, source code. Use secondary sources only to locate primary ones,
+and mark them as secondary.
+
+FOR EACH FINDING: one falsifiable sentence, plus call record_evidence with the
+EXACT quoted passage that supports it. A finding without evidence is not a finding —
+do not report it.
+
+IF YOU CANNOT FIND IT: say so explicitly and describe what you looked for. "Not
+found" is a valid and useful result. Do not infer a plausible answer.
+
+DO NOT: research \${sq.notMine.join(", ")} — other agents are covering those.
+DO NOT: compare against our own systems. Under 600 words.\`;
+}`,
+        }) +
+        note("", "\"Not found\" must be a first-class result", p(`Without that instruction, a subagent that cannot find a number will produce a plausible one, and it will be indistinguishable from a real one two phases later. Making absence reportable is the cheapest anti-hallucination measure in the system.`)) },
+
+    { id: "verify", kicker: "Verify", title: "Grounding, mechanically",
+      html:
+        p(`${ch("c11", "C11")}'s ladder says prefer checks that do not involve asking a model. For citations, that check exists and almost nobody implements it: <strong>does the claim's supporting text actually appear in the retrieved span?</strong>`) +
+        code({ title: "code/c27_research/grounding.ts",
+          src: `export type Grounding =
+  | { kind: "verbatim"; evidenceId: string }          // quoted text appears exactly
+  | { kind: "paraphrase"; evidenceId: string; overlap: number }
+  | { kind: "numeric_mismatch"; claimed: string; found: string }   // the dangerous one
+  | { kind: "none" };
+
+export function ground(claim: Finding, store: EvidenceStore): Grounding {
+  const spans = claim.evidenceIds.map((id) => store.get(id));
+
+  // 1. Numbers first. A fabricated figure beside a real citation is the failure
+  //    that destroys trust, and it is trivially checkable.
+  for (const n of numbersIn(claim.claim)) {
+    const found = spans.some((s) => numbersIn(s.span).some((m) => sameNumber(n, m)));
+    if (!found) return { kind: "numeric_mismatch", claimed: n.raw, found: allNumbers(spans) };
+  }
+
+  // 2. Quoted strings must appear verbatim.
+  for (const q of quotedIn(claim.claim)) {
+    if (!spans.some((s) => normalise(s.span).includes(normalise(q)))) return { kind: "none" };
+  }
+
+  // 3. Otherwise require substantial shingle overlap with some span.
+  const best = Math.max(...spans.map((s) => overlap(shingle(claim.claim, 4), shingle(s.span, 4))));
+  if (best >= 0.45) return { kind: "paraphrase", evidenceId: bestId, overlap: best };
+  return { kind: "none" };
+}`,
+        }) +
+        p(`Numeric checking is worth the extra twenty lines on its own. "Handles 50,000 QPS" next to a genuine citation to a page that says 5,000 is the characteristic research-agent failure, it is invisible to a human skimming, and a regex plus a comparison catches it every time.`) +
+        `<h3>Conflicts are findings, not noise</h3>` +
+        code({ title: "surface disagreement with its provenance",
+          src: `export function findConflicts(findings: Finding[], store: EvidenceStore): Conflict[] {
+  return pairsAboutSameSubject(findings)
+    .filter(([a, b]) => contradicts(a, b))           // numeric disagreement, or opposed verdicts
+    .map(([a, b]) => ({
+      subject: subjectOf(a),
+      sides: [render(a, store), render(b, store)],
+      // Resolve by SOURCE QUALITY, not by picking one (C20's exercise).
+      preferred: preferBy(["primary over secondary", "newer over older", "official over third-party"], a, b),
+      resolvable: sameTrust(a, b) ? "no" : "yes",
+    }));
+}
+// Unresolvable conflicts go in the report as conflicts. Averaging them is the
+// single worst thing a research agent can do.`,
+        }) },
+
+    { id: "report", kicker: "Report", title: "The output, and what makes it trustworthy",
+      html:
+        code({ title: "the structure", lang: "text", plain: true,
+          src: `# Vector database selection for 50M vectors
+
+## Answer
+Qdrant and Milvus both handle 50M vectors in a single cluster; Chroma does not
+claim support at this scale [1][2][3]. The decision turns on operational model
+rather than raw performance.
+
+## Assumptions made
+- "50M vectors" means 768-dimensional float32 unless stated otherwise.
+- Self-hosted deployment; managed offerings compared separately in §4.
+
+## Findings
+### Scale
+- Milvus documents deployments above 1B vectors with distributed indexing [1].
+- Qdrant documents 50M+ on a single node with quantisation enabled [2].
+- Chroma's documentation targets "millions" and gives no figure above 10M [3].
+
+### Conflict · Qdrant memory footprint
+Two sources disagree:
+- The official benchmark page reports 4.2 GB for 10M × 768 with scalar
+  quantisation (retrieved 2026-09-14) [2].
+- A third-party blog post reports 11 GB for the same configuration [7].
+Preferring [2] as primary and more recent. [7] does not state whether
+quantisation was enabled, which likely explains the gap.
+
+## Not established
+- Real-world p99 latency at 50M under concurrent writes. No primary source
+  publishes this. NEXT STEP: run the reference benchmark ourselves; it is ~2 hours.
+- Pricing for Milvus managed above 100M vectors — requires a sales conversation.
+
+## Sources
+[1] Milvus docs, "Scalability" — retrieved 2026-09-14 — primary
+    "Milvus has been deployed with over one billion vectors…"
+…`,
+        }) +
+        p(`Four things make this trustworthy rather than merely confident, and all four are structural rather than stylistic.`) +
+        ol([
+          `<strong>Every claim carries a number.</strong> Not "according to the docs" but <code>[1]</code>, which resolves to a URL, a retrieval date, and the exact quoted span.`,
+          `<strong>Assumptions are stated.</strong> The reader can correct the premise rather than discovering it was wrong at the end.`,
+          `<strong>The conflict is a section.</strong> With both sides, both sources, the preference, and, most importantly, a hypothesis about <em>why</em> they differ.`,
+          `<strong>"Not established" is a section, with next steps.</strong> This is the part that turns a report into a research plan, and it is what a demo never has.`,
         ]) +
-        note(
-          "",
-          "This requires a sandbox and a file tool",
-          p(`Skills are not an alternative to ${ch("c13", "C13")} and ${ch("c14", "C14")}; they are built on them. The mechanism is "read a file, then run something", which means the agent needs both capabilities and the security posture that comes with them. An agent with no shell cannot use skills, and an agent with an unsandboxed shell should not be reading skill folders it did not author.`)
-        ),
-    },
-    {
-      id: "mechanics",
-      kicker: "Mechanics",
-      title: "What it costs, measured",
-      html:
-        fig({
-          label: "Diagram",
-          title: "resident cost versus read-on-demand",
-          body: SKILL_SVG,
-          caption: `The left column is paid twelve times in a twelve-turn run. The right column is paid twelve times for the index and once for the body the agent actually used.`,
+        code({ title: "code/c27_research/report.ts — synthesis constraints",
+          src: `const SYNTH = \`Write the report from these findings. Rules:
+
+1. Every factual sentence must carry a citation marker. If a finding has no
+   grounded evidence, you may not state it — put it under "Not established".
+2. Do not average or split the difference on conflicting findings. Present both,
+   say which you prefer and why, and hypothesise the cause of the difference.
+3. State the assumptions from the scoping phase verbatim.
+4. "Not established" is a required section. If it is empty, you have not looked
+   hard enough — say what you checked to be confident it is empty.
+5. Use only the findings supplied. You have no other knowledge for this report.\`;
+
+// Then verify the output mechanically, before returning it:
+const unsupported = ungroundedSentences(report, claims);
+if (unsupported.length) throw new SynthesisError(unsupported);   // regenerate, do not ship`,
         }) +
-        `<h3>Forty skills, three strategies</h3>` +
-        table(
-          ["Strategy", "Resident", "On use", "×12 turns", "Selection"],
-          [
-            ["all schemas resident", "10,518", "0", "126,216", "39%"],
-            ["names + descriptions", "534", "253", "6,661", "47%"],
-            ["names + read the file", "534", "154", "6,562", "47%"],
-          ]
-        ) +
-        p(`Nineteen times the tokens for the same forty capabilities. The selection column moves too, and for the reason ${ch("c03", "C03")} gave: the model is choosing among forty named things instead of the eighty-odd individual tool schemas those skills contain, and fewer, better-separated options select better.`) +
-        `<h3>The break-even that is not there</h3>` +
-        p(`The obvious objection is that progressive disclosure must lose once the agent uses enough skills, because each one costs an extra read. It does not, and the table is worth staring at:`) +
-        table(
-          ["Skills used in the run", "All resident", "Progressive"],
-          [
-            ["1", "126,216", "6,536"],
-            ["3", "126,216", "6,827"],
-            ["8", "126,216", "7,589"],
-            ["20", "126,216", "9,452"],
-            ["<b>40 — every skill in the catalogue</b>", "<b>126,216</b>", "<b>12,484</b>"],
-          ]
-        ) +
-        p(`Reading every skill you have still costs a tenth of holding them resident, because a body is read once and a schema is re-sent on every turn. There is no crossover. The only configuration where residency wins is a catalogue of one.`) +
-        `<h3>The cost that is real</h3>` +
-        ul([
-          `<strong>A round trip.</strong> The agent reads the skill, then acts, so every first use of a skill costs one extra turn. On a twelve-turn task that is eight percent more latency for the turn it happens on, and it happens once per skill per run.`,
-          `<strong>A chance to choose wrong.</strong> The model commits based on one line. If the line is bad it reads the wrong file, discovers the mistake, and reads another — recoverable, but it has now spent two round trips. The description is doing the work the whole tool schema used to do, so it has to be better, not shorter.`,
-          `<strong>A dependency on the agent following instructions.</strong> "Read SKILL.md before using a skill" is a prompt instruction, not a guard. Models mostly comply and occasionally guess at a skill's interface from its name. If that guess is expensive, make the skill's entry point refuse to run without a flag that only the SKILL.md mentions.`,
-        ]),
-    },
-    {
-      id: "explore",
-      kicker: "Explore",
-      title: "Find the size where residency stops being defensible",
+        note("good", "Rule 5 matters more than it looks", p(`"Use only the findings supplied" moves the model from recall to composition. Model knowledge is frequently right, frequently stale, and never citable, and a report that mixes cited findings with uncited recall is exactly as untrustworthy as one with no citations, because the reader cannot tell which is which.`)) },
+
+    { id: "explore", kicker: "Explore", title: "Tune the research agent",
       html:
-        p(`Everything here is a trade between what is resident and what is read. Move the catalogue size and the run length and watch which side of the line you are on.`) +
-        lab({
-          label: "Simulator",
-          title: "resident schemas versus progressive disclosure",
+        p(`Configure the agent and see the trade-off between depth, cost, and how much of the report is actually checkable.`) +
+        lab({ label: "Simulator", title: "research configuration",
           body: `
 <div class="controls">
-  <div class="ctl"><label>capabilities</label>
-    <input type="range" id="k27-n" min="1" max="120" step="1" value="40">
-    <span class="val" id="k27-n-v">40</span></div>
-  <div class="ctl"><label>turns in the run</label>
-    <input type="range" id="k27-turns" min="1" max="40" step="1" value="12">
-    <span class="val" id="k27-turns-v">12</span></div>
-  <div class="ctl"><label>used in the run</label>
-    <input type="range" id="k27-used" min="0" max="20" step="1" value="2">
-    <span class="val" id="k27-used-v">2</span></div>
-  <div class="ctl"><label>tokens per schema</label>
-    <input type="range" id="k27-size" min="60" max="600" step="10" value="260">
-    <span class="val" id="k27-size-v">260</span></div>
+  <div class="ctl"><label>sub-questions</label><input type="range" id="d23-q" min="1" max="12" step="1" value="5"><span class="val" id="d23-q-v">5</span></div>
+  <div class="ctl"><label>sources per sub-question</label><input type="range" id="d23-s" min="2" max="25" step="1" value="8"><span class="val" id="d23-s-v">8</span></div>
+  <div class="ctl"><label>architecture</label><select id="d23-a"><option value="single">single agent</option><option value="orch" selected>orchestrator + subagents</option></select></div>
+  <div class="ctl"><label>grounding</label><select id="d23-g"><option value="none">none (trust the model)</option><option value="judge">LLM judge</option><option value="mech" selected>mechanical + numeric</option></select></div>
+  <div class="ctl"><label>re-gather unsupported claims</label><select id="d23-r"><option value="0">no</option><option value="1" selected>yes (1 round)</option></select></div>
 </div>
-<div id="k27-verdict" class="note" style="margin-top:0"></div>
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:1rem;margin-top:1rem">
-  <div>
-    <div class="pt" style="font:600 .6875rem var(--font-mono);color:var(--fg-faint);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.3rem">all resident</div>
-    <div class="meter"><i id="k27-rbar" style="width:0%;background:var(--danger)"></i></div>
-    <div class="mono small muted" id="k27-rv">—</div>
-  </div>
-  <div>
-    <div class="pt" style="font:600 .6875rem var(--font-mono);color:var(--fg-faint);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.3rem">progressive</div>
-    <div class="meter"><i id="k27-pbar" style="width:0%"></i></div>
-    <div class="mono small muted" id="k27-pv">—</div>
-  </div>
-</div>
+<div id="d23-rows" style="margin-top:.5rem"></div>
 <div class="stats">
-  <div class="stat"><b id="k27-ratio">—</b><span>token ratio</span></div>
-  <div class="stat"><b id="k27-sel-r">—</b><span>select · resident</span></div>
-  <div class="stat"><b id="k27-sel-p">—</b><span>select · skills</span></div>
-  <div class="stat"><b id="k27-extra">—</b><span>extra turns</span></div>
-</div>`,
+  <div class="stat"><b id="d23-cost">—</b><span>$ / report</span></div>
+  <div class="stat"><b id="d23-time">—</b><span>wall clock</span></div>
+  <div class="stat"><b id="d23-tok">—</b><span>tokens in orchestrator ctx</span></div>
+</div>
+<div class="note" id="d23-note" style="margin-top:1rem"></div>`,
           script: `
-var n = document.getElementById("k27-n"), turns = document.getElementById("k27-turns");
-var used = document.getElementById("k27-used"), size = document.getElementById("k27-size");
+function upd() {
+  var Q = +document.getElementById("d23-q").value, S = +document.getElementById("d23-s").value,
+      A = document.getElementById("d23-a").value, G = document.getElementById("d23-g").value,
+      R = document.getElementById("d23-r").value === "1";
+  document.getElementById("d23-q-v").textContent = Q;
+  document.getElementById("d23-s-v").textContent = S;
 
-function accuracy(options, perOption) {
-  var crowding = 1 / (1 + Math.pow(options / 22, 2.1));
-  var legibility = Math.min(1, 0.55 + 0.45 * Math.min(1, perOption / 26));
-  return Math.max(0.05, Math.min(0.985, 0.35 + 0.65 * crowding * legibility));
+  var pages = Q * S, pageTok = 2600;
+  var orchTok = A === "orch" ? 6000 + Q * 900 : 6000 + pages * pageTok * 0.55;
+  var totalTok = pages * pageTok + orchTok * (A === "orch" ? 1 : Q * 0.4);
+  var wall = A === "orch" ? 18 + S * 2.1 + Q * 1.2 : 12 + pages * 2.4;
+
+  var coverage = Math.min(.97, 1 - Math.exp(-Q / 3.4));
+  var depth = Math.min(.96, 1 - Math.exp(-S / 5.5));
+  var hallucRate = G === "none" ? .17 : G === "judge" ? .08 : .015;
+  if (R && G !== "none") hallucRate *= .45;
+  var checkable = G === "none" ? .35 : G === "judge" ? .72 : .97;
+  var quality = Math.max(.1, coverage * .4 + depth * .35 + (1 - hallucRate) * .25);
+
+  var rows = [["question coverage", coverage], ["depth per sub-question", depth],
+              ["claims traceable to a span", checkable], ["overall usefulness", quality]];
+  document.getElementById("d23-rows").innerHTML = rows.map(function (x) {
+    var col = x[1] > .85 ? "var(--ok)" : x[1] > .6 ? "var(--accent)" : "var(--danger)";
+    return '<div style="display:flex;gap:.6rem;align-items:center;margin:.3rem 0">' +
+      '<span class="mono small" style="width:14rem;color:var(--fg-muted)">' + x[0] + '</span>' +
+      '<span class="meter" style="flex:1"><i style="width:' + (x[1] * 100) + '%;background:' + col + '"></i></span>' +
+      '<span class="mono small" style="width:3rem;text-align:right">' + Math.round(x[1] * 100) + '%</span></div>';
+  }).join("") +
+    '<div style="display:flex;gap:.6rem;align-items:center;margin:.3rem 0">' +
+    '<span class="mono small" style="width:14rem;color:var(--fg-muted)">unsupported claims shipped</span>' +
+    '<span class="meter" style="flex:1"><i style="width:' + (hallucRate * 300) + '%;background:var(--danger)"></i></span>' +
+    '<span class="mono small" style="width:3rem;text-align:right">' + (hallucRate * 100).toFixed(1) + '%</span></div>';
+
+  document.getElementById("d23-cost").textContent = "$" + (totalTok * 3 / 1e6 + Q * S * .0004).toFixed(2);
+  document.getElementById("d23-time").textContent = Math.round(wall) + "s";
+  document.getElementById("d23-tok").textContent = Math.round(orchTok).toLocaleString();
+
+  var n = document.getElementById("d23-note");
+  if (A === "single") n.innerHTML = "<b>Single agent.</b> Look at the orchestrator-context figure: every page read stays in one context and is re-sent on every subsequent turn. Wall clock is serial too. This is the case C20 was built for.";
+  else if (G === "none") n.innerHTML = "<b>No grounding.</b> 17% of claims are unsupported — and they are indistinguishable from the rest, because they arrive with the same confident tone next to real citations. This is the demo that impresses people and cannot be used.";
+  else if (G === "judge") n.innerHTML = "<b>LLM judge grounding.</b> Better, and it shares the writer's blind spots and costs a call per claim. Mechanical checking of numbers and quoted strings is cheaper AND more reliable — this is C11's ladder in one comparison.";
+  else if (Q > 8 && S > 15) n.innerHTML = "<b>Very deep.</b> Excellent coverage at real cost and several minutes of wall clock. Worth it for a decision that matters; check whether the marginal sub-question is still adding findings or just confirming.";
+  else n.innerHTML = "<b>A good configuration.</b> Parallel subagents keep the orchestrator context small, mechanical grounding makes nearly every claim checkable, and re-gathering rescues most of what failed verification.";
 }
+["d23-q","d23-s","d23-a","d23-g","d23-r"].forEach(function (i) {
+  document.getElementById(i).addEventListener("input", upd); document.getElementById(i).addEventListener("change", upd); });
+upd();`,
+          caption: `Set grounding to "none" and read the unsupported-claims bar, then switch to mechanical. The cost barely moves. That comparison is the entire argument for building the grounding layer.`,
+        }) },
 
-function run() {
-  var N = +n.value, T = +turns.value, U = Math.min(+used.value, N), S = +size.value;
-  document.getElementById("k27-n-v").textContent = N;
-  document.getElementById("k27-turns-v").textContent = T;
-  document.getElementById("k27-used-v").textContent = U;
-  document.getElementById("k27-size-v").textContent = S;
-
-  var LINE = 13, BODY = 150;
-  var resident = N * S * T;
-  var progressive = N * LINE * T + U * BODY;
-
-  document.getElementById("k27-rv").textContent = Math.round(resident).toLocaleString() + " tok";
-  document.getElementById("k27-pv").textContent = Math.round(progressive).toLocaleString() + " tok";
-  var mx = Math.max(resident, progressive);
-  document.getElementById("k27-rbar").style.width = (resident / mx * 100) + "%";
-  document.getElementById("k27-pbar").style.width = (progressive / mx * 100) + "%";
-
-  var ratio = resident / Math.max(1, progressive);
-  document.getElementById("k27-ratio").textContent = ratio >= 1 ? ratio.toFixed(1) + "×" : ratio.toFixed(2) + "×";
-  document.getElementById("k27-sel-r").textContent = (accuracy(N * 2, S / 8) * 100).toFixed(0) + "%";
-  document.getElementById("k27-sel-p").textContent = (accuracy(N, LINE) * 100).toFixed(0) + "%";
-  document.getElementById("k27-extra").textContent = "+" + U;
-
-  var v = document.getElementById("k27-verdict");
-  if (N === 1) v.innerHTML = "<b>One capability: just use a tool.</b> Skills exist to keep a catalogue off the context budget. With a catalogue of one there is nothing to keep off, and you have added a round trip for nothing.";
-  else if (T === 1) v.innerHTML = "<b>A single-turn run is the one honest case for residency.</b> Nothing is re-sent, so the schemas are paid once — and the skill still has to be read. Almost no agent task is one turn, which is why this configuration is hard to find in practice.";
-  else if (ratio > 8) v.innerHTML = "<b>Not close.</b> At " + N + " capabilities over " + T + " turns the resident schemas cost " + ratio.toFixed(0) + "× what the skills do. The catalogue is being re-sent " + T + " times to support " + U + " actual uses.";
-  else if (ratio > 1.5) v.innerHTML = "<b>Skills win, comfortably.</b> Worth noting <em>why</em>: it is the turn count doing the work, not the catalogue size. Drag turns down and watch the advantage shrink far faster than it does when you drag capabilities down.";
-  else v.innerHTML = "<b>Close enough that it is a judgement call.</b> Small catalogue, short run. Pick on latency instead: residency costs no extra round trips, and at this scale that is the difference that will be felt.";
-}
-[n, turns, used, size].forEach(function (el) { el.addEventListener("input", run); });
-run();`,
-          caption: `Set capabilities to 1 — skills lose, and should. Then set turns to 1, which is the only other configuration where residency competes. Everything between those two corners belongs to progressive disclosure, and the variable driving it is the turn count rather than the catalogue size.`,
-        }),
-    },
-    {
-      id: "build",
-      kicker: "Build it",
-      title: "Discovery, the index, and the read",
+    { id: "build", kicker: "Build it", title: "Milestones",
       html:
-        p(`The implementation is three small functions and a convention. Nothing about it is clever, which is the point — a skill is a folder, and the agent already knows how to read folders.`) +
-        code({
-          title: "code/c27_skills.ts — the index that goes in the prompt",
-          src: `export interface Skill {
-  name: string;
-  /** The one line that goes in the system prompt. */
-  description: string;
-  /** The body the agent reads only after committing to the skill. */
-  body: string;
-  /** Tool schemas the skill brings with it, as JSON Schema text. */
-  schemas: string[];
-}
+        p(`Build it in six passes. Each is runnable, and each adds one chapter's mechanism to a system that already works.`) +
+        table(["#", "Milestone", "Chapters", "Done when"], [
+          ["1", "Single-agent researcher with search and fetch", "C01–C04", "It answers a simple question with a bare list of URLs"],
+          ["2", "Evidence store and citations", "C03, C06", "Every claim carries a quoted span and a URL"],
+          ["3", "Plan and parallel subagents", "C10, C20", "5 sub-questions researched concurrently; orchestrator context stays under 15K"],
+          ["4", "Mechanical grounding and re-gather", "C11", "Numeric mismatches caught; unsupported claims become new sub-questions"],
+          ["5", "Budgets, degradation, durability", "C09, C13", "Kill it mid-run: it resumes; exhaust the budget: it reports partially"],
+          ["6", "Eval suite and tracing", "C22, C23", "20 questions with known answers; per-claim grounding rate reported"],
+        ]) +
+        code({ title: "run it", lang: "bash", plain: true,
+          src: `node --experimental-strip-types code/c27_research/main.ts
 
-// Discovery: every directory under skills/ with a parseable SKILL.md.
-// Front matter supplies name and description; a folder missing either is
-// skipped rather than half-registered, because a skill with no description
-// is a skill the model cannot choose deliberately.`,
-        }) +
-        p(`The accounting in the file separates the two costs that behave differently, which is the whole analysis:`) +
-        code({
-          title: "the two costs",
-          src: `export const STRATEGIES: Strategy[] = [
-  {
-    name: "all schemas resident",
-    // Every tool of every skill, in the system prompt, on every single call.
-    resident: (ss) => ss.reduce((n, s) => n + s.schemas.reduce((m, x) => m + tokens(x), 0), 0),
-    onUse: () => 0,
-    extraTurns: 0,
-  },
-  {
-    name: "names + read the file",
-    // Same index, but the body is read with an existing file tool, so the
-    // schemas never need to exist as schemas at all.
-    resident: (ss) => ss.reduce((n, s) => n + tokens(\`- \${s.name}: \${s.description}\`), 0),
-    onUse: (s) => tokens(s.body),
-    extraTurns: 1,
-  },
-];
-
-// Resident tokens are re-sent every turn (C01); the skill body is read once.
-const total = resident * TURNS + onUse;`,
-        }) +
-        code({
-          title: "run it",
-          lang: "bash",
-          plain: true,
-          src: `node --experimental-strip-types code/c27_skills.ts
-
-#   C27 · 40 skills, three ways to offer them
+#   C27 · Capstone I — Deep Research Agent
 #
-#   strategy                 resident   on use   ×12 turns   select
-#   ------------------------ ---------- -------- ----------- ------
-#   all schemas resident          10518        0      126216    39%
-#   names + descriptions            534      253        6661    47%
-#   names + read the file           534      154        6562    47%
+#   question: Which vector database for 50M vectors, and what are the operational trade-offs?
 #
-#   19× the tokens over a 12-turn run, for the same forty capabilities.
-#   The resident column is the one that matters: it is paid on every turn
-#   whether or not a skill is used, and 40 skills of schemas is more
-#   context than most agents spend on the actual task.
+#   scope       1 call · 0 clarifications · 2 assumptions recorded
+#   plan        3 sub-questions, 1 wave(s)
+#   gather      3 subagents · 18 pages fetched · 6 evidence spans stored
+#               orchestrator context: 6,156 tok   (single-agent equivalent: 46,800)
+#   verify      7 claims · 6 verbatim · 1 numeric_mismatch
+#               ✗ NUMERIC MISMATCH — claimed "120000", sources contain 50 million, 768, 4.2 gb
+#                 "Qdrant sustains 120,000 queries per second on a single node."
+#   re-gather   1 unsupported claim(s) → 1 bounded round → 1 still unsupported → "Not established"
+#   synthesise  1 call · 1 conflict(s) surfaced · 2 gap(s) with next steps
 #
-#   What the agent sees before it has chosen anything:
+#   ──────────────────────────────────────────────────────────────────────────────
+#   # Which vector database for 50M vectors, and what are the operational trade-offs?
 #
-#     - merge_pdfs: merge pdfs — for documents.
-#     - split_pdf: split pdf — for documents.
-#     - fill_pdf_form: fill pdf form — for documents.
-#     … 37 more, one line each
+#   ## Assumptions made
+#   - "50M vectors" means 768-dimensional float32 unless stated otherwise.
+#   - Self-hosted deployment; managed offerings are out of scope.
 #
-#   And after it commits to plot_timeseries:
+#   ## Findings
+#   - Milvus has been deployed with over one billion vectors using distributed indexing across a cluster. [1]
+#   - A single node holds 50 million 768-dimensional vectors with scalar quantisation enabled, using 4.2 GB of RAM. [2]
+#   - In our tests Qdrant used 11 GB for 10 million vectors at 768 dimensions. [3]
+#   - Chroma is designed for collections in the millions of embeddings. Larger deployments are not currently supported. [4]
+#   - A production Milvus cluster requires etcd, MinIO or S3, and Pulsar or Kafka as dependencies. [5]
+#   - Qdrant runs as a single binary with no external dependencies. Clustering is optional. [6]
 #
-#     # plot_timeseries
-#
-#     ## When to use
-#     Use this when the task involves plot timeseries and the workspace
-#     already contains the inputs it needs.
-#
-#     ## Steps
-#     …
-#
-#   Break-even, 40 skills over 12 turns:
+#   ## Conflicts
+#   ### scale
+#   - A single node holds 50 million 768-dimensional vectors with scalar quantisation enabled, using 4.2 GB of RAM. — Qdrant — Benchmarks, 2026-09-14 (primary) [2]
 # …
-#   when the catalogue is large — it is cheaper at every size above one.`,
+#     ├ researcher[pricing]    1 calls     15,600 in      380 out  $0.0525`,
         }) +
-        note(
-          "good",
-          "Writing a skill is writing documentation",
-          p(`The best thing about this pattern is what it does to the authoring experience. A tool description is a cramped field you are reluctant to grow. A <code>SKILL.md</code> is a document — you write the "when not to use" section, the failure modes and the gotcha about encrypted files, because there is no budget pressure telling you not to. The capability gets better because the format stopped punishing detail.`)
-        ),
-    },
-    {
-      id: "production",
-      kicker: "Production notes",
-      title: "Field notes",
-      html:
-        ul([
-          `<strong>Claude Code and pi both ship this.</strong> Both discover skills from directories, both put a name and description in the prompt, both expect the agent to read the file before acting. Convergent design across independent implementations is the strongest signal available that a shape is right, and it matches the Manning course's <code>SKILL.md</code> treatment almost line for line.`,
-          `<strong>Scope skills the way you scope config.</strong> Personal, project and organisation-level directories, resolved in that order with the nearest winning. This is ${ch("c07", "C07")}'s memory scoping applied to capabilities, and it has the same failure mode: a skill that should have been personal leaking into a shared context, or a project skill silently overriding an org one nobody knew existed.`,
-          `<strong>A skill folder is executable content, so it is a supply chain.</strong> ${ch("c21", "C21")} covers this for project config, and skills are the sharpest instance: a <code>SKILL.md</code> is instructions the model will follow, and the scripts beside it are code it will run. Cloning a repository with a skills directory and pointing an agent at it is an install, not a read. Review third-party skills the way you would review a dependency.`,
-          `<strong>Measure first-use rate, not just usage.</strong> ${ch("c20", "C20")} should tell you how often a skill is read and then <em>not</em> used, which is the signal that its description promises the wrong thing. A skill read in 40% of runs and used in 5% is a description bug, and it is invisible if you only count invocations.`,
-          `<strong>Do not convert every tool into a skill.</strong> The pattern pays for capabilities that are occasional, documented and self-contained. The four tools the agent uses on every single task should stay resident — they are paid on every turn either way, and making the agent read a file first just adds a round trip to the hot path.`,
-        ]),
-    },
+        note("warn", "The milestone people skip", p(`Number 5. It is unglamorous and it is what separates a script from a tool: a four-minute research run that loses everything to a laptop sleeping, or that returns nothing when the budget runs out, will not get used twice.`)) },
   ],
 
   exercises: [
-    {
-      difficulty: "warm-up",
-      prompt: `The break-even table shows progressive disclosure winning even when the agent uses all forty skills. Explain why, in one sentence, using ${ch("c01", "C01")}'s billing rule.`,
-      answer:
-        p(`A resident schema is re-sent on every turn of the run, so forty schemas over twelve turns are billed four hundred and eighty times; a skill body is read once and then sits in the transcript like any other tool result, so forty bodies are billed forty times plus their own re-sends from the point they were read.`) +
-        p(`The general form is worth keeping: <strong>residency multiplies by turns, reading multiplies by uses.</strong> Since turns exceed uses in almost every real task, the asymmetry is structural rather than a matter of tuning.`),
-    },
-    {
-      difficulty: "core",
-      prompt: `Write the <code>SKILL.md</code> for a capability you have shipped as a tool, and name three things you put in it that would never have fitted in a tool description.`,
-      answer:
-        p(`The exercise is the point rather than the artefact, so here is the shape and the three categories that reliably appear.`) +
-        code({
-          title: "the shape",
-          lang: "text",
-          plain: true,
-          src: `---
-name: query_warehouse
-description: Run read-only SQL against the analytics warehouse.
----
+    { difficulty: "core",
+      prompt: `Your agent reports "Qdrant handles 50M vectors on a single node" citing a page that actually says "Qdrant handles millions of vectors". Which check catches this, and why is it better than an LLM judge?`,
+      answer: p(`The numeric check. <code>numbersIn(claim)</code> yields <code>50,000,000</code>; <code>numbersIn(span)</code> yields nothing comparable; the grounding is <code>numeric_mismatch</code>, and the claim cannot ship.`) +
+        p(`<strong>Why it beats a judge:</strong> it is deterministic, it costs nothing, and it does not share the writer's blind spot. A judge reading "handles millions" and "handles 50M" has to decide whether one entails the other, and it will often say yes, because in loose prose it nearly does. The regex does not have an opinion.`) +
+        p(`Extend it in three directions, all cheap: <strong>units</strong> (5 GB vs 5 MB), <strong>magnitude words</strong> ("millions" is not a number but bounds one, so a claim of 50M against "millions" without a figure should be flagged as <em>unbounded</em>), and <strong>dates</strong> (a claim about "the current version" citing a 2019 page). Each is a small function and each catches a failure a reader would not notice.`) },
 
-## When not to use
-Anything needing today's data — the warehouse lags by up to 6 hours.
-Use the operational read-replica skill for anything time-sensitive.
+    { difficulty: "core",
+      prompt: `Two subagents return contradictory memory figures for the same configuration. Write the code path and the report text.`,
+      answer: code({ title: "prefer by source quality, never by averaging",
+        src: `const conflict = {
+  subject: "qdrant memory, 10M × 768, scalar quantisation",
+  sides: [
+    { value: "4.2 GB", evidence: e2, trust: "primary",   retrievedAt: "2026-09-14" },
+    { value: "11 GB",  evidence: e7, trust: "secondary", retrievedAt: "2024-03-02" },
+  ],
+};
 
-## Steps
-1. Check the schema first: \`python scripts/describe.py <table>\`.
-2. Queries are killed at 30s. Add a LIMIT while exploring.
-3. Results over 1000 rows are written to results.csv, not returned.
+// 1. Mechanical preference: primary beats secondary, newer beats older.
+const preferred = byRules(conflict.sides, ["primary>secondary", "newer>older"]);
 
-## Notes
-- event_time is UTC; every other timestamp column is local. This has
-  caused three incidents.
-- The orders table has soft deletes. Filter deleted_at IS NULL or your
-  numbers will be quietly wrong rather than obviously wrong.`,
-        }) +
-        ul([
-          `<strong>Negative guidance with a reason.</strong> "Not for today's data, because it lags six hours" needs a clause and a justification. In a tool description it competes for space with the arguments and usually loses.`,
-          `<strong>Operational limits.</strong> The 30-second kill and the 1000-row spill are things the agent discovers by failing. Documented, they cost nothing; undocumented, they cost a wasted turn each.`,
-          `<strong>Domain traps.</strong> Soft deletes and mixed timezones are exactly the knowledge that makes the difference between a right answer and a plausible one, and they are the first thing cut when a description has to be short.`,
-        ]),
-    },
-    {
-      difficulty: "core",
-      prompt: `An agent reads <code>merge_pdfs/SKILL.md</code> in 40% of runs but actually merges a PDF in 5%. Diagnose it, and say what you would change.`,
-      answer:
-        p(`The description is promising something it does not deliver. The model is committing a round trip on the strength of one line, discovering the skill is not what it wanted, and moving on — so the cost is real and the benefit is not.`) +
-        p(`Three candidate causes, in the order worth checking:`) +
-        ul([
-          `<strong>The name is broader than the capability.</strong> "merge_pdfs" reads as the general document-combining skill, so it gets opened for "combine these reports" when the reports are Word files. Fix by narrowing the description rather than the name: <em>merge PDF files specifically; does not convert other formats</em>.`,
-          `<strong>A neighbouring skill is missing.</strong> If there is no <code>convert_to_pdf</code>, the model reaches for the nearest thing. The read is rational; your catalogue has a hole, and the 35% gap is telling you where.`,
-          `<strong>The description is the whole interface and it is too short.</strong> ${ch("c03", "C03")}'s "when not to use" clause matters more here than in a tool schema, because there is no schema underneath to disambiguate. One line naming what it refuses usually closes most of the gap.`,
+// 2. If both sides are equally strong, do NOT pick. Escalate to a targeted
+//    sub-question: "what accounts for the difference between X and Y?"
+if (!preferred) plan.addSubQuestion(explainDifference(conflict));
+
+// 3. Either way, the conflict appears in the report. It is never resolved silently.` }) +
+      p(`<strong>Report text:</strong>`) +
+      code({ title: "", lang: "text", plain: true,
+        src: `### Conflict · Qdrant memory footprint
+Sources disagree on memory for 10M × 768 with scalar quantisation:
+- 4.2 GB — Qdrant's own benchmark page, retrieved 2026-09-14 [2] (primary)
+- 11 GB — third-party blog post, published 2024-03-02 [7] (secondary)
+
+Preferring [2]: primary source, and 30 months newer. [7] does not state whether
+quantisation was enabled, which would account for roughly the observed difference.
+If this figure is load-bearing for your decision, measure it — the benchmark is
+published and takes about 20 minutes to reproduce.` }) +
+      p(`The last sentence is the part that makes a conflict section useful rather than merely honest: it tells the reader what it would cost to settle it.`) },
+
+    { difficulty: "stretch",
+      prompt: `Design the eval suite for a research agent. Ground truth is expensive and the output is long-form. How do you measure quality without grading essays?`,
+      answer: p(`Decompose the essay into checkable properties. Four layers, none of which requires anyone to grade prose:`) +
+        ol([
+          `<strong>Grounding rate — free, on every run.</strong> The fraction of factual sentences with verifiable grounding, computed mechanically. This is your primary quality metric and it needs no reference answer at all. Track it per run and alert on drops.`,
+          `<strong>Known-answer questions.</strong> 20 questions whose answer is a specific checkable fact you have verified by hand ("what is the default HNSW <code>ef_construct</code> in Qdrant?"). Programmatic check on the answer, plus a check that the citation points at a page that really contains it. Cheap to grade, and it catches retrieval and grounding regressions together.`,
+          `<strong>Planted-gap questions.</strong> Questions where one sub-answer genuinely does not exist publicly. The agent passes if it reports it under "Not established" and fails if it invents one. This is the most valuable category and it is almost never built. It directly measures the failure that matters.`,
+          `<strong>Coverage against a reference outline.</strong> For 10 questions, write by hand the 5–8 aspects a good report must address. Score the fraction covered by checking for the presence of claims about each aspect. Mechanical, stable, and it measures completeness without judging style.`,
         ]) +
-        p(`The measurement itself is the lesson: ${ch("c20", "C20")} should record skill reads separately from skill uses. Counting only invocations makes this failure invisible, and it is the most common way a skill catalogue degrades.`),
-    },
-    {
-      difficulty: "stretch",
-      prompt: `Design skill scoping across personal, project and organisation directories. Handle precedence, name collisions, and the security question of a project skill shadowing an org one.`,
-      answer:
-        p(`Resolution is the easy half and the security question is the real one.`) +
-        code({
-          title: "resolution",
-          lang: "text",
-          plain: true,
-          src: `~/.agent/skills/          personal    — highest precedence
-./.agent/skills/          project     — middle
-/etc/agent/skills/        org         — lowest, but see below
-
-Same name at two levels: the nearer one wins and the shadowing is
-recorded, not silent. The index shown to the model lists each name once.`,
-        }) +
-        ul([
-          `<strong>Precedence must be visible.</strong> A project skill silently overriding an org one is how a team ends up running a different <code>deploy</code> than they think. Log the shadowing at load, and surface it in the index the model sees: <em>deploy (project; overrides org)</em>.`,
-          `<strong>Some skills must not be shadowable.</strong> Anything the organisation ships for compliance — an approval wrapper, an audit logger, a redaction step — should be markable as final. A project directory that tries to shadow one gets a load error rather than a quiet win. This is a policy decision encoded in code, which is ${ch("c16", "C16")}'s argument about not trusting a setting a tired user can flip.`,
-          `<strong>Project skills are untrusted by default.</strong> They arrive with the repository, so they are ${ch("c21", "C21")}'s first circle: instructions the model will follow, and scripts it will run, authored by whoever wrote the repo. Load them only inside a trusted workspace, and treat enabling them as the same decision as enabling a project's build hooks — because mechanically it is.`,
-        ]) +
-        p(`The subtle one: an attacker who can add a file to a repository can add a skill whose description is attractive for a common task and whose body instructs the agent to do something else. The defence is not scanning the body, which is a losing game; it is that project skills only load in a workspace someone has trusted, and that a skill cannot shadow a protected name.`),
-    },
+        p(`<strong>Plus trajectory metrics from ${ch("c22", "C22")}:</strong> sources fetched per finding (rising means inefficient searching), re-gather rate (rising means the first pass is getting worse), conflicts surfaced per report (falling to zero is suspicious — real research finds disagreements).`) +
+        p(`<strong>What to reserve for humans:</strong> twenty minutes a week reading two reports end to end. That is the only layer that catches problems nobody encoded — a report technically grounded and practically useless, a structure that buries the answer, a tone that overstates confidence. Everything else measures what you already knew to look for.`) },
   ],
 
   qa: [
-    {
-      q: "Is a skill just a prompt fragment with extra steps?",
-      a: p(`Partly, and the extra steps are what make it useful. A prompt fragment you inject is resident and unconditional; a skill is read when chosen, so it can be ten times longer for a tenth of the cost. And a skill is a folder, so it can carry scripts, templates and fixtures that a prompt fragment cannot. The mechanism is unremarkable — that is a feature, since it means an agent with a shell already supports it.`),
-    },
-    {
-      q: "What stops the agent using a skill without reading it?",
-      a: p(`Nothing structural, and you should assume it will occasionally guess from the name. Mostly that is harmless; where it is not, make the entry point refuse. A script that requires a flag documented only in the SKILL.md turns a guess into a clear error rather than a wrong result, and the error is an observation the agent recovers from (${ch("c03", "C03")}).`),
-    },
-    {
-      q: "Skills or MCP?",
-      a: p(`Different problems. ${ch("c15", "C15")} standardises how a tool gets to your agent across a process boundary; skills change what it costs to have a capability available before it is used. They compose — an MCP server's tools can be wrapped as a skill so their schemas stop being resident, which is a reasonable answer to the "one server, forty tools" problem that chapter raises.`),
-    },
-    {
-      q: "How many skills is too many?",
-      a: p(`The token answer is that there is no practical limit; the selection answer is that you are back to ${ch("c03", "C03")}'s curve, just with cheaper options. At a few hundred one-line entries the index itself becomes a crowded registry and the model starts picking badly. At that scale, group them: a short index of categories, and a skill per category that lists its own members. That is the same progressive disclosure one level up, and it is what hierarchical tool structures are.`),
-    },
-    {
-      q: "Does this work without a sandbox?",
-      a: p(`Not safely. The mechanism is read-a-file-then-run-something, which needs ${ch("c13", "C13")} and ${ch("c14", "C14")} underneath it. You could implement a read-only variant where skills contain instructions but no executables, and it would still pay for itself on the token accounting — but the version worth having ships scripts, and shipping scripts means running them.`),
-    },
+    { q: "How many sub-questions is right?", a: p(`Three to seven for most questions. Below three you have not decomposed; above seven you are usually splitting one question into overlapping pieces, and the subagents duplicate each other's searches. The simulator's coverage curve flattens around five: the marginal sub-question confirms rather than discovers.`) },
+    { q: "Should subagents be able to search the same sources?", a: p(`Yes, and the shared evidence store makes it cheap: a page already fetched is a cache hit rather than a duplicate fetch. What you want to avoid is overlapping <em>questions</em>, which the brief's explicit non-goals handle.`) },
+    { q: "What about paywalled or login-required sources?", a: p(`Report them as identified-but-inaccessible under "Not established", with the URL. That is genuinely useful, because the reader may have access. Silently omitting them makes the report look more complete than it is, which is the same failure as inventing an answer.`) },
+    { q: "Can I use a smaller model for the subagents?", a: p(`Usually yes, and it is the right cost split. Subagent work is search, read, extract, so it benefits from speed more than from depth. Keep the capable model for decomposition and synthesis, which is where the reasoning is hardest and the token count is lowest.`) },
+    { q: "How does this interact with prompt injection?", a: p(`Directly: the agent reads arbitrary web pages and produces a report a human acts on. It is untrusted content plus an output channel (${ch("c24", "C24")}). Keep it away from private data, sanitise the report for images and suspicious links, and treat page content as untrusted throughout, which the evidence-span design already helps with, since only quoted spans cross into synthesis.`) },
   ],
 
   project: {
-    title: "Project · Convert a tool surface into a skill catalogue",
+    title: "Capstone I · Deep Research Agent",
     brief:
-      p(`Take an agent with a dozen or more tools and move the occasional ones behind skills. Then measure the two things that decide whether it was worth it: resident tokens per turn, and how often a skill is read without being used.`),
+      p(`Build the complete system. Choose a domain where you can verify the answers yourself — a technology comparison, a regulatory question, a literature summary — because you will need to judge whether it is right.`) +
+      p(`Work through the six milestones. Each one is shippable; do not skip ahead to the interesting part, because the value of this capstone is watching the earlier chapters become necessary one at a time.`),
     spec: [
-      "A <code>skills/</code> directory where each skill is a folder with a <code>SKILL.md</code> carrying <code>name</code> and <code>description</code> front matter.",
-      "Discovery that skips folders missing either field, loudly rather than silently, and a generated index of one line per skill in the system prompt.",
-      "The four tools used on nearly every task stay resident; everything occasional moves behind a skill.",
-      "At least one skill that ships a script beside its <code>SKILL.md</code>, invoked from the documented steps.",
-      "Instrumentation recording skill reads and skill uses as separate events, with the ratio reported per skill.",
-      "A before/after measurement of resident tokens per turn and total tokens for a representative task.",
+      "Scoping with a clarification gate that fires rarely and records assumptions in the report instead.",
+      "A plan of 3–7 independently answerable sub-questions with declared dependencies and waves.",
+      "Research subagents with isolated contexts, full briefs (objective, scope, format, non-goals), returning findings with evidence ids — never prose summaries.",
+      "A shared evidence store holding exact quoted spans, URLs, retrieval timestamps and a primary/secondary trust marking.",
+      "Mechanical grounding: numeric checks, verbatim quote checks, shingle overlap — with numeric mismatch as a distinct, loud result.",
+      "One bounded re-gather round for unsupported claims; anything still unsupported goes under \"Not established\".",
+      "Conflict detection with preference by source quality and a hypothesis about the cause — never averaging.",
+      "A report with Answer, Assumptions, Findings, Conflicts, Not established (with next steps) and Sources, every factual sentence cited, verified mechanically before it is returned.",
+      "Budgets with degradation to a partial report, durability so a killed run resumes, and per-subagent cost attribution.",
+      "An eval suite: known-answer questions, planted-gap questions, coverage against reference outlines, and grounding rate on every run.",
     ],
     stretch: [
-      "Add personal/project/org scoping with nearest-wins precedence, shadowing recorded at load and surfaced in the index.",
-      "Mark one org skill as non-shadowable and prove a project directory cannot override it.",
-      "Group skills into categories once the index passes fifty entries, and measure whether selection accuracy recovers.",
+      "Add an interactive mode: stream the plan and findings as they arrive, and let the user steer mid-run (C19) — \"skip Chroma, add pgvector\".",
+      "Add a follow-up mode where the report becomes session state and the user can ask questions answered from the evidence store without re-researching.",
+      "Publish it behind the API from C26, with resumable streaming, and use it yourself for a real decision. That is the only test that matters.",
     ],
   },
 
   quiz: [
-    {
-      q: "Why does progressive disclosure still win when the agent uses every skill in the catalogue?",
-      options: [
-        "Residency multiplies by turns while reading multiplies by uses, and turns exceed uses in almost every task",
-        "Skill bodies are compressed before being read",
-        "The model caches skill bodies between runs",
-        "Reading a file is free because it uses an existing tool",
-      ],
+    { q: "What is the product of a research agent?",
+      options: ["A set of claims that can be checked against sources — not prose", "A well-written summary", "A list of relevant URLs", "A confidence-scored answer"],
       answer: 0,
-      why:
-        "Forty schemas over twelve turns are billed four hundred and eighty times. Forty bodies read once are billed forty times plus their re-sends from the point of reading. The asymmetry is structural, which is why the break-even table has no crossover.",
-    },
-    {
-      q: "What is the real cost of the skills pattern?",
-      options: [
-        "One extra round trip on first use of each skill, and a decision made from one line of description",
-        "Higher token cost once the catalogue passes about twenty skills",
-        "Loss of structured arguments, since skills have no schema",
-        "The inability to use skills alongside ordinary tools",
-      ],
+      why: "Designing every phase around checkable claims turns quality from a matter of taste into an engineering problem: gathering records spans, verification checks claims against them mechanically, and the report renders provenance." },
+    { q: "Why must a research subagent return findings with evidence ids rather than a summary?",
+      options: ["A summary cannot be verified afterwards, and the orchestrator needs the spans to ground claims mechanically", "Summaries use more tokens", "Evidence ids are easier to deduplicate", "The orchestrator cannot parse prose"],
       answer: 0,
-      why:
-        "The token accounting favours skills at every catalogue size above one. What you actually pay is latency — a read before the first use — and the risk that a one-line description is not enough to choose correctly, which is why that line has to be better than a tool description, not shorter.",
-    },
-    {
-      q: "A skill is read in 40% of runs and used in 5%. What does that indicate?",
-      options: [
-        "Its description promises something it does not deliver, or a neighbouring capability is missing from the catalogue",
-        "The skill body is too long",
-        "The agent is ignoring the system prompt",
-        "Selection accuracy is fine; reads are free",
-      ],
+      why: "Once a subagent has paraphrased, the link between claim and source text is gone and no later phase can restore it. The spans go to a shared store; only the findings cross into the orchestrator's context." },
+    { q: "Which grounding check catches 'handles 50M vectors' citing a page that says 'handles millions'?",
+      options: ["The numeric check — the claim's number has no counterpart in the span", "Shingle overlap", "An LLM judge", "The verbatim quote check"],
       answer: 0,
-      why:
-        "Each of those reads is a wasted round trip taken on the strength of one line. Either the description is broader than the capability, or the model is reaching for the nearest thing because what it wanted does not exist. Tracking reads separately from uses is what makes the failure visible at all.",
-    },
-    {
-      q: "Why is a third-party skill folder a supply-chain concern?",
-      options: [
-        "SKILL.md is instructions the model will follow and the scripts beside it are code it will run, so adding one is an install rather than a read",
-        "Skills can exhaust the context window",
-        "Skill names can collide with tool names",
-        "Skills bypass the approval layer by design",
-      ],
+      why: "Overlap is high because the sentences are similar, and a judge often accepts the entailment. A regex extracting numbers and comparing them has no opinion, costs nothing, and catches it every time." },
+    { q: "Two sources give different figures for the same configuration. What should the report do?",
+      options: ["Present both with their sources, state which is preferred and why, and hypothesise the cause of the difference", "Average them", "Report the more recent one only", "Omit the figure entirely"],
       answer: 0,
-      why:
-        "This is C21's project-config argument at its sharpest. Cloning a repository with a skills directory and pointing an agent at it executes whatever that directory declares. Review third-party skills like dependencies, and load project skills only inside a workspace someone has trusted.",
-    },
-    {
-      q: "Which capabilities should stay as resident tools rather than becoming skills?",
-      options: [
-        "The few used on nearly every task, since they are paid every turn either way and a read just adds latency to the hot path",
-        "The ones with the longest documentation",
-        "The ones that require approval",
-        "The ones provided over MCP",
-      ],
+      why: "Averaging destroys the most useful information in the report. Preference by source quality plus a hypothesis — 'the blog does not say whether quantisation was on' — tells the reader what to trust and what it would cost to settle it." },
+    { q: "Why does the synthesis prompt forbid using the model's own knowledge?",
+      options: ["A report mixing cited findings with uncited recall is as untrustworthy as one with no citations, because the reader cannot tell which is which", "Model knowledge is always wrong", "It reduces token usage", "It prevents prompt injection"],
       answer: 0,
-      why:
-        "Skills pay for capabilities that are occasional. Something invoked on every task is resident in effect whichever way you model it, so making the agent read a file first buys nothing and costs a round trip at the start of every run.",
-    },
-    {
-      q: "What happens to a skill catalogue at a few hundred entries?",
-      options: [
-        "The index becomes a crowded registry and selection degrades, so the fix is to group skills and disclose the groups progressively",
-        "Token cost overtakes resident schemas",
-        "Front-matter parsing becomes the bottleneck",
-        "Nothing; skills scale indefinitely",
-      ],
+      why: "Model knowledge is often right, frequently stale, and never citable. Restricting synthesis to supplied findings moves the model from recall to composition, which is what makes every sentence traceable." },
+    { q: "Which eval category most directly measures the failure that matters for a research agent?",
+      options: ["Planted-gap questions where one sub-answer genuinely does not exist publicly", "Known-answer factual questions", "Coverage against a reference outline", "Human grading of report quality"],
       answer: 0,
-      why:
-        "The token problem is solved but C03's selection curve is not. Several hundred one-line entries is still several hundred options. The answer is the same pattern applied one level up: an index of categories, each of which lists its own members — which is what a hierarchical tool structure is.",
-    },
+      why: "The failure that destroys trust is inventing an answer that cannot be found. A question with a genuine gap tests exactly that: the agent passes only by reporting 'not established', which no amount of fluency fakes." },
   ],
 
-  continues:
-    p(`A skill is a capability the agent reads about before using. ${ch("c16", "C16")} is the other half of that arrangement: the capabilities it should not be allowed to use without asking a person first, and how to decide which those are without asking about everything.`),
+  continues: p(`The research agent reads the world and writes a document. The second capstone changes your files: it reads a repository, plans an edit, patches it, runs the tests, and fixes what it broke — with a permission model that means you can leave it running. ${ch("c28", "C28")} builds it.`),
 };
 
 export default chapter;

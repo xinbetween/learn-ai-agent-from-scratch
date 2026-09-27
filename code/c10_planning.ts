@@ -1,7 +1,7 @@
 /**
- * C09 · Planning — a plan you can enforce: patch-only revision, evidence-backed
+ * C10 · Planning — a plan you can enforce: patch-only revision, evidence-backed
  * completion, dependency waves, and a gate that skips planning on short tasks.
- *   node --experimental-strip-types code/c09_planning.ts
+ *   node --experimental-strip-types code/c10_planning.ts
  */
 
 export type StepStatus = "pending" | "active" | "done" | "blocked" | "dropped";
@@ -130,7 +130,7 @@ const overlap = (a: string, b: string): number => {
 /* ---------------- demo ---------------- */
 
 function main(): void {
-  console.log("\n  C09 · Planning\n");
+  console.log("\n  C10 · Planning\n");
 
   let plan: Plan = {
     goal: "Migrate auth to the new session API, update tests, check for stale imports",

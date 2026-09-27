@@ -1,9 +1,9 @@
 /**
- * C08 · State & Durability — event-sourced runs, replay, forking, and the
+ * C09 · State & Durability — event-sourced runs, replay, forking, and the
  * side-effect problem. Crash the run at every step and prove nothing is lost
  * and nothing is done twice.
  *
- *   node --experimental-strip-types code/c08_durability.ts
+ *   node --experimental-strip-types code/c09_durability.ts
  */
 
 export type RunEvent =
@@ -154,7 +154,7 @@ export function fork(log: MemoryEventLog, runId: string, atSeq: number, patch?: 
 /* ---------------- demo ---------------- */
 
 function main(): void {
-  console.log("\n  C08 · State & Durability\n");
+  console.log("\n  C09 · State & Durability\n");
 
   /** One crash scenario, run under one policy. Returns what the world looks like after. */
   function trial(crashAt: number, policy: "rerun" | "skip" | "verify" | "verify-no-verifier", effectLanded: boolean) {

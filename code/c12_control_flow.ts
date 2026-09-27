@@ -1,7 +1,7 @@
 /**
- * C11 · Control Flow — five composition primitives with one signature, and the
+ * C12 · Control Flow — five composition primitives with one signature, and the
  * cost of putting every request through an agent.
- *   node --experimental-strip-types code/c11_control_flow.ts
+ *   node --experimental-strip-types code/c12_control_flow.ts
  */
 
 export interface Ctx { log: (event: string, data?: unknown) => void }
@@ -75,7 +75,7 @@ function evaluate(a: Arch, mix: { simple: number; branch: number; open: number }
 /* ---------------- demo ---------------- */
 
 async function main(): Promise<void> {
-  console.log("\n  C11 · Control Flow\n");
+  console.log("\n  C12 · Control Flow\n");
 
   // A working hybrid, exercised for real.
   const ctx: Ctx = { log: () => {} };

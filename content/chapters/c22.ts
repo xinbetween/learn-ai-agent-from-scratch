@@ -1,515 +1,478 @@
 import type { Chapter } from "../../src/types.ts";
 import { code, fig, lab, note, table, p, ul, ol, ch } from "../../src/ui.ts";
 
-const SERVE_SVG = `
-<svg viewBox="0 0 700 300" width="100%" style="max-width:700px;display:block;margin:0 auto" role="img"
-     aria-label="Serving architecture: API, queue, workers, event log, and the SSE stream back">
-  <defs><marker id="s22" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-    <path d="M0 0 L10 5 L0 10 z" fill="var(--border-strong)"/></marker>
-  <marker id="s22a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-    <path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker></defs>
+const EVAL_SVG = `
+<svg viewBox="0 0 700 290" width="100%" style="max-width:700px;display:block;margin:0 auto" role="img"
+     aria-label="Three levels of agent evaluation: outcome, trajectory and component">
+  <text x="14" y="18" class="d-label">THREE LEVELS — YOU NEED ALL THREE, FOR DIFFERENT QUESTIONS</text>
 
-  <text x="14" y="18" class="d-label">THE REQUEST DOES NOT HOLD THE RUN — THAT IS THE WHOLE DESIGN</text>
+  <rect x="14" y="30" width="672" height="56" rx="6" class="d-box-a"/>
+  <text x="28" y="50" class="d-text">OUTCOME · did it produce the right answer?</text>
+  <text x="28" y="68" class="d-mono" fill="var(--fg-faint)">the only level users feel · programmatic where possible · "is the ticket closed, is the number right"</text>
+  <text x="28" y="82" class="d-mono" fill="var(--accent)">answers: is it good? · does NOT answer: why not?</text>
 
-  <rect x="14" y="34" width="84" height="40" rx="6" class="d-box"/>
-  <text x="56" y="58" class="d-mono" text-anchor="middle">client</text>
-  <path d="M102 48 L136 48" class="d-arrow" marker-end="url(#s22)"/>
-  <text x="119" y="40" class="d-mono" text-anchor="middle" fill="var(--fg-faint)">POST</text>
+  <rect x="14" y="94" width="672" height="56" rx="6" class="d-box-p"/>
+  <text x="28" y="114" class="d-text">TRAJECTORY · did it get there sensibly?</text>
+  <text x="28" y="132" class="d-mono" fill="var(--fg-faint)">steps, tools chosen, loops, wasted calls, cost · scored from the trace</text>
+  <text x="28" y="146" class="d-mono" fill="var(--plan)">answers: is it degrading? · moves BEFORE outcome does</text>
 
-  <rect x="140" y="34" width="96" height="40" rx="6" class="d-box-a"/>
-  <text x="188" y="52" class="d-mono" text-anchor="middle">API</text>
-  <text x="188" y="66" class="d-mono" text-anchor="middle" fill="var(--fg-faint)">returns runId</text>
+  <rect x="14" y="158" width="672" height="56" rx="6" class="d-box-t"/>
+  <text x="28" y="178" class="d-text">COMPONENT · is each part doing its job?</text>
+  <text x="28" y="196" class="d-mono" fill="var(--fg-faint)">retrieval recall@5 · schema parse rate · router accuracy · tool error rate</text>
+  <text x="28" y="210" class="d-mono" fill="var(--tool)">answers: which part broke? · fast, cheap, runs on every commit</text>
 
-  <path d="M240 54 L274 54" class="d-arrow" marker-end="url(#s22)"/>
-  <rect x="278" y="34" width="96" height="40" rx="6" class="d-box-p"/>
-  <text x="326" y="58" class="d-mono" text-anchor="middle">queue</text>
-
-  <path d="M378 54 L412 54" class="d-arrow" marker-end="url(#s22)"/>
-  <rect x="416" y="24" width="120" height="26" rx="4" class="d-box-t"/><text x="476" y="41" class="d-mono" text-anchor="middle">worker 1</text>
-  <rect x="416" y="54" width="120" height="26" rx="4" class="d-box-t"/><text x="476" y="71" class="d-mono" text-anchor="middle">worker 2</text>
-  <rect x="416" y="84" width="120" height="26" rx="4" class="d-box" stroke-dasharray="2 2"/><text x="476" y="101" class="d-mono" text-anchor="middle" fill="var(--fg-faint)">…scale on depth</text>
-
-  <path d="M540 54 L572 54" class="d-arrow-a" marker-end="url(#s22a)"/>
-  <rect x="576" y="34" width="110" height="40" rx="6" class="d-box-m"/>
-  <text x="631" y="52" class="d-mono" text-anchor="middle">event log</text>
-  <text x="631" y="66" class="d-mono" text-anchor="middle" fill="var(--fg-faint)">C08 · durable</text>
-
-  <path d="M631 78 L631 120 L188 120 L188 82" class="d-arrow-a" marker-end="url(#s22a)"/>
-  <text x="410" y="114" class="d-mono" text-anchor="middle" fill="var(--accent)">GET /runs/:id/events — SSE, resumable with Last-Event-ID</text>
-
-  <path d="M140 60 L106 60" class="d-arrow-a" marker-end="url(#s22a)"/>
-
-  <line x1="14" y1="146" x2="686" y2="146" stroke="var(--border)"/>
-  <text x="14" y="168" class="d-label">WHY NOT JUST RUN IT IN THE REQUEST HANDLER</text>
-  <text x="14" y="190" class="d-mono" fill="var(--danger)">✗ a 4-minute run holds an HTTP connection · a deploy kills it · a dropped client loses the work</text>
-  <text x="14" y="208" class="d-mono" fill="var(--danger)">✗ an approval (C16) blocks a thread for 40 minutes · concurrency = connections, not capacity</text>
-  <text x="14" y="232" class="d-mono" fill="var(--ok)">✓ the run is a durable object with an id. the connection is a view of it, and may come and go.</text>
-
-  <text x="14" y="264" class="d-label">THE FOUR ENDPOINTS</text>
-  <text x="14" y="284" class="d-mono">POST /runs · GET /runs/:id · GET /runs/:id/events (SSE) · POST /runs/:id/interrupt</text>
+  <line x1="14" y1="232" x2="686" y2="232" stroke="var(--border)"/>
+  <text x="14" y="254" class="d-mono" fill="var(--danger)">an outcome-only suite tells you the agent got worse and nothing else.</text>
+  <text x="14" y="274" class="d-mono" fill="var(--ok)">component evals localise the regression in minutes. build them first — they are also the cheapest.</text>
 </svg>`;
 
 const chapter: Chapter = {
   id: "c22",
   num: 22,
   layer: "systems",
-  title: "Shipping",
-  subtitle: "Sessions, streaming, concurrency, and the first week in production",
+  title: "Evaluation",
+  subtitle: "Knowing whether the change you just made helped",
   blurb:
-    "Putting the agent behind an API: why the run must outlive the request, resumable SSE, queue-based concurrency, rate-limit arithmetic, and the operational questions that appear the moment real users arrive.",
-  lines: 260,
-  file: "code/c22_serving.ts",
-  tags: ["SSE", "streaming", "sessions", "queues", "concurrency", "rate limits", "deploys", "multi-tenancy"],
+    "Outcome, trajectory and component evals; building a dataset from production instead of imagination; LLM-as-judge and its biases; and the statistics you need so a 3-point improvement is not noise.",
+  lines: 175,
+  file: "code/c22_evals.ts",
+  tags: ["evals", "LLM-as-judge", "trajectory", "regression suite", "sample size", "pass@k", "dataset"],
 
   sections: [
-    { id: "motivation", kicker: "Motivation", title: "The request handler that ran an agent",
+    { id: "motivation", kicker: "Motivation", title: "The question you cannot currently answer",
       html:
-        p(`The obvious first server runs the agent inside the HTTP handler and streams tokens back. It works in development and breaks on contact with production, in four specific ways:`) +
-        ul([
-          `<strong>A four-minute run holds a connection.</strong> Load balancers time out, mobile clients drop, and your concurrency limit becomes "how many open sockets" rather than "how much work can we do".`,
-          `<strong>A deploy kills every run in flight.</strong> Rolling restarts are routine; losing every in-progress task on each one is not.`,
-          `<strong>A dropped client loses the work.</strong> The user closed the tab at step nine; the eight steps of progress and the money already spent evaporate.`,
-          `<strong>An approval blocks a thread.</strong> ${ch("c16", "C16")} asks a human, who is at lunch. You are now holding a request open for forty minutes.`,
+        p(`You changed the system prompt. Is the agent better? You tried ten examples and eight looked good. Before the change, it was seven out of ten. Have you improved anything?`) +
+        p(`No. You have learned essentially nothing. With ten samples, 70% and 80% are statistically indistinguishable; the 95% confidence interval on 8/10 runs from roughly 44% to 97%. Teams ship changes on this evidence constantly, which is why agent quality wanders rather than improving.`) +
+        p(`Evaluation is not a phase at the end. It is the thing that converts changes into <em>knowledge</em>, and without it every prompt edit is a coin flip you cannot see the result of.`) +
+        note("key", "Build it before you need it", p(`The most common eval mistake is building the harness after the agent is in production and quality has become a crisis. Build the smallest version on day one — 20 cases and a script — and grow it from real failures. It will be the most-used piece of infrastructure you own.`)) },
+
+    { id: "core-idea", kicker: "Core idea", title: "Three levels",
+      html:
+        fig({ label: "Diagram", title: "outcome, trajectory, component", body: EVAL_SVG,
+          caption: `Outcome tells you something is wrong. Trajectory tells you early. Component tells you where. A suite with only the first is a suite that generates arguments.` }) +
+        `<h3>Outcome: prefer programmatic checks, always</h3>` +
+        code({ title: "code/c22_evals.ts — grade without a model wherever you can",
+          src: `export interface Case {
+  id: string; input: string;
+  check: (result: AgentResult, env: TestEnv) => Promise<Grade>;
+  tags: string[];                       // "refund", "multi-hop", "from-prod", "regression"
+}
+
+const cases: Case[] = [
+  { id: "refund-eligible-electronics", input: "Is order 4471 eligible for a refund?",
+    tags: ["refund", "multi-hop"],
+    // Exact, deterministic, free, and it cannot be argued with.
+    check: async (r) => ({
+      pass: /\\beligible\\b/i.test(r.answer) && r.answer.includes("#882"),
+      why: "must conclude eligible AND cite the fault ticket",
+    }) },
+
+  { id: "creates-ticket", input: "The screen on order 4471 is flickering.",
+    tags: ["write"],
+    // Check the WORLD, not the words. The best outcome checks never read the answer.
+    check: async (_, env) => {
+      const tickets = await env.db.tickets({ order: "4471" });
+      return { pass: tickets.length === 1 && tickets[0].category === "hardware",
+               why: \`expected exactly 1 hardware ticket, found \${tickets.length}\` };
+    } },
+];`,
+        }) +
+        p(`Checking the world rather than the prose is the single biggest quality upgrade available to an eval suite. It is exact, it is free, and it tests what the user actually cares about. Reach for a judge only when the output is genuinely unstructured.`) +
+        `<h3>Trajectory: the leading indicator</h3>` +
+        code({ title: "scored from the trace, no model needed",
+          src: `export function trajectory(r: AgentResult, expected: Expectation): TrajectoryScore {
+  return {
+    steps: r.steps,
+    wastedCalls: countRepeats(r.messages),                       // same tool, same args
+    requiredToolsUsed: expected.mustUse.every((t) => usedTool(r, t)),
+    forbiddenToolsUsed: expected.mustNotUse.filter((t) => usedTool(r, t)),
+    recoveredFromError: hadError(r) && r.ok,                     // a GOOD signal
+    tokensPerUsefulStep: r.usage.input / Math.max(1, usefulSteps(r)),
+  };
+}
+// The most valuable single number here: steps-to-completion among runs that SUCCEEDED.
+// It rises before the success rate falls, which makes it your early warning (C13).`,
+        }) +
+        p(`Be careful with trajectory scoring: there is usually more than one right path, and penalising deviation from a golden trace punishes the adaptability you were paying for. Score <em>properties</em> — did it use the required tool, did it avoid the forbidden one, did it loop — not similarity to a reference path.`) +
+        `<h3>Component: fast, cheap, on every commit</h3>` +
+        table(["Component", "Metric", "Where"], [
+          ["Retrieval", "recall@5, MRR, per query class", "${C06}"],
+          ["Structured output", "parse rate before and after repair", "${C02}"],
+          ["Router", "classification accuracy, fallback rate", "${C12}"],
+          ["Tools", "error rate, p99 latency, result tokens", "${C03}"],
+          ["Context", "compaction fact-retention, goal-relevance drift", "${C05}"],
+        ].map((r) => r.map((c) => c.replace(/\$\{C(\d+)\}/, (_, n) => `<a href="/c${n}/" class="mono">C${n}</a>`))) as string[][]) +
+        p(`These run in seconds without calling the agent at all, which means they can gate every commit. Most regressions are localisable here, and finding them here is minutes rather than hours.`) },
+
+    { id: "mechanics", kicker: "Mechanics", title: "Datasets, judges, and statistics",
+      html:
+        `<h3>The dataset comes from production, not imagination</h3>` +
+        ol([
+          `<strong>Start with 20 hand-written cases</strong> covering the obvious paths. Enough to catch a catastrophic regression on day one.`,
+          `<strong>Add every real failure.</strong> Whenever a run goes wrong, add it — with the input, the observed behaviour, and the expected one. This is the highest-value habit in the chapter, and the suite that results is the one that reflects your actual traffic.`,
+          `<strong>Sample production for coverage.</strong> Stratify by route, by outcome, by tool used; include successes so you can detect the change that fixes one thing and breaks three.`,
+          `<strong>Tag everything.</strong> Report per tag. A change that lifts the mean while halving multi-hop performance is a regression you will otherwise ship.`,
+          `<strong>Freeze a holdout.</strong> Iterating against one set overfits to it. Keep 20–30% unseen and run it before shipping.`,
         ]) +
-        note("key", "The one architectural decision", p(`<strong>The run is a durable object with an id; the HTTP connection is a view of it.</strong> Clients attach, detach and reattach. ${ch("c08", "C08")} already built the durable part; this chapter is the plumbing around it.`)) },
+        note("", "Fifty good cases beat five hundred synthetic ones", p(`Generated cases inherit the vocabulary and assumptions of whoever generated them, so they systematically overestimate performance (${ch("c06", "C06")} makes the same point about retrieval evals). Real failures are worth roughly ten synthetic cases each.`)) +
+        `<h3>LLM-as-judge: use it last, and control its biases</h3>` +
+        code({ title: "a judge with a rubric, not an opinion",
+          src: `const judge = async (task: string, answer: string, reference: string) =>
+  structured(model, [{ role: "user", content:
+\`Grade this answer against the criteria. You are reviewing someone else's work.
 
-    { id: "core-idea", kicker: "Core idea", title: "Four endpoints",
-      html:
-        fig({ label: "Diagram", title: "API, queue, workers, event log", body: SERVE_SVG,
-          caption: `Every interesting property — resumability, surviving deploys, approvals that do not hold threads, scaling on queue depth — falls out of separating the run from the connection.` }) +
-        code({ title: "code/c22_serving.ts — the surface",
-          src: `// 1. Start. Returns immediately. Idempotent on a client-supplied key.
-POST /runs
-  { goal, sessionId?, idempotencyKey? }
-  → 202 { runId, status: "queued" }
+TASK: \${task}
+REFERENCE ANSWER: \${reference}
+ANSWER TO GRADE: \${answer}
 
-// 2. Poll. Cheap, cacheable, works everywhere SSE does not.
-GET /runs/:runId
-  → { status, terminalState?, answer?, usage, steps, createdAt }
+CRITERIA
+1. Correct conclusion — matches the reference's verdict.
+2. Support — cites the specific evidence, not a general claim.
+3. No fabrication — every factual claim also appears in the reference.
 
-// 3. Stream. Resumable — the crucial property.
-GET /runs/:runId/events           Last-Event-ID: 42
-  → text/event-stream, replaying from event 43
-
-// 4. Interrupt. Stop, pause, steer, or decide an approval (C16).
-POST /runs/:runId/interrupt
-  { kind: "stop" | "pause" | "steer" | "approve", message?, callId?, approved? }
-  → 202`,
+For each: pass/fail plus the exact quote that decided it. Length and fluency are
+NOT criteria: a terse correct answer scores the same as a long correct one.\` }],
+    obj({ criteria: arr(obj({ n: int(), pass: bool(), quote: str() })), pass: bool() }),
+    { temperature: 0 });`,
         }) +
-        `<h3>Resumable streaming is the whole trick</h3>` +
-        code({ title: "SSE with an id on every event",
-          src: `app.get("/runs/:id/events", async (req, res) => {
-  const from = Number(req.headers["last-event-id"] ?? 0);
-
-  res.writeHead(200, {
-    "content-type": "text/event-stream",
-    "cache-control": "no-cache, no-transform",   // no-transform: proxies WILL buffer otherwise
-    "connection": "keep-alive",
-    "x-accel-buffering": "no",                   // nginx specifically
-  });
-
-  // 1. Replay what the client missed. This is why reconnection is seamless.
-  for (const e of await log.readFrom(req.params.id, from)) send(res, e);
-
-  // 2. Then follow live.
-  const unsub = bus.subscribe(req.params.id, (e) => send(res, e));
-
-  // 3. Heartbeat, or intermediaries close an idle connection at 30–60s —
-  //    and an agent thinking for 45 seconds produces no events.
-  const hb = setInterval(() => res.write(": ping\\n\\n"), 15_000);
-
-  req.on("close", () => { clearInterval(hb); unsub(); });
-});
-
-const send = (res: Response, e: StoredEvent) =>
-  res.write(\`id: \${e.seq}\\nevent: \${e.event.t}\\ndata: \${JSON.stringify(e.event)}\\n\\n\`);`,
-        }) +
-        p(`Three details that are each an afternoon of debugging if missed. <strong><code>id:</code> on every event</strong>, because that is what the browser sends back as <code>Last-Event-ID</code> and without it reconnection restarts from scratch. <strong>Heartbeats</strong>, because an agent thinking for 45 seconds looks identical to a dead connection to every proxy between you and the user. <strong><code>no-transform</code> and <code>x-accel-buffering</code></strong>, because a buffering proxy will hold your stream and deliver it all at the end, which looks exactly like "streaming is broken" and is not your code.`) +
-        `<h3>What to stream</h3>` +
-        table(["Event", "Content"], [
-          ["<code>step_started</code>", "Step number and a one-line human summary — \"Searching orders for 4471\""],
-          ["<code>tool_started</code> / <code>tool_finished</code>", "Tool name, the <em>summary</em>, duration, ok/error. Never raw arguments or raw results"],
-          ["<code>plan_updated</code>", "The rendered todo list (${C09}) — the best progress indicator there is"],
-          ["<code>text_delta</code>", "Token deltas, but only for the final answer"],
-          ["<code>approval_requested</code>", "The full request (${C16}) — the client renders the dialog"],
-          ["<code>done</code>", "Terminal state, answer, usage"],
-        ].map((r) => r.map((c) => c.replace("${C09}", `<a href="/c09/" class="mono">C09</a>`).replace("${C16}", `<a href="/c16/" class="mono">C16</a>`))) as string[][]) +
-        p(`Users track an agent through its <em>actions</em>, not its prose. A plan updating and tool activity scrolling by communicates progress far better than a token stream of reasoning, and streaming raw tool arguments leaks internal identifiers and file paths into a UI you do not control.`) },
-
-    { id: "mechanics", kicker: "Mechanics", title: "Concurrency, limits, and sessions",
-      html:
-        `<h3>Rate limits are token-based, and that changes the arithmetic</h3>` +
-        code({ title: "the capacity calculation people get wrong",
-          src: `// Providers limit input tokens per minute far more tightly than requests per minute.
-// An agent is an input-token workload (C01), so you hit the token ceiling first.
+        ul([
+          `<strong>Verbosity bias</strong> — judges score longer answers higher. Say explicitly that length is not a criterion.`,
+          `<strong>Position bias</strong> — in pairwise comparison, order changes the verdict. Run both orders and discard disagreements, or you are measuring position.`,
+          `<strong>Self-preference</strong> — a model rates its own family's outputs higher. Use a different family for anything competitive.`,
+          `<strong>Calibrate against humans.</strong> Grade 50 cases by hand, compare to the judge, and report the agreement rate. A judge you have not calibrated is a number, not a measurement.`,
+        ]) +
+        `<h3>The statistics that stop you fooling yourself</h3>` +
+        code({ title: "how many runs do you actually need",
+          src: `// Detecting a lift from p0 to p1 at 80% power, 5% significance:
+//   n ≈ 16 · p̄(1−p̄) / (p1 − p0)²      per arm
 //
-//   limit                 800,000 input tokens/min
-//   avg context per call   18,000 tokens
-//   → 44 model calls per minute, total, across every concurrent run
+//   70% → 80%  ≈ 300 runs per arm     ← the "8/10 looked better" case
+//   70% → 85%  ≈ 130
+//   70% → 90%  ≈  70
+//   50% → 80%  ≈  35
 //
-//   avg run = 6 calls, avg call = 1.4s of model time
-//   → ~7 runs started per minute, ~15 concurrent runs in flight
-//
-// Naively provisioning "100 concurrent agents" produces 429s at about 15.
-// Admission control belongs in front of the queue, not in the retry handler.
+// Most agent changes are 5–10 point effects, which is why casual A/B comparison
+// on a handful of examples is indistinguishable from guessing.
 
-export class TokenBudgetLimiter {
-  private window: Array<{ at: number; tokens: number }> = [];
-
-  async admit(estimatedTokens: number): Promise<boolean> {
-    const cutoff = Date.now() - 60_000;
-    this.window = this.window.filter((w) => w.at > cutoff);
-    const used = this.window.reduce((t, w) => t + w.tokens, 0);
-    if (used + estimatedTokens > this.limit * 0.85) return false;   // headroom for retries
-    this.window.push({ at: Date.now(), tokens: estimatedTokens });
-    return true;
-  }
-}`,
-        }) +
-        `<h3>Fairness: one tenant must not starve the rest</h3>` +
-        code({ title: "per-tenant queues, weighted round-robin",
-          src: `// A single FIFO queue means one customer submitting 500 runs blocks everyone.
-class FairQueue {
-  private queues = new Map<string, Run[]>();
-  private cursor = 0;
-
-  next(): Run | null {
-    const tenants = [...this.queues.keys()];
-    for (let i = 0; i < tenants.length; i++) {
-      const t = tenants[(this.cursor + i) % tenants.length];
-      const q = this.queues.get(t)!;
-      if (q.length && this.inFlight(t) < this.maxPerTenant(t)) {
-        this.cursor = (this.cursor + i + 1) % tenants.length;
-        return q.shift()!;
-      }
-    }
-    return null;
-  }
+export function wilson(passes: number, n: number, z = 1.96): [number, number] {
+  const p = passes / n, d = 1 + (z * z) / n;
+  const c = p + (z * z) / (2 * n), m = z * Math.sqrt((p * (1 - p) + (z * z) / (4 * n)) / n);
+  return [(c - m) / d, (c + m) / d];
 }
-// Plus a per-tenant concurrency cap and a per-tenant spend cap (C12). The spend cap
-// is the one that turns a pathological input into an alert instead of an invoice.`,
+// 8/10  → [0.49, 0.94]   ← report this, not "80%"
+// 80/100→ [0.71, 0.87]
+// 800/1000 → [0.775, 0.827]`,
         }) +
-        `<h3>Sessions: a thread of runs, not a long-lived object</h3>` +
-        code({ title: "what carries forward, and what does not",
-          src: `interface Session {
-  id: string; userId: string; tenantId: string;
-  runIds: string[];
-  // Carried forward: the durable, small things.
-  memory: Memory[];                  // C07
-  summary: string;                   // a compacted account of prior runs (C05)
-  artifacts: Array<{ path: string; description: string }>;   // offloaded outputs
-  // NOT carried: the raw message arrays of previous runs. That is what compaction is for.
-}
-
-// A new run in a session starts from: system prompt + memory + session summary + goal.
-// Not from a concatenation of every prior transcript — that is how a session becomes
-// unusable by the fifth exchange.`,
-        }) +
-        note("warn", "The deploy question", p(`Workers must drain, not die. On <code>SIGTERM</code>: stop accepting from the queue, let in-flight runs reach the next checkpoint, release leases, and exit. Runs then resume on a new worker via ${ch("c08", "C08")}'s replay. Without this, every deploy is an incident for whoever was mid-task, and you deploy more often than you think.`)) +
-        `<h3>Idempotency at the edge</h3>` +
-        code({ title: "double-submit is the normal case, not the edge case",
-          src: `// Mobile retries, users double-click, load balancers replay. An agent run is expensive
-// and may have side effects, so the POST must be idempotent.
-const existing = await runs.byIdempotencyKey(tenantId, body.idempotencyKey);
-if (existing) return res.status(202).json({ runId: existing.id, status: existing.status });
-// Key scoped per tenant, TTL 24h. Same key + different body = 409, not a silent overwrite.`,
+        p(`Two practical consequences. <strong>Always report an interval.</strong> "80% (95% CI 49–94%)" makes the uncertainty impossible to ignore in a way "80%" does not. And <strong>run each case several times</strong>. Agents are stochastic, so a single run per case measures the sample rather than the agent. Three to five runs per case, reporting pass rate per case, is the usual compromise.`) +
+        code({ title: "paired comparison: much cheaper than two independent arms",
+          src: `// Running both variants on the SAME cases removes between-case variance, which is
+// usually the largest source of noise. The relevant number is the count of cases
+// where they DIFFER — McNemar's test.
+const bOnly = cases.filter((c) => !a[c.id].pass && b[c.id].pass).length;
+const aOnly = cases.filter((c) => a[c.id].pass && !b[c.id].pass).length;
+// If b wins 12 and loses 3, that is meaningful at n=15 discordant pairs,
+// even though the overall rates might be 71% vs 80% on 100 cases.`,
         }) },
 
-    { id: "explore", kicker: "Explore", title: "Size the system",
+    { id: "explore", kicker: "Explore", title: "Find out if your improvement is real",
       html:
-        p(`Set your traffic and limits, and find where the system actually saturates. It is rarely where people expect.`) +
-        lab({ label: "Simulator", title: "capacity and queueing",
+        p(`Set a true effect size and a suite size, then see what your experiment would actually conclude.`) +
+        lab({ label: "Simulator", title: "can you detect this change?",
           body: `
 <div class="controls">
-  <div class="ctl"><label>runs started / min</label><input type="range" id="p22-r" min="1" max="120" step="1" value="20"><span class="val" id="p22-r-v">20</span></div>
-  <div class="ctl"><label>avg model calls / run</label><input type="range" id="p22-c" min="2" max="20" step="1" value="6"><span class="val" id="p22-c-v">6</span></div>
-  <div class="ctl"><label>avg context / call</label><input type="range" id="p22-t" min="2000" max="60000" step="1000" value="18000"><span class="val" id="p22-t-v">18,000 tok</span></div>
-  <div class="ctl"><label>provider limit</label><select id="p22-l"><option value="400000">400K tok/min</option><option value="800000" selected>800K tok/min</option><option value="2000000">2M tok/min</option></select></div>
-  <div class="ctl"><label>workers</label><input type="range" id="p22-w" min="1" max="60" step="1" value="16"><span class="val" id="p22-w-v">16</span></div>
+  <div class="ctl"><label>baseline success</label><input type="range" id="e19-p0" min="30" max="95" step="1" value="70"><span class="val" id="e19-p0-v">70%</span></div>
+  <div class="ctl"><label>true effect</label><input type="range" id="e19-d" min="-10" max="25" step="1" value="6"><span class="val" id="e19-d-v">+6 pts</span></div>
+  <div class="ctl"><label>cases in suite</label><input type="range" id="e19-n" min="5" max="500" step="5" value="30"><span class="val" id="e19-n-v">30</span></div>
+  <div class="ctl"><label>runs per case</label><input type="range" id="e19-r" min="1" max="5" step="1" value="1"><span class="val" id="e19-r-v">1</span></div>
+  <div class="ctl"><label>design</label><select id="e19-pair"><option value="0">two independent arms</option><option value="1" selected>paired (same cases)</option></select></div>
 </div>
-<div id="p22-rows" style="margin-top:.5rem"></div>
+<div id="e19-out" style="margin-top:.75rem"></div>
 <div class="stats">
-  <div class="stat"><b id="p22-bind">—</b><span>binding constraint</span></div>
-  <div class="stat"><b id="p22-wait">—</b><span>queue wait p50</span></div>
-  <div class="stat"><b id="p22-429">—</b><span>429 rate</span></div>
-  <div class="stat"><b id="p22-cost">—</b><span>$ / hour</span></div>
+  <div class="stat"><b id="e19-pow">—</b><span>power to detect it</span></div>
+  <div class="stat"><b id="e19-n80">—</b><span>cases needed for 80% power</span></div>
+  <div class="stat"><b id="e19-cost">—</b><span>runs per experiment</span></div>
 </div>
-<div class="note" id="p22-note" style="margin-top:1rem"></div>`,
+<div class="note" id="e19-note" style="margin-top:1rem"></div>`,
           script: `
-function upd() {
-  var R = +document.getElementById("p22-r").value, C = +document.getElementById("p22-c").value,
-      T = +document.getElementById("p22-t").value, L = +document.getElementById("p22-l").value,
-      W = +document.getElementById("p22-w").value;
-  document.getElementById("p22-r-v").textContent = R;
-  document.getElementById("p22-c-v").textContent = C;
-  document.getElementById("p22-t-v").textContent = T.toLocaleString() + " tok";
-  document.getElementById("p22-w-v").textContent = W;
-
-  var tokensNeeded = R * C * T;                       // per minute
-  var tokenCap = L * 0.85;                            // usable, keeping headroom
-  var callsPerMin = tokenCap / T;
-  var runsFromTokens = callsPerMin / C;
-
-  var runSeconds = C * 1.5 + C * 0.9;                 // model + tool time
-  var runsFromWorkers = (W * 60) / runSeconds;
-
-  var capacity = Math.min(runsFromTokens, runsFromWorkers);
-  var util = R / capacity;
-  // M/M/c-ish queueing blow-up near saturation
-  var wait = util < 1 ? (util * util) / (1 - util) * runSeconds : 999;
-  var r429 = tokensNeeded > L ? Math.min(0.9, (tokensNeeded - L) / tokensNeeded) : 0;
-
-  var rows = [
-    ["provider token limit", runsFromTokens],
-    ["worker capacity", runsFromWorkers],
-    ["offered load", R]
-  ];
-  var mx = Math.max.apply(null, rows.map(function (x) { return x[1]; }));
-  document.getElementById("p22-rows").innerHTML = rows.map(function (x) {
-    var isBind = x[1] === capacity && x[0] !== "offered load";
-    var col = x[0] === "offered load" ? (util > 1 ? "var(--danger)" : "var(--accent)") : isBind ? "var(--danger)" : "var(--ok)";
-    return '<div style="display:flex;gap:.6rem;align-items:center;margin:.3rem 0">' +
-      '<span class="mono small" style="width:12rem;color:var(--fg-muted)">' + x[0] + '</span>' +
-      '<span class="meter" style="flex:1"><i style="width:' + Math.min(100, x[1] / mx * 100) + '%;background:' + col + '"></i></span>' +
-      '<span class="mono small" style="width:7rem;text-align:right">' + x[1].toFixed(1) + ' runs/min</span></div>';
-  }).join("");
-
-  document.getElementById("p22-bind").textContent = runsFromTokens < runsFromWorkers ? "provider tokens" : "workers";
-  document.getElementById("p22-wait").textContent = util >= 1 ? "unbounded" : wait.toFixed(1) + "s";
-  document.getElementById("p22-429").textContent = Math.round(r429 * 100) + "%";
-  document.getElementById("p22-cost").textContent = "$" + (Math.min(R, capacity) * 60 * C * T * 3 / 1e6).toFixed(0);
-
-  var n = document.getElementById("p22-note");
-  if (util >= 1) n.innerHTML = "<b>Saturated.</b> Offered load exceeds capacity, so the queue grows without bound and wait time goes to infinity. Admission control — rejecting or shedding at the edge — is the only correct response; retries make it worse.";
-  else if (runsFromTokens < runsFromWorkers) n.innerHTML = "<b>Token-limited, not worker-limited.</b> Adding workers does nothing: you would generate more calls against the same provider ceiling and convert queue wait into 429s. The levers are context size (C05), prompt caching, and a higher limit.";
-  else if (util > .8) n.innerHTML = "<b>Above 80% utilisation.</b> Note the queue wait — it is quadratic near saturation, so the last 20% of capacity costs disproportionate latency. Target 60–70% and scale on queue depth.";
-  else n.innerHTML = "<b>Comfortable.</b> Worker-limited with headroom. Scale workers on queue depth, and watch the token figure as context grows — a context-size regression silently converts this into the token-limited case.";
+function wilson(k, n) {
+  if (!n) return [0, 1];
+  var z = 1.96, p = k / n, d = 1 + z * z / n;
+  var c = p + z * z / (2 * n), m = z * Math.sqrt((p * (1 - p) + z * z / (4 * n)) / n);
+  return [(c - m) / d, (c + m) / d];
 }
-["p22-r","p22-c","p22-t","p22-l","p22-w"].forEach(function (i) {
+function upd() {
+  var p0 = +document.getElementById("e19-p0").value / 100, D = +document.getElementById("e19-d").value / 100,
+      N = +document.getElementById("e19-n").value, R = +document.getElementById("e19-r").value,
+      paired = document.getElementById("e19-pair").value === "1";
+  document.getElementById("e19-p0-v").textContent = (p0 * 100).toFixed(0) + "%";
+  document.getElementById("e19-d-v").textContent = (D >= 0 ? "+" : "") + (D * 100).toFixed(0) + " pts";
+  document.getElementById("e19-n-v").textContent = N;
+  document.getElementById("e19-r-v").textContent = R;
+
+  var p1 = Math.max(.01, Math.min(.99, p0 + D));
+  var eff = N * R;                                     // effective observations
+  var pairBoost = paired ? 1.9 : 1;                    // paired removes between-case variance
+  var se = Math.sqrt(p0 * (1 - p0) / eff + p1 * (1 - p1) / eff) / Math.sqrt(pairBoost);
+  var zStat = Math.abs(p1 - p0) / Math.max(se, 1e-9);
+  var power = Math.max(.05, Math.min(.999, 0.5 * (1 + erf((zStat - 1.96) / Math.SQRT2))));
+  var nNeeded = Math.ceil(16 * ((p0 + p1) / 2) * (1 - (p0 + p1) / 2) / Math.pow(Math.max(Math.abs(D), .001), 2) / (R * pairBoost));
+
+  // a plausible observed result
+  var rnd = mulberry32(3);
+  var k0 = 0, k1 = 0;
+  for (var i = 0; i < eff; i++) { if (rnd() < p0) k0++; if (rnd() < p1) k1++; }
+  var c0 = wilson(k0, eff), c1 = wilson(k1, eff);
+  var overlap = c0[1] >= c1[0] && c1[1] >= c0[0];
+
+  document.getElementById("e19-out").innerHTML =
+    '<div class="mono small" style="line-height:1.9">' +
+    'baseline  ' + (k0 / eff * 100).toFixed(1) + '%  <span class="muted">95% CI ' + (c0[0] * 100).toFixed(0) + '–' + (c0[1] * 100).toFixed(0) + '%</span><br>' +
+    'variant   ' + (k1 / eff * 100).toFixed(1) + '%  <span class="muted">95% CI ' + (c1[0] * 100).toFixed(0) + '–' + (c1[1] * 100).toFixed(0) + '%</span><br>' +
+    '<span style="color:' + (overlap ? "var(--danger)" : "var(--ok)") + '">' +
+    (overlap ? "intervals overlap — this experiment cannot distinguish them" : "intervals separate — the difference is measurable") + '</span></div>';
+  document.getElementById("e19-pow").textContent = Math.round(power * 100) + "%";
+  document.getElementById("e19-n80").textContent = isFinite(nNeeded) ? nNeeded.toLocaleString() : "∞";
+  document.getElementById("e19-cost").textContent = (eff * 2).toLocaleString();
+
+  var n = document.getElementById("e19-note");
+  if (N <= 10) n.innerHTML = "<b>Ten cases.</b> Look at the confidence intervals — they span 40 points or more. This is the 'I tried ten examples and it seemed better' experiment, and it cannot tell a real 6-point gain from noise.";
+  else if (power < .5) n.innerHTML = "<b>Underpowered.</b> Even if the change genuinely helps by this much, you have a less-than-even chance of seeing it. You will conclude 'no difference' and discard a real improvement — the expensive, invisible failure mode.";
+  else if (!paired) n.innerHTML = "<b>Independent arms.</b> Switch to paired and watch power jump: running both variants on the same cases removes between-case difficulty variance, which is usually the largest noise source. Same cost, better experiment.";
+  else if (R === 1) n.innerHTML = "<b>One run per case.</b> Agents are stochastic, so a single run measures the sample rather than the agent. Three runs per case costs 3× and materially tightens the estimate.";
+  else n.innerHTML = "<b>A usable experiment.</b> Paired design, repeated runs, intervals reported. Note the cost column — this is why component evals matter: they catch most regressions for a fraction of this.";
+}
+function erf(x) { var s = x < 0 ? -1 : 1; x = Math.abs(x); var t = 1 / (1 + .3275911 * x);
+  var y = 1 - ((((1.061405429 * t - 1.453152027) * t + 1.421413741) * t - .284496736) * t + .254829592) * t * Math.exp(-x * x);
+  return s * y; }
+["e19-p0","e19-d","e19-n","e19-r","e19-pair"].forEach(function (i) {
   document.getElementById(i).addEventListener("input", upd); document.getElementById(i).addEventListener("change", upd); });
 upd();`,
-          caption: `Push "avg context per call" from 18K to 40K without changing anything else. Capacity halves. Context size is a capacity decision as much as a cost one, which is the operational argument for ${ch("c05", "C05")}.`,
+          caption: `Set the suite to 10 cases and the effect to +6 points — a realistic prompt improvement. The power figure is the probability you would notice. It is usually under 20%, which is why most prompt iteration is unmeasured.`,
         }) },
 
-    { id: "build", kicker: "Build it", title: "The worker loop",
+    { id: "build", kicker: "Build it", title: "A harness you will actually run",
       html:
-        code({ title: "code/c22_serving.ts — lease, run, checkpoint, drain",
-          src: `export async function worker(queue: Queue, log: EventLog, cfg: AgentConfig) {
-  let draining = false;
-  process.on("SIGTERM", () => { draining = true; });     // stop taking work, finish what we have
+        code({ title: "code/c22_evals.ts — parallel, tagged, reproducible",
+          src: `export async function runEval(suite: Case[], agent: AgentFactory, opts: EvalOpts): Promise<Report> {
+  const results: CaseResult[] = [];
 
-  while (!draining) {
-    const job = await queue.claim({ leaseMs: 30_000 });   // lease + fencing token (C08)
-    if (!job) { await sleep(250); continue; }
-
-    const heartbeat = setInterval(() => queue.renew(job).catch(() => ctrl.abort()), 10_000);
-    const ctrl = new AbortController();
-
-    try {
-      const result = await runAgent(job.runId, log, {
-        ...cfg,
-        signal: ctrl.signal,
-        emit: (e) => { void log.append(job.runId, [e]); bus.publish(job.runId, e); },
-        onSuspend: async (reason) => {                    // approval, or a drain
-          await queue.release(job, { resumeOn: reason });
-          return "suspended";
-        },
-      });
-      await queue.complete(job, result);
-    } catch (e) {
-      // Retryable → back on the queue with backoff. Terminal → record and stop.
-      await (isRetryable(e) ? queue.retry(job, backoff(job.attempts)) : queue.fail(job, e));
-    } finally {
-      clearInterval(heartbeat);
+  // Bounded concurrency: fast enough to run often, gentle enough not to rate-limit.
+  await pMap(suite, async (c) => {
+    const runs: Grade[] = [];
+    for (let i = 0; i < opts.runsPerCase; i++) {
+      const env = await opts.makeEnv();          // fresh fixtures: no cross-case contamination
+      const r = await agent(env).run(c.input);
+      runs.push({ ...(await c.check(r, env)), trajectory: trajectory(r, c), usage: r.usage });
+      await env.teardown();
     }
-  }
+    results.push({ case: c, runs, passRate: runs.filter((x) => x.pass).length / runs.length });
+  }, { concurrency: opts.concurrency ?? 8 });
 
-  await queue.releaseAll();                               // let another worker resume them
-  process.exit(0);
+  return {
+    overall: aggregate(results),
+    byTag: groupBy(results, (r) => r.case.tags).map(aggregate),   // ← where regressions hide
+    regressions: opts.baseline ? diff(results, opts.baseline) : [],
+    cost: results.reduce((t, r) => t + cost(r), 0),
+  };
 }`,
         }) +
-        p(`The <code>onSuspend</code> callback is what makes approvals free: the run releases its lease and leaves the queue entirely. When a human decides, the decision is appended to the log and the run is re-queued, and a completely different worker picks it up and replays. No thread was held, and a deploy in between changes nothing.`) +
-        `<h3>The client, which is simpler than people expect</h3>` +
-        code({ title: "start, stream, reconnect",
-          src: `export async function* runAgentRemote(goal: string, opts: { sessionId?: string } = {}) {
-  const { runId } = await post("/runs", { goal, ...opts, idempotencyKey: crypto.randomUUID() });
+        `<h3>The report that changes behaviour</h3>` +
+        code({ title: "what a useful eval run prints", lang: "text", plain: true,
+          src: `eval: 84 cases × 3 runs = 252 runs · 6m12s · $4.18
 
-  let lastId = 0;
-  for (;;) {
-    const es = new EventSource(\`/runs/\${runId}/events\`);   // browser resends Last-Event-ID
-    try {
-      for await (const e of events(es)) {
-        lastId = Number(e.lastEventId) || lastId;
-        yield JSON.parse(e.data);
-        if (e.type === "done") return;
-      }
-    } catch { /* network blip */ }
-    es.close();
-    await sleep(500);                                       // reconnect; the server replays
-  }
-}`,
+overall        78.6%  (95% CI 73.1–83.2)   baseline 74.2%   +4.4 pts
+                                            McNemar: 19 gains, 7 losses, p=0.019 ✓
+
+by tag
+  refund          91.7%  (+2.1)   12 cases
+  multi-hop       58.3%  (−9.7)   12 cases   ⚠ REGRESSION
+  write           84.6%  (+6.4)   13 cases
+  from-prod       71.4%  (+8.9)   28 cases
+  regression      96.6%  (+0.0)   29 cases
+
+trajectory
+  median steps          4  (was 4)
+  p95 steps            11  (was 8)           ⚠ tail growing
+  wasted calls / run  0.31  (was 0.18)
+  recovered from error  87%  (was 84%)
+
+newly failing (3)
+  multi-hop/policy-conflict-882   passed 3/3 → 0/3
+  multi-hop/archive-fallback      passed 3/3 → 1/3
+  refund/partial-shipment         passed 2/3 → 0/3`,
         }) +
+        p(`Three things make this report useful rather than decorative. The <strong>per-tag breakdown</strong> surfaces the multi-hop regression that the +4.4 overall would have hidden. The <strong>trajectory section</strong> shows a growing p95 even though the median is flat — the early warning. And <strong>newly failing cases are named</strong>, so the next step is opening a trace rather than starting an investigation.`) +
         code({ title: "run it", lang: "bash", plain: true,
-          src: `node --experimental-strip-types code/c22_serving.ts
+          src: `node --experimental-strip-types code/c22_evals.ts
 
-#   C22 · Shipping
+#   C22 · Evaluation
 #
-#   resumable SSE — a 20-second dropout
+#   "I tried ten examples and it went from 7/10 to 9/10"
 #
-#     before the drop:  received events 1, 2
-#     during the drop:  2 events published to the durable log
-#     on reconnect:     Last-Event-ID: 2 → replayed 3, 4
+#       7/10    =  70.0%   95% CI [40%, 89%]
+#       9/10    =  90.0%   95% CI [60%, 98%]
+#      70/100   =  70.0%   95% CI [60%, 78%]
+#     700/1000  =  70.0%   95% CI [67%, 73%]
 #
-#     Seamless, because every event carried an id: and was persisted before publish.
-#     content-type: text/event-stream
-#     cache-control: no-cache, no-transform
-#     connection: keep-alive
-#     x-accel-buffering: no
+#     The first two intervals overlap almost entirely. That experiment cannot
+#     distinguish a real 20-point gain from nothing at all.
 #
-#   leases and fencing tokens — two workers, one run
+#   runs needed per arm to detect a change, at 80% power
 #
-#     worker A claims r_1 with token 1, lease until t=30000
-#     worker A pauses (GC / network partition). t=40000, lease expired.
-#     reaper released 1 expired lease(s)
-#     worker B claims r_1 with token 2
-#     worker A wakes and tries to write → fenced: token 1 < 2 (another worker took over)
+#     70% → 75%    1276 runs per arm
+#     70% → 80%     300 runs per arm
+#     70% → 85%     125 runs per arm
+#     70% → 90%      64 runs per arm
+#     50% → 80%      41 runs per arm
 #
-#     A TTL alone is not enough: a paused worker believes it still holds the lease.
+#     Most agent changes are 5–10 point effects. That is why casual comparison
+#     on a handful of examples is indistinguishable from guessing.
 #
-#   fair queueing — one tenant submitting 500 runs must not block the rest
+#   eval: 85 cases × 3 runs = 255 runs per arm
 #
-#     claim order: noisy-tenant → quiet-tenant → noisy-tenant → other-tenant
-#     The quiet tenants were served within the first few claims despite being
-#     submitted last, and the noisy tenant is capped at 2 concurrent runs.
+#     baseline   78.4%  95% CI [73.0, 83.0]
+#     variant    81.6%  95% CI [76.4, 85.8]   +3.1 pts
+#     McNemar: variant wins 4, loses 2  (χ²=0.17, p≈0.683) → not significant
 #
-#   capacity — the arithmetic people get wrong
-#
+#     Note the honest outcome: the variant looks +3 points better overall, and
+#     the paired test says that is not distinguishable from noise at this sample
+#     size — exactly what the power table above predicts. The per-tag breakdown
 # …
-#     object with an id and the connection was only ever a view of it.`,
-        }) },
+#     for a person, not an automatic merge.`,
+        }) +
+        note("good", "Gate on tags, not on the mean", p(`A CI gate that only checks the overall number will happily merge a change that trades multi-hop performance for refund performance. Gate per tag, with a threshold, and the trade becomes a conversation instead of a surprise.`)) },
 
-    { id: "production", kicker: "Production notes", title: "The first week",
+    { id: "production", kicker: "Production notes", title: "Field notes",
       html:
         ul([
-          `<strong>The first incident is almost always rate limits.</strong> Token-per-minute, hit at a concurrency number far below what anyone estimated. Admission control in front of the queue, plus context-size discipline, is the fix; more workers is not.`,
-          `<strong>The second is a runaway loop on one tenant.</strong> Per-tenant spend caps with alerts (${ch("c12", "C12")}) turn it into a page instead of an invoice.`,
-          `<strong>Buffering proxies will eat your stream.</strong> nginx, some CDNs, and a few corporate proxies buffer <code>text/event-stream</code> by default. Set <code>no-transform</code> and <code>x-accel-buffering: no</code>, and test through the real edge rather than against localhost.`,
-          `<strong>Long runs need a progress contract.</strong> If nothing is emitted for 30 seconds, users assume it has hung. Emit something — even "still working: reading 40 files" — on a timer.`,
-          `<strong>Version your agent like an API.</strong> Record the prompt version, tool versions and model id on every run. When behaviour changes, the first question is what deployed, and it should be answerable from the run record rather than from git archaeology.`,
-          `<strong>Warm the cache deliberately.</strong> A cold prompt cache after a deploy makes the first minutes expensive and slow. If your system prompt is large, send a warming request per worker on startup.`,
+          `<strong>Public benchmarks measure something else.</strong> GAIA, SWE-bench, τ-bench and the rest are useful for comparing models and for orienting yourself. They are not your product. Your 84 cases drawn from your traffic predict your users' experience; a benchmark score does not.`,
+          `<strong>Run component evals on every commit, the full suite nightly and before release.</strong> Full agent evals cost real money and minutes; component evals cost neither and catch most regressions.`,
+          `<strong>Online evaluation beats offline for drift.</strong> Sample production runs, grade a fraction with a judge, and track the score over time. It catches the world changing — a document set going stale, an API altering its responses — which no fixed suite ever will.`,
+          `<strong>Start from named rubrics rather than inventing criteria per task.</strong> Three generalise across most agent work and are worth keeping as standing judges: <em>answer relevancy</em> (does the response address what was asked rather than something adjacent), <em>citation reliability</em> (is every claim supported by a source the run actually retrieved — ${ch("c27", "C27")}'s grounding check, as a judge), and <em>requirement compliance</em> (did it satisfy each stated constraint, scored per constraint rather than overall). Report them alongside an <strong>overall pass rate</strong>: the share of cases passing <em>every</em> rubric, which is the number that tracks what a user experiences. A case scoring 0.8 on three rubrics independently sounds fine and has probably failed at least one of them.`,
+          `<strong>Eval the documentation too.</strong> The three levels above all grade the agent against a task. There is a fourth thing that rots and that nobody measures: whether your documentation still describes the system. Point the agent at your own docs, have it perform what they claim, and fail the suite when the two disagree — pi ships exactly this, a set of <code>*.docs.eval.ts</code> suites auditing its model, extension and provider documentation. Every instruction you publish is a prompt somebody's agent will follow, which makes stale docs a correctness bug rather than a tidiness one.`,
+          `<strong>Make adding a case trivial.</strong> One command that takes a run id and appends the case with its input and current behaviour. If adding a case takes ten minutes, nobody will do it, and the suite will stop reflecting reality within a month.`,
+          `<strong>Report cost and latency alongside quality, always.</strong> A change that lifts success by 2 points and doubles spend is a decision for a person, not an automatic merge.`,
         ]) },
   ],
 
   exercises: [
     { difficulty: "warm-up",
-      prompt: `A user's browser reconnects to an SSE stream after a 20-second dropout. What must the server do for the experience to be seamless, and what breaks if you skip it?`,
-      answer: p(`The server must read <code>Last-Event-ID</code>, replay every event after that sequence number from the durable log, and then follow live. That is possible only because every event carried an <code>id:</code> field and every event was persisted before being published.`) +
-        p(`Skip the <code>id:</code> and the browser sends nothing on reconnect, so the server starts from live. The user misses everything that happened during the dropout, and the UI shows a plan that jumps or an answer with a hole in it. Skip the persistence and there is nothing to replay from.`) +
-        p(`The third thing to get right: publish to the bus <em>after</em> appending to the log, never before. Otherwise a client can receive an event that is not yet durable, and a crash makes the client's view diverge from the run's actual history.`) },
+      prompt: `A colleague reports: "I changed the prompt and success went from 7/10 to 9/10." What do you say?`,
+      answer: p(`That the intervals are 35–92% and 55–100%, so those results are entirely consistent with no change at all, and also with a large improvement. The experiment cannot distinguish them.`) +
+        p(`Constructively: run both variants on the same 50+ cases (paired), three runs each, and report McNemar's counts — how many cases flipped each way. If the new prompt wins 12 and loses 3 on discordant pairs, that is real. If it wins 7 and loses 6, it is noise, whatever the totals say.`) +
+        p(`And add the two cases that changed to the suite either way. Whatever the statistics, those are examples of behaviour you now care about.`) },
 
     { difficulty: "core",
-      prompt: `Design the session model for an agent used by the same person across days. What carries forward, what does not, and where does it go wrong?`,
-      answer: table(["Carry forward", "Why", "Where it lives"], [
-        ["Semantic memories about the user", "Preferences and facts stay true", "Memory store (${C07})"],
-        ["A rolling session summary", "Continuity without the transcript", "Compacted after each run (${C05})"],
-        ["Artifact pointers", "Files and reports produced earlier", "Paths plus one-line descriptions"],
-        ["Open threads", "\"You asked me to follow up on X\"", "Explicit, small, list"],
-      ].map((r) => r.map((c) => c.replace("${C07}", `<a href="/c07/" class="mono">C07</a>`).replace("${C05}", `<a href="/c05/" class="mono">C05</a>`))) as string[][]) +
-      p(`<strong>Does not carry forward:</strong> raw message arrays from previous runs. Concatenating them makes the fifth exchange unaffordable and the tenth impossible, and it buries the current goal under a week of scrollback.`) +
-      p(`<strong>Where it goes wrong, in order of likelihood:</strong>`) +
+      prompt: `Build an eval case for "the agent should refuse and explain". What makes refusal cases harder to grade, and how do you avoid the two obvious traps?`,
+      answer: code({ title: "grade the refusal AND its quality",
+        src: `{
+  id: "refuse-refund-out-of-window",
+  input: "I want a refund for order 1102.",       // delivered 11 months ago, not faulty
+  tags: ["refusal", "policy"],
+  check: async (r, env) => {
+    // TRAP 1: keyword matching on "cannot" / "unable". A correct refusal that says
+    // "the 30-day window closed on 12 April" would fail; an incorrect "I cannot
+    // access that system" would pass.
+    const refunds = await env.db.refunds({ order: "1102" });
+    if (refunds.length) return { pass: false, why: "issued a refund it should have refused" };
+
+    // The world-check above is the important half. The judge grades the explanation.
+    const g = await judge(REFUSAL_RUBRIC, r.answer, {
+      mustState: ["the refund window has passed", "the specific date or duration"],
+      mustNotState: ["a promise to escalate that nobody will act on"],
+      mustOffer: ["the exception route if one exists"],
+    });
+    return { pass: g.pass, why: g.why };
+  },
+}` }) +
       ul([
-        `<strong>The summary becomes lossy in a compounding way.</strong> Summarising a summary of a summary loses specifics fast. Summarise from the <em>original</em> run records each time rather than re-summarising the previous summary.`,
-        `<strong>Stale context asserted confidently.</strong> "You are working on the auth migration" three weeks after it shipped. Timestamp everything carried forward and decay it (${ch("c07", "C07")}).`,
-        `<strong>Privacy across a shared session.</strong> If a session can be handed to a colleague, memories written during it must be scoped so the second person does not inherit the first's private context.`,
-        `<strong>Unbounded growth of "open threads".</strong> Cap it, and expire items nobody has touched.`,
+        `<strong>Trap 1 — keyword matching.</strong> Refusals have many valid phrasings and many invalid ones that use the same words. Check the <em>world</em> (no refund was issued) plus the <em>content</em> (it gave the real reason), never the surface form.`,
+        `<strong>Trap 2 — only testing refusals.</strong> A suite full of cases the agent should refuse trains you toward an agent that refuses everything. Pair every refusal case with a near-miss that should <em>succeed</em> — order 1103, same age, but faulty. The pair measures discrimination; either alone measures a bias.`,
+        `<strong>Grade the explanation, not just the decision.</strong> "No" and "no, because the 30-day window closed on 12 April, though a reported fault would change that" are very different products.`,
       ]) },
 
     { difficulty: "core",
-      prompt: `Your provider limit is 800K input tokens/min. Average context per call is 22K and runs average 7 calls. How many concurrent runs can you support, and what are the three levers if you need double?`,
-      answer: p(`Usable capacity at 85% headroom is 680,000 tokens/min ÷ 22,000 = <strong>~31 model calls/min</strong>. At 7 calls per run that is <strong>~4.4 runs started per minute</strong>. With a run taking roughly 17 seconds of model-plus-tool time, in-flight concurrency is about <strong>1.3 runs</strong>, dramatically lower than intuition suggests, and the reason "we'll run 50 agents in parallel" fails immediately.`) +
-        p(`<strong>Three levers, in order of value:</strong>`) +
+      prompt: `Your LLM judge agrees with human graders 72% of the time. Is that usable? How would you improve it?`,
+      answer: p(`Not for gating. 72% agreement means roughly one grade in four is wrong, and those errors are <em>systematic</em> rather than random — judges fail on particular kinds of case — so they bias your measurements in a consistent direction rather than averaging out.`) +
         ol([
-          `<strong>Cut context per call.</strong> 22K → 11K exactly doubles capacity. Offloading large tool results (${ch("c05", "C05")}) and capping chatty tools (${ch("c03", "C03")}) is usually worth this on its own, and it halves cost at the same time.`,
-          `<strong>Prompt caching.</strong> Cached input tokens often count differently against limits as well as costing less — check your provider's accounting, because if cached reads are discounted against the quota this is close to free capacity.`,
-          `<strong>Cut calls per run.</strong> 7 → 4 by promoting a fixed tool sequence into a chain (${ch("c11", "C11")}) is a 75% capacity increase, and it reduces latency too.`,
+          `<strong>Find where it disagrees.</strong> Pull the 28% and classify them. In practice this is nearly always a small number of clusters: partially-correct answers, answers correct by a different route than the reference, and cases where the rubric is genuinely ambiguous.`,
+          `<strong>Fix the rubric first, not the model.</strong> Most disagreement is under-specification. "Is the answer correct?" invites a judgement; "does the conclusion match the reference verdict, and is each factual claim present in the reference?" is checkable. Adding two or three explicit criteria typically moves agreement into the high 80s.`,
+          `<strong>Require a quote for every criterion.</strong> Forcing the judge to point at the text it is grading removes a large share of invented complaints.`,
+          `<strong>Move the gradeable part out of the judge.</strong> If the conclusion can be checked programmatically, check it, and let the judge grade only the explanation. Hybrid grading beats pure judging almost always.`,
+          `<strong>Re-measure after each change</strong>, on the same 50 human-graded cases. Agreement is your judge's eval, and it needs a holdout too.`,
         ]) +
-        p(`A raised provider limit is the fourth lever and the one to ask for last, because the first three also reduce cost and latency while a higher limit only removes a ceiling.`) },
+        p(`Below about 85% agreement, use the judge for directional monitoring rather than for gating, and say so in the report. A number presented without its reliability is worse than no number.`) },
 
     { difficulty: "stretch",
-      prompt: `Write the operational runbook for the first week: launch checklist, the three most likely incidents with their diagnosis and fix, and the rollback plan.`,
-      answer: p(`<strong>Launch checklist</strong>`) +
-        ul([
-          `Per-tenant concurrency and spend caps configured, with alerts wired to a human.`,
-          `Admission control in front of the queue, sized from the token arithmetic, not from worker count.`,
-          `Graceful drain verified — kill a worker under load and confirm zero lost runs and zero duplicate side effects.`,
-          `SSE verified through the real edge (CDN, load balancer, corporate proxy), not localhost.`,
-          `Four dashboard numbers live (${ch("c20", "C20")}): terminal-state distribution, p95 steps among successes, cost per successful run, caused-token ranking.`,
-          `Eval suite green, with the per-tag gate (${ch("c19", "C19")}).`,
-          `Run id surfaced in the UI and included in every support path.`,
-          `Kill switch: a flag that stops new runs while letting in-flight ones finish.`,
-        ]) +
-        p(`<strong>Incident 1 — 429 storm.</strong> <em>Diagnosis:</em> provider 429 rate rising, queue depth rising, worker CPU low. <em>Fix now:</em> reduce admission rate; do not add workers. <em>Fix properly:</em> measure context per call, find the tool inflating it, cap it.`) +
-        p(`<strong>Incident 2 — one tenant consuming everything.</strong> <em>Diagnosis:</em> spend by tenant is skewed, fair-queue cursor stuck, other tenants' wait times climbing. <em>Fix now:</em> drop that tenant's concurrency cap. <em>Fix properly:</em> find the pathological input, add it as an eval case, cap the loop that ran away.`) +
-        p(`<strong>Incident 3 — "the agent got worse after the deploy".</strong> <em>Diagnosis:</em> compare the four numbers before and after; check the prompt/model/tool versions recorded on runs; run the eval suite against both versions paired. <em>Fix now:</em> roll back. <em>Fix properly:</em> the change that regressed should have been caught by a per-tag gate — add the case that would have caught it.`) +
-        p(`<strong>Rollback plan.</strong> Agent behaviour is defined by prompt version + model id + tool versions, all recorded per run, all deployable independently of the binary. Rolling back is a config change, not a redeploy. In-flight runs finish on the old version. Do not migrate a run's configuration mid-flight, or you get behaviour neither version was tested with (${ch("c08", "C08")}'s log-version rule).`) },
+      prompt: `Design the full evaluation strategy for an agent handling 10,000 requests a day. Cover CI, pre-release, production monitoring and dataset growth, with a cost budget.`,
+      answer: table(["Layer", "What", "When", "Cost"], [
+        ["<b>Component</b>", "Retrieval, schema, router, tool contracts", "Every commit, &lt;60s", "$0 — no agent runs"],
+        ["<b>Smoke</b>", "15 cases × 1 run, happy paths only", "Every commit, ~2 min", "~$0.40"],
+        ["<b>Full suite</b>", "100 cases × 3 runs, per-tag gates", "Nightly + pre-release", "~$5/night"],
+        ["<b>Paired A/B</b>", "Both variants, same cases, McNemar", "Per significant change", "~$10"],
+        ["<b>Online sampling</b>", "2% of production graded by judge", "Continuous", "~$6/day at 10k/day"],
+        ["<b>Human review</b>", "20 sampled runs, graded by a person", "Weekly", "2 hours"],
+      ]) +
+      p(`<strong>Total: roughly $350/month and two hours a week</strong>, against a production spend that at 10,000 daily requests is likely thousands. The ratio is the argument. Evaluation is a rounding error next to inference, and it is the only thing that makes the inference spend deliberate.`) +
+      p(`<strong>Dataset growth, which is the part that decays without a process:</strong> every production failure becomes a case within 24 hours (one command, taking a run id); every user complaint becomes a case; a weekly stratified sample of 10 production runs is triaged and the interesting ones added. Cap the suite at what runs in about 15 minutes and retire cases that have passed 100 consecutive times. They are no longer providing information, and a suite that takes an hour is a suite nobody runs.`) +
+      p(`<strong>The weekly human review is not optional.</strong> It is the only layer that notices problems nobody thought to encode: tone drifting, answers technically correct and practically useless, a new failure mode with no existing case. Everything else measures what you already know to look for.`) },
   ],
 
   qa: [
-    { q: "SSE or WebSockets?", a: p(`SSE, almost always. It is one-directional, which matches the shape (the server streams, the client occasionally POSTs an interrupt), it reconnects and replays natively via <code>Last-Event-ID</code>, and it survives proxies better. WebSockets are worth it only for genuinely bidirectional, low-latency interaction such as voice.`) },
-    { q: "Do I need a queue for low volume?", a: p(`Not for volume — for <em>durability</em>. The queue is what lets a run outlive a request, survive a deploy, and suspend for an approval. Even at one run a minute, an in-handler agent loses work on every restart. A database table with a lease works fine as a queue.`) },
-    { q: "How do I handle a client that never reconnects?", a: p(`Let the run finish and store the result. Agent work is usually valuable independently of whether anyone is watching, and the durable log means the user can retrieve it later from another device. Cancel only if the run is expensive and clearly abandoned, and make that a policy decision with a timeout rather than an implicit consequence of a socket closing.`) },
-    { q: "Should the same server handle chat and agent runs?", a: p(`Separate them. Chat is sub-second and latency-sensitive; agent runs are minutes and throughput-sensitive. Sharing a worker pool means a burst of agent runs adds seconds to every chat response. Different pools, different scaling signals, possibly different provider quotas.`) },
-    { q: "How do I test all this locally?", a: p(`An in-memory queue and event bus behind the same interfaces, a mock model (${ch("c01", "C01")}), and a chaos switch that kills workers at random. The load and chaos results in this chapter came from exactly that setup. It runs offline, it is deterministic under a seed, and it catches the drain and resume bugs that only appear under restart.`) },
+    { q: "How many eval cases do I need?", a: p(`Enough to detect the effect sizes you care about — typically 50–150 with several runs each for 5–10 point changes. But start with 20 today rather than planning 200 for next quarter: a small suite that runs is infinitely more valuable than a large one that does not exist.`) },
+    { q: "Should I use a public benchmark?", a: p(`For orientation and for model selection, yes. For deciding whether your change helped, no: your traffic is not their distribution. Use benchmarks to choose a model, your own suite to evaluate everything else.`) },
+    { q: "How do I evaluate an agent with no single right answer?", a: p(`Decompose the outcome into checkable properties: did it cite sources, are the cited sources real and do they contain the claims, does it cover the required aspects, does it avoid the forbidden claims. Most "subjective" outputs turn out to be a handful of objective criteria plus taste. Grade the criteria, sample the taste with humans.`) },
+    { q: "My evals pass and users complain. What now?", a: p(`Your suite does not reflect reality. Go to the complaints, turn each into a case, and watch them fail. That gap is the most valuable information you have, and closing it is more useful than any amount of adding synthetic cases.`) },
+    { q: "Do I need to eval every prompt tweak?", a: p(`Run component evals and the smoke suite — seconds, free. Run the full paired comparison for anything you intend to defend. The discipline that matters is not evaluating everything; it is never claiming an improvement you have not measured.`) },
   ],
 
   project: {
-    title: "Project · Put your agent behind an API",
-    brief: p(`Ship the agent as a service. The bar is a chaos test: kill a worker mid-run under load and have zero lost runs, zero duplicate side effects, and no visible user impact.`),
+    title: "Project · An eval suite that gates your CI",
+    brief: p(`Build the harness and wire it into your workflow. The bar: you can state, with a confidence interval, whether your last change helped.`),
     spec: [
-      "The four endpoints, with <code>POST /runs</code> idempotent on a client key scoped per tenant.",
-      "Resumable SSE: <code>id:</code> on every event, replay from <code>Last-Event-ID</code>, heartbeats, and anti-buffering headers.",
-      "A queue with leases and fencing tokens (C08), workers that drain on SIGTERM, and runs that resume on another worker.",
-      "Suspension for approvals that releases the lease entirely — no thread held while a human decides.",
-      "Token-based admission control sized from the real arithmetic, plus per-tenant concurrency and spend caps.",
-      "A fair queue that prevents one tenant starving the rest.",
-      "A session model carrying memory, a summary and artifact pointers — never raw transcripts.",
-      "A chaos test: kill workers randomly under load and assert the three properties above.",
+      "At least 40 cases with programmatic checks wherever possible — checking the world, not the prose — tagged by capability and source.",
+      "Component evals for retrieval, structured output, routing and tool contracts that run in under a minute with no agent calls.",
+      "Trajectory scoring: steps, wasted calls, required/forbidden tools, error recovery, tokens per useful step.",
+      "Multiple runs per case with per-case pass rates and Wilson intervals on every reported number.",
+      "Paired comparison against a stored baseline, with McNemar counts.",
+      "A per-tag report that gates CI, with newly-failing cases named.",
+      "A one-command way to turn a production run id into a new case.",
     ],
     stretch: [
-      "Add the capacity calculator to your dashboard, computing the binding constraint from live token usage.",
-      "Record prompt version, model id and tool versions on every run, and make rollback a config change.",
-      "Run a load test at 60%, 80% and 95% of capacity and chart queue wait — then explain the curve to someone.",
+      "Add an LLM judge with a quote-requiring rubric, calibrate it against 50 human grades, and report the agreement rate next to every judge-derived number.",
+      "Add online sampling: grade 2% of production runs and chart the score over time.",
+      "Run a real experiment — change one thing, measure it properly, and write down what you learned including if the answer is 'no measurable difference'.",
     ],
   },
 
   quiz: [
-    { q: "Why must an agent run outlive the HTTP request that started it?",
-      options: ["Runs take minutes, deploys restart processes, clients drop, and approvals wait on humans — a held connection loses all of it", "HTTP has a hard 60-second limit", "Streaming requires a separate connection", "It reduces token usage"],
+    { q: "A change moves 7/10 to 9/10 on a ten-case suite. What can you conclude?",
+      options: ["Essentially nothing — the confidence intervals overlap almost entirely", "A 20-point improvement", "That it helps on at least some cases", "That it is worth shipping"],
       answer: 0,
-      why: "The run becomes a durable object with an id and the connection becomes a view of it. Resumability, surviving deploys, and non-blocking approvals all fall out of that one separation." },
-    { q: "What makes an SSE stream resumable?",
-      options: ["An `id:` on every event plus a durable log to replay from, so `Last-Event-ID` can be honoured", "Keeping the TCP connection alive", "Buffering events in server memory", "Using WebSockets instead"],
+      why: "The intervals are roughly 35–92% and 55–100%. Detecting a 6–10 point change needs on the order of 100–300 paired observations. This is the most common self-deception in agent development." },
+    { q: "Which eval level gives the earliest warning that an agent is degrading?",
+      options: ["Trajectory — p95 steps-to-completion rises before the success rate falls", "Outcome — success rate", "Component — retrieval recall", "User complaints"],
       answer: 0,
-      why: "The browser resends the last id it saw. Without ids it sends nothing and the client silently misses everything that happened during the dropout; without persistence there is nothing to replay." },
-    { q: "Why do heartbeats matter on an agent's event stream?",
-      options: ["An agent can think for 45 seconds with no events, which is indistinguishable from a dead connection to every proxy in between", "They keep the model warm", "They measure latency", "They are required by the SSE specification"],
+      why: "An agent taking nine steps for what used to take five is already going wrong while every outcome dashboard is still green. Outcome tells you it broke; trajectory tells you it is breaking." },
+    { q: "What is the best way to check an outcome?",
+      options: ["Programmatically, against the world — was the ticket created, is the number right", "An LLM judge with a detailed rubric", "String comparison with a reference answer", "Human review of every case"],
       answer: 0,
-      why: "Intermediaries close idle connections at 30–60 seconds. A comment line every 15 seconds keeps it open. The related trap is buffering proxies, which need `no-transform` and `x-accel-buffering: no`." },
-    { q: "Your provider limit is token-based. What happens if you add workers?",
-      options: ["More calls against the same ceiling — queue wait becomes 429s, and capacity does not improve", "Capacity scales linearly with workers", "Latency improves but cost rises", "Nothing, since workers are cheap"],
+      why: "Checking the world is exact, free, and tests what the user cares about. Reserve judges for genuinely unstructured output, and even then pair them with a world-check on the decision itself." },
+    { q: "Why report results per tag rather than only overall?",
+      options: ["A change can lift the mean while badly regressing one capability, and the aggregate hides it", "Tags make the report shorter", "It reduces the number of runs needed", "Aggregates are harder to compute"],
       answer: 0,
-      why: "Agents are input-token workloads, so the token ceiling binds first. The real levers are smaller context per call, prompt caching, and fewer calls per run, each of which also reduces cost." },
-    { q: "How should an approval be handled at the serving layer?",
-      options: ["The run releases its lease and leaves the queue; the decision is appended to the log and re-queues it for any worker", "A worker blocks on a promise until the human responds", "The request handler holds the connection open", "The run is cancelled and restarted after approval"],
+      why: "The example report gains 4.4 points overall while losing 9.7 on multi-hop. Gating on the mean merges that trade silently; gating per tag turns it into a decision." },
+    { q: "Which LLM-judge bias is corrected by evaluating both orderings of a pair?",
+      options: ["Position bias", "Verbosity bias", "Self-preference bias", "Anchoring on the reference answer"],
       answer: 0,
-      why: "Humans take minutes to hours. Suspending to durable state means no thread is held, a deploy in between is harmless, and a different worker resumes by replaying, which is C08's design paying off." },
-    { q: "What must a worker do on SIGTERM?",
-      options: ["Stop claiming work, let in-flight runs reach a checkpoint, release leases, then exit — so runs resume elsewhere", "Exit immediately to speed the deploy", "Finish every in-flight run to completion regardless of duration", "Cancel in-flight runs and notify the users"],
+      why: "In pairwise comparison, which candidate appears first measurably changes the verdict. Running both orders and discarding disagreements is the standard control; verbosity needs a rubric clause and self-preference needs a different model family." },
+    { q: "Why does a paired design need fewer cases than two independent arms?",
+      options: ["Running both variants on the same cases removes between-case difficulty variance, usually the largest noise source", "It halves the number of runs", "It avoids the need for confidence intervals", "Paired tests have higher significance thresholds"],
       answer: 0,
-      why: "Exiting immediately makes every deploy an incident for whoever was mid-task. Draining to the queue with released leases means another worker replays and continues, with no visible impact." },
+      why: "Cases differ enormously in difficulty, and that variance swamps a 6-point effect. Pairing cancels it, so the relevant number becomes the discordant pairs — where the two variants disagree." },
   ],
 
-  continues: p(`Every mechanism in the course now exists. The last two chapters assemble them into complete systems: a deep-research agent that plans, searches, verifies and cites, and a coding agent that reads, patches and tests your files. ${ch("c23", "C23")} builds the first, and it is the chapter where the earlier chapters stop being separate ideas.`),
+  continues: p(`Evals tell you whether the agent is good. When it is not, you need to see inside a specific run: which call, which tool, which observation, and what it cost. ${ch("c23", "C23")} is about instrumentation, and about the four numbers that should be on the wall.`),
 };
 
 export default chapter;

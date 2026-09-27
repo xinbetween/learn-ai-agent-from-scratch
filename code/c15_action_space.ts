@@ -1,8 +1,8 @@
 /**
- * C25 · The Action Space — the same six tasks answered two ways, once as a
+ * C15 · The Action Space — the same six tasks answered two ways, once as a
  * sequence of JSON tool calls and once as a single code action, counting the
  * turns and the tokens each one costs.
- *   node --experimental-strip-types code/c25_action_space.ts
+ *   node --experimental-strip-types code/c15_action_space.ts
  *
  * Everything here is deterministic. The "model" is scripted: it does not
  * choose, it replays a plan a model would plausibly have produced. What is
@@ -101,7 +101,7 @@ function runJson(task: Task): Accounting {
 
 /** A stand-in interpreter. The code action runs against the same data through
  *  the same functions; only the boundary moves. In a real system this is the
- *  sandbox from C13, and `print` is the only thing that crosses back. */
+ *  sandbox from C14, and `print` is the only thing that crosses back. */
 export function runCode(source: string): { output: string; error?: string } {
   const printed: string[] = [];
   const print = (...xs: unknown[]) =>
@@ -251,7 +251,7 @@ const pad = (s: string, n: number) => s.padEnd(n);
 const num = (n: number, w: number) => String(n).padStart(w);
 
 function main(): void {
-  console.log(`\n  C25 · The action space — ${TASKS.length} tasks, two ways\n`);
+  console.log(`\n  C15 · The action space — ${TASKS.length} tasks, two ways\n`);
   console.log(`  ${pad("task", 30)} ${pad("json turns", 11)} ${pad("code turns", 11)} ${pad("json obs tok", 13)} code obs tok`);
   console.log(`  ${"-".repeat(30)} ${"-".repeat(11)} ${"-".repeat(11)} ${"-".repeat(13)} ${"-".repeat(12)}`);
 
@@ -306,7 +306,7 @@ function main(): void {
   console.log(`  What this does not show: the model choosing. Every plan above was scripted,`);
   console.log(`  so this measures the ceiling of each action space, not whether a model hits`);
   console.log(`  it. The paper measures that part — up to 20% higher success across 17 models`);
-  console.log(`  on API-Bank — and C19 is how you would measure it on your own tasks.\n`);
+  console.log(`  on API-Bank — and C22 is how you would measure it on your own tasks.\n`);
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

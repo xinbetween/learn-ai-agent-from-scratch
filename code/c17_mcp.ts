@@ -1,7 +1,7 @@
 /**
- * C15 · MCP — JSON-RPC framing, a client handshake, schema pinning, and a
+ * C17 · MCP — JSON-RPC framing, a client handshake, schema pinning, and a
  * description scanner that catches tool poisoning.
- *   node --experimental-strip-types code/c15_mcp.ts
+ *   node --experimental-strip-types code/c17_mcp.ts
  */
 
 export const PROTOCOL_VERSION = "2025-06-18";
@@ -135,7 +135,7 @@ const schemaTokens = (tools: McpTool[]): number =>
 /* ---------------- demo ---------------- */
 
 async function main(): Promise<void> {
-  console.log("\n  C15 · The Model Context Protocol\n");
+  console.log("\n  C17 · The Model Context Protocol\n");
 
   // Framing, and the bug everyone ships once.
   const reader = new FrameReader();

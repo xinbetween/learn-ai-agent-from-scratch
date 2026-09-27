@@ -1,7 +1,7 @@
 /**
- * C20 · Observability & Cost — spans with AsyncLocalStorage propagation, tail
+ * C23 · Observability & Cost — spans with AsyncLocalStorage propagation, tail
  * sampling, redaction, and the caused-token blame report.
- *   node --experimental-strip-types code/c20_tracing.ts
+ *   node --experimental-strip-types code/c23_tracing.ts
  */
 
 import { AsyncLocalStorage } from "node:async_hooks";
@@ -143,7 +143,7 @@ const realNow = Date.now;
 (Date as any).now = () => virtualNow;
 
 async function main(): Promise<void> {
-  console.log("\n  C20 · Observability & Cost\n");
+  console.log("\n  C23 · Observability & Cost\n");
 
   // One instrumented run.
   await span("agent.run", "run", { "run.id": "r_7c21", "user.id": "ana@customer.com", "agent.terminal_state": "answered", "run.step": 5 }, async () => {

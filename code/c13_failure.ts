@@ -1,7 +1,7 @@
 /**
- * C12 · Failure & Recovery — the four layers, a circuit breaker, per-tool
+ * C13 · Failure & Recovery — the four layers, a circuit breaker, per-tool
  * budgets, and the partial report. Injected failures, measured outcomes.
- *   node --experimental-strip-types code/c12_failure.ts
+ *   node --experimental-strip-types code/c13_failure.ts
  */
 
 export type Layer = 1 | 2 | 3 | 4;
@@ -118,7 +118,7 @@ function simulate(policy: Policy, rates = { transport: .06, tool: .10, reasoning
 /* ---------------- demo ---------------- */
 
 async function main(): Promise<void> {
-  console.log("\n  C12 · Failure & Recovery\n");
+  console.log("\n  C13 · Failure & Recovery\n");
 
   console.log("  classification — the same try/catch, four different right answers\n");
   const cases: Array<[string, unknown, { idempotent?: boolean; readOnly?: boolean } | undefined]> = [

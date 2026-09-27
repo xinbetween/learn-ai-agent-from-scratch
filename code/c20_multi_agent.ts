@@ -1,7 +1,7 @@
 /**
- * C17 · Multi-Agent Systems — a subagent is a tool with a fresh context, and the
+ * C20 · Multi-Agent Systems — a subagent is a tool with a fresh context, and the
  * justification is context isolation rather than specialisation.
- *   node --experimental-strip-types code/c17_multi_agent.ts
+ *   node --experimental-strip-types code/c20_multi_agent.ts
  */
 
 import { Ledger } from "./c01_model_call.ts";
@@ -106,7 +106,7 @@ export async function orchestrate(tasks: SubTask[]): Promise<{ results: WorkerRe
 /* ---------------- demo ---------------- */
 
 async function main(): Promise<void> {
-  console.log("\n  C17 · Multi-Agent Systems\n");
+  console.log("\n  C20 · Multi-Agent Systems\n");
 
   const tasks: SubTask[] = [
     { id: "t1", worker: "scale", brief: "…", whySeparate: "reads ~15 doc pages", dependsOn: [] },

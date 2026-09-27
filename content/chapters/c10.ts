@@ -1,449 +1,444 @@
 import type { Chapter } from "../../src/types.ts";
 import { code, fig, lab, note, table, p, ul, ol, ch } from "../../src/ui.ts";
 
-const VERIFY_SVG = `
-<svg viewBox="0 0 700 280" width="100%" style="max-width:700px;display:block;margin:0 auto" role="img"
-     aria-label="The verification ladder from ground truth to self-critique">
-  <text x="14" y="18" class="d-label">ORDERED BY HOW MUCH THE CHECK KNOWS THAT THE AUTHOR DID NOT</text>
+const PLAN_SVG = `
+<svg viewBox="0 0 700 290" width="100%" style="max-width:700px;display:block;margin:0 auto" role="img"
+     aria-label="Three planning styles: none, plan-then-execute, and interleaved">
+  <text x="14" y="18" class="d-label">THREE WAYS TO SPEND A STEP BUDGET</text>
 
-  <rect x="14" y="30" width="672" height="42" rx="6" class="d-box-t"/>
-  <text x="28" y="48" class="d-text">1 · ground truth</text>
-  <text x="28" y="64" class="d-mono" fill="var(--fg-faint)">run the test · compile it · call the API and read the status · diff the file — independent of the model</text>
+  <text x="14" y="42" class="d-mono" fill="var(--fg-faint)">no plan</text>
+  <g>
+    <rect x="86" y="30" width="54" height="20" rx="3" class="d-box-a"/><text x="113" y="44" class="d-mono" text-anchor="middle">act</text>
+    <rect x="146" y="30" width="54" height="20" rx="3" class="d-box-a"/><text x="173" y="44" class="d-mono" text-anchor="middle">act</text>
+    <rect x="206" y="30" width="54" height="20" rx="3" class="d-box-a"/><text x="233" y="44" class="d-mono" text-anchor="middle">act</text>
+    <rect x="266" y="30" width="54" height="20" rx="3" class="d-box" stroke="var(--danger)"/><text x="293" y="44" class="d-mono" text-anchor="middle" fill="var(--danger)">?</text>
+    <rect x="326" y="30" width="54" height="20" rx="3" class="d-box-a"/><text x="353" y="44" class="d-mono" text-anchor="middle">act</text>
+    <rect x="386" y="30" width="54" height="20" rx="3" class="d-box" stroke="var(--danger)"/><text x="413" y="44" class="d-mono" text-anchor="middle" fill="var(--danger)">?</text>
+  </g>
+  <text x="456" y="44" class="d-mono" fill="var(--fg-faint)">works to ~6 steps, then drifts</text>
 
-  <rect x="14" y="78" width="672" height="42" rx="6" class="d-box-p"/>
-  <text x="28" y="96" class="d-text">2 · rules you wrote</text>
-  <text x="28" y="112" class="d-mono" fill="var(--fg-faint)">schema validity · invariants · "critical ⇒ needsHuman" · cited source actually contains the claim</text>
+  <text x="14" y="102" class="d-mono" fill="var(--fg-faint)">plan first</text>
+  <rect x="86" y="80" width="114" height="42" rx="4" class="d-box-p"/>
+  <text x="143" y="98" class="d-mono" text-anchor="middle">PLAN</text>
+  <text x="143" y="114" class="d-mono" text-anchor="middle" fill="var(--fg-faint)">1 call, 5 steps</text>
+  <g>
+    <rect x="206" y="90" width="44" height="22" rx="3" class="d-box-a"/><text x="228" y="105" class="d-mono" text-anchor="middle">1</text>
+    <rect x="256" y="90" width="44" height="22" rx="3" class="d-box-a"/><text x="278" y="105" class="d-mono" text-anchor="middle">2</text>
+    <rect x="306" y="90" width="44" height="22" rx="3" class="d-box-a"/><text x="328" y="105" class="d-mono" text-anchor="middle">3</text>
+    <rect x="356" y="90" width="44" height="22" rx="3" class="d-box" stroke="var(--danger)"/><text x="378" y="105" class="d-mono" text-anchor="middle" fill="var(--danger)">4✗</text>
+    <rect x="406" y="90" width="44" height="22" rx="3" class="d-box" stroke-dasharray="2 2"/><text x="428" y="105" class="d-mono" text-anchor="middle" fill="var(--fg-faint)">5</text>
+  </g>
+  <text x="466" y="105" class="d-mono" fill="var(--danger)">step 4 invalidates the plan</text>
 
-  <rect x="14" y="126" width="672" height="42" rx="6" class="d-box-a"/>
-  <text x="28" y="144" class="d-text">3 · an independent critic</text>
-  <text x="28" y="160" class="d-mono" fill="var(--fg-faint)">fresh context, sees the output not the reasoning, given a rubric and permission to fail it</text>
+  <text x="14" y="176" class="d-mono" fill="var(--fg-faint)">interleaved</text>
+  <rect x="86" y="154" width="98" height="42" rx="4" class="d-box-p"/>
+  <text x="135" y="172" class="d-mono" text-anchor="middle">SKETCH</text>
+  <text x="135" y="188" class="d-mono" text-anchor="middle" fill="var(--fg-faint)">3 phases</text>
+  <g>
+    <rect x="190" y="164" width="44" height="22" rx="3" class="d-box-a"/><text x="212" y="179" class="d-mono" text-anchor="middle">1</text>
+    <rect x="240" y="164" width="44" height="22" rx="3" class="d-box-a"/><text x="262" y="179" class="d-mono" text-anchor="middle">2</text>
+    <rect x="290" y="164" width="60" height="22" rx="3" class="d-box-p"/><text x="320" y="179" class="d-mono" text-anchor="middle">replan</text>
+    <rect x="356" y="164" width="44" height="22" rx="3" class="d-box-a"/><text x="378" y="179" class="d-mono" text-anchor="middle">3'</text>
+    <rect x="406" y="164" width="44" height="22" rx="3" class="d-box-a"/><text x="428" y="179" class="d-mono" text-anchor="middle">4'</text>
+    <rect x="456" y="164" width="44" height="22" rx="3" class="d-box-t"/><text x="478" y="179" class="d-mono" text-anchor="middle">✓</text>
+  </g>
+  <text x="516" y="179" class="d-mono" fill="var(--ok)">plan survives contact</text>
 
-  <rect x="14" y="174" width="672" height="42" rx="6" class="d-box" stroke="var(--danger)" stroke-dasharray="4 3"/>
-  <text x="28" y="192" class="d-text" fill="var(--danger)">4 · self-critique in the same context</text>
-  <text x="28" y="208" class="d-mono" fill="var(--fg-faint)">"are you sure?" — the author reviewing its own work with all its assumptions still loaded</text>
-
-  <line x1="14" y1="232" x2="686" y2="232" stroke="var(--border)"/>
-  <text x="14" y="254" class="d-mono" fill="var(--ok)">rung 1 catches the errors that matter and cannot be argued with.</text>
-  <text x="14" y="272" class="d-mono" fill="var(--danger)">rung 4 mostly produces confident agreement. it is not a verification strategy.</text>
+  <line x1="14" y1="216" x2="686" y2="216" stroke="var(--border)"/>
+  <text x="14" y="238" class="d-label">THE PLAN'S REAL JOB IS NOT SEQUENCING</text>
+  <text x="14" y="258" class="d-mono">it is a <tspan fill="var(--accent)">compressed, pinned statement of intent</tspan> that survives compaction,</text>
+  <text x="14" y="276" class="d-mono">and a <tspan fill="var(--accent)">checklist the agent can be held to</tspan> when it claims to be finished.</text>
 </svg>`;
 
 const chapter: Chapter = {
   id: "c10",
   num: 10,
   layer: "reasoning",
-  title: "Reflection & Verification",
-  subtitle: "Checking the work, and why 'are you sure?' does almost nothing",
+  title: "Planning",
+  subtitle: "Decomposition, replanning, and when a plan is expensive theatre",
   blurb:
-    "Models are over-confident about their own output. The verification ladder, critic loops that actually converge, when reflection helps and when it just burns tokens, and the one design rule: the checker must know something the author did not.",
-  lines: 213,
-  file: "code/c10_reflection.ts",
-  tags: ["self-critique", "LLM-as-judge", "verification", "critic loop", "grounding", "over-confidence"],
+    "Explicit plans help on long, dependency-ordered tasks and hurt on short ones. Task decomposition, the todo list as a context artefact, replanning triggers, and how to tell which kind of task you have.",
+  lines: 197,
+  file: "code/c10_planning.ts",
+  tags: ["task decomposition", "plan-then-execute", "todo list", "replanning", "dependencies", "goal drift"],
 
   sections: [
-    { id: "motivation", kicker: "Motivation", title: "The agent that was sure",
+    { id: "motivation", kicker: "Motivation", title: "Where the loop alone stops working",
       html:
-        p(`Your agent finishes: <em>"I've updated all six call sites and the tests pass."</em> Four call sites were updated. The tests were not run. Nothing is lying. The model genuinely believes this, because from inside its context it made six edits and the last observation was a successful write.`) +
-        p(`The reflex is to add <em>"double-check your work before answering"</em> to the system prompt. Measured effect: small, and sometimes negative, because a model asked to re-examine its own reasoning in the same context produces a fluent justification of what it already concluded. Its assumptions are still loaded; that is precisely the problem.`) +
-        note("key", "The one rule in this chapter", p(`A verification step is only worth its cost if <strong>the checker knows something the author did not</strong>. A test result. A rule you wrote. A fresh context with no memory of the reasoning. If the check has exactly the same information as the thing being checked, it will mostly agree, and you have paid for a second opinion from the same person.`)) },
+        p(`The ${ch("c04", "C04")} loop handles four-step tasks beautifully. Give it <em>"migrate the auth module to the new session API, update the tests, and check nothing else imports the old one"</em> and it will do the first thing well, the second thing partially, and forget the third. Not because it cannot do them, but because by step nine the goal is 30,000 tokens up-scroll and the agent is optimising locally.`) +
+        p(`A plan fixes this. A plan also makes short tasks slower, more expensive and occasionally worse, because the model commits to a decomposition before it knows anything. Knowing which situation you are in is the actual skill.`) +
+        note("key", "The reframe", p(`A plan's value is not that it sequences the work; the model can sequence fine. Its value is that it is a <strong>short, pinned, re-readable statement of intent</strong> that survives compaction, and a <strong>checklist the agent can be measured against</strong> when it claims to be done. Both of those are context-engineering benefits, not reasoning benefits.`)) },
 
-    { id: "core-idea", kicker: "Core idea", title: "The verification ladder",
+    { id: "core-idea", kicker: "Core idea", title: "Three planning styles",
       html:
-        fig({ label: "Diagram", title: "four rungs, by independence", body: VERIFY_SVG,
-          caption: `Spend effort at the top. Most teams spend it at the bottom, because rung 4 is one line of prompt and rung 1 is engineering.` }) +
-        `<h3>1 · Ground truth, wherever it exists</h3>` +
-        p(`The most valuable thing you can give an agent is a way to find out it was wrong that does not involve asking a model. This is why coding agents work as well as they do: the compiler and the test suite are ground truth, they are cheap, and they are not persuadable.`) +
-        code({ title: "make the verifier a tool, and make the loop use it",
-          src: `const runTests = defineTool({
-  name: "run_tests",
-  description: \`Run the test suite. Returns pass/fail counts and the first 3 failures with
-their assertion messages. CALL THIS before claiming any code change works.\`,
-  readOnly: false, idempotent: true, timeoutMs: 300_000,
-  input: obj({ pattern: opt(str({ description: "test file glob; omit to run all" })) }),
-  run: async ({ pattern }, ctx) => summarise(await exec("npm", ["test", ...(pattern ? ["--", pattern] : [])], ctx)),
-});
+        fig({ label: "Diagram", title: "no plan, plan-first, interleaved", body: PLAN_SVG,
+          caption: `Plan-then-execute fails on exactly the tasks that need planning most: the ones with unknowns. Interleaved planning — a coarse sketch, refined as facts arrive — is the shape that survives.` }) +
+        table(["Style", "Good for", "Fails when"], [
+          ["<b>None (ReAct)</b>", "≤6 steps, no ordering constraints", "The goal drifts; the agent declares victory early"],
+          ["<b>Plan-then-execute</b>", "Known, stable procedures; parallelisable independent work", "Any step can invalidate the plan — which is most real work"],
+          ["<b>Interleaved</b>", "<b>Default.</b> Long tasks with unknowns", "Adds a model call per replan; overkill under ~6 steps"],
+          ["<b>Hierarchical</b>", "Very large tasks — phases, each decomposed on entry", "Complexity; needs subagents (${C20}) to be worth it"],
+        ].map((r) => r.map((c) => c.replace("${C20}", `<a href="/c20/" class="mono">C20</a>`))) as string[][]) +
+        `<h3>The plan is a data structure, not a paragraph</h3>` +
+        code({ title: "code/c10_planning.ts — a plan you can enforce",
+          src: `export interface Step {
+  id: string;
+  what: string;                       // imperative, one action
+  why: string;                        // how it serves the goal — this is what catches drift
+  dependsOn: string[];
+  status: "pending" | "active" | "done" | "blocked" | "dropped";
+  evidence?: string;                  // what proved it done. required to mark done.
+  note?: string;                      // why blocked, or why dropped
+}
 
-// And the part that matters more than the tool: the agent is not permitted to
-// finish without it.
-function canFinish(state: RunState): string | null {
-  if (state.filesChanged.length && !state.toolsUsed.has("run_tests"))
-    return "You changed files but never ran the tests. Run them before answering.";
-  if (state.lastTestResult?.failed)
-    return \`\${state.lastTestResult.failed} tests are failing. Fix them or explain why they are unrelated.\`;
-  return null;
+export interface Plan { goal: string; steps: Step[]; revision: number }`,
+        }) +
+        p(`Three fields carry their weight. <code>why</code> is the drift detector: a step whose justification no longer connects to the goal is visible to a reviewer and to the model. <code>evidence</code> makes "done" a claim that must be supported. An agent cannot mark a step complete without naming the observation that completed it, which removes most premature-completion behaviour. And <code>dependsOn</code> is what lets you parallelise safely.`) +
+        `<h3>Render it small and pin it</h3>` +
+        code({ title: "about 120 tokens, sent every turn, in the high-attention tail",
+          src: `export function renderPlan(plan: Plan): string {
+  const mark = { done: "[x]", active: "[>]", pending: "[ ]", blocked: "[!]", dropped: "[-]" };
+  return \`PLAN (rev \${plan.revision}) — \${plan.goal}\\n\` +
+    plan.steps.map((s) =>
+      \`\${mark[s.status]} \${s.id}. \${s.what}\` +
+      (s.status === "done" && s.evidence ? \`  ← \${truncate(s.evidence, 60)}\` : "") +
+      (s.status === "blocked" ? \`  ⚠ \${s.note}\` : "")
+    ).join("\\n") +
+    \`\\n\\nNext: \${nextActionable(plan)?.what ?? "nothing actionable — replan or finish"}\`;
 }`,
         }) +
-        p(`That <code>canFinish</code> gate is a <em>structural</em> verification: it lives in your loop, not in a prompt, so the model cannot talk its way past it. Where you can express a completion condition in code, do. It is free, deterministic, and it never has a bad day.`) +
-        `<h3>2 · Rules you wrote</h3>` +
-        p(`Cheap invariants catch a surprising share of nonsense. Schema validity (${ch("c02", "C02")}), cross-field consistency, and one that is specific to agents and underused: <strong>citation grounding</strong> — check mechanically that every quoted claim appears in a document that was actually retrieved.`) +
-        code({ title: "grounding without a model",
-          src: `export function ungrounded(answer: string, sources: Chunk[]): string[] {
-  const corpus = sources.map((s) => normalise(s.text)).join(" ");
-  return extractClaims(answer)                       // sentences containing a number, name, or quote
-    .filter((c) => {
-      // A claim is grounded if a long-enough shingle of it appears in the sources.
-      const grams = shingle(normalise(c), 6);
-      return ![...grams].some((g) => corpus.includes(g));
-    });
-}
-// Catches the specific failure that damages trust most: a fabricated figure or
-// quotation presented with a real citation next to it.`,
-        }) +
-        `<h3>3 · An independent critic</h3>` +
-        p(`A second model call, though the design matters more than the existence:`) +
-        ul([
-          `<strong>Fresh context.</strong> The critic sees the task and the output, not the reasoning that produced it. Including the reasoning is the single most common mistake, and it converts an independent check into agreement.`,
-          `<strong>A rubric, not "is this good".</strong> Specific criteria produce specific findings; open-ended judging produces prose.`,
-          `<strong>Permission to pass.</strong> A critic asked to "find problems" will find problems in flawless work. That is instruction-following, not judgement. Ask it to score against criteria and explicitly allow "no issues".`,
-          `<strong>Position bias is real.</strong> When comparing two candidates, order affects the verdict. Evaluate both orders and discard disagreements, or you are measuring position.`,
-        ]) +
-        `<h3>4 · Self-critique</h3>` +
-        p(`Worth roughly what it costs, which is not much. It catches arithmetic slips and format violations. It does not catch "I thought I edited six files". Use it as a cheap last pass, never as the verification strategy.`) },
+        p(`This block goes in ${ch("c05", "C05")}'s pinned region, restated at the end of every request. It is the cheapest fix for goal drift there is: about 120 tokens against 30,000 tokens of scrollback.`) },
 
-    { id: "mechanics", kicker: "Mechanics", title: "Critic loops that terminate",
+    { id: "mechanics", kicker: "Mechanics", title: "Replanning: triggers, not vibes",
       html:
-        code({ title: "code/c10_reflection.ts — generate, critique, revise",
-          src: `export async function withCritic<T>(
-  generate: (feedback?: Critique) => Promise<T>,
-  critique: (candidate: T) => Promise<Critique>,
-  opts = { maxRounds: 3, acceptAt: 0.8 },
-): Promise<{ value: T; rounds: number; history: Critique[] }> {
-  let candidate = await generate();
-  const history: Critique[] = [];
-
-  for (let round = 1; round <= opts.maxRounds; round++) {
-    const c = await critique(candidate);
-    history.push(c);
-
-    if (c.score >= opts.acceptAt) return { value: candidate, rounds: round, history };
-
-    // Guard 1: no improvement means the critic has nothing more to offer.
-    const prev = history.at(-2);
-    if (prev && c.score <= prev.score + 0.02) return { value: best(candidate, history), rounds: round, history };
-
-    // Guard 2: the same complaint twice means the generator cannot act on it.
-    if (prev && sameIssues(prev, c)) return { value: candidate, rounds: round, history };
-
-    candidate = await generate(c);
-  }
-  return { value: candidate, rounds: opts.maxRounds, history };
-}`,
+        p(`"Replan when needed" is not implementable. Fire on specific conditions:`) +
+        table(["Trigger", "Detection", "Response"], [
+          ["A step is impossible", "Tool error the agent cannot route around", "Mark blocked, replan from there"],
+          ["An assumption broke", "Observation contradicts the step's <code>why</code>", "Replan; keep completed steps"],
+          ["New work appeared", "Discovery implies steps that do not exist", "Insert, do not rewrite"],
+          ["Steps became unnecessary", "Goal already satisfied by an earlier result", "Mark dropped with a reason"],
+          ["N steps, no progress", "Repeat/drift detectors (${C04})", "Replan — the plan is probably wrong"],
+        ].map((r) => r.map((c) => c.replace("${C04}", `<a href="/c04/" class="mono">C04</a>`))) as string[][]) +
+        code({ title: "replan as a tool the model calls",
+          src: `const updatePlan = defineTool({
+  name: "update_plan",
+  description: \`Revise the plan. Call this when a step became impossible, an assumption
+was disproven, or you discovered work the plan does not contain.
+DO NOT call it to restate the plan unchanged, or after every step.
+Completed steps cannot be modified — their evidence is the run's record.\`,
+  input: obj({
+    reason: str({ description: "what you learned that makes the old plan wrong" }),
+    add: opt(arr(obj({ what: str(), why: str(), after: opt(str()) }))),
+    block: opt(arr(obj({ id: str(), note: str() }))),
+    drop: opt(arr(obj({ id: str(), note: str() }))),
+  }),
+  async run(input, ctx) {
+    const plan = ctx.state.plan;
+    // Structural guard: the model cannot rewrite history or silently abandon the goal.
+    assertNoCompletedStepsTouched(plan, input);
+    return renderPlan(applyPatch(plan, input));
+  },
+});`,
         }) +
-        p(`Both guards exist because critic loops oscillate. Round 1 finds three real problems. Round 2 finds two smaller ones. Round 3 finds stylistic preferences, the generator "fixes" them, and the output gets worse. The measured pattern is consistent: <strong>round 1 is worth a lot, round 2 a little, round 3 usually nothing</strong>. Cap at two revisions unless you have data saying otherwise.`) +
-        note("warn", "Keep the best, not the last", p(`If scores go 0.6 → 0.78 → 0.71, returning the final candidate returns the worse one. Track candidates alongside scores and return the maximum. This is a three-line change that a surprising number of implementations miss.`)) +
-        `<h3>Spend verification where it pays</h3>` +
-        p(`Verifying everything doubles cost and latency. Verify by <em>stakes</em> × <em>uncertainty</em>:`) +
-        table(["Signal", "How to get it", "Action"], [
-          ["Irreversible action", "Tool metadata — <code>readOnly</code>, write scope", "Always verify (and see ${C16})"],
-          ["Self-consistency", "Sample twice at temp 0.3; do they agree?", "Verify only on disagreement"],
-          ["Low retrieval score", "Best chunk below threshold", "Verify, and consider searching again"],
-          ["Long chain", "Steps since last ground-truth check", "Verify at intervals, not only at the end"],
-          ["Historical failure", "This task type fails 12% of the time (${C19})", "Always verify"],
-        ].map((r) => r.map((c) => c.replace("${C16}", `<a href="/c16/" class="mono">C16</a>`).replace("${C19}", `<a href="/c19/" class="mono">C19</a>`))) as string[][]) +
-        p(`Self-consistency is the best value of these: two samples at moderate temperature, verify only when they differ. It concentrates spend on the genuinely ambiguous cases, which are usually 5–15% of traffic, rather than taxing all of it.`) },
-
-    { id: "explore", kicker: "Explore", title: "Buy accuracy at various prices",
-      html:
-        p(`Each strategy has a cost and a catch rate that depends on the error type. Find the combination that catches the errors you actually have.`) +
-        lab({ label: "Simulator", title: "verification strategies vs error types",
-          body: `
-<div class="controls">
-  <div class="ctl"><label>strategies</label>
-    <div style="display:flex;flex-direction:column;gap:.15rem;font-size:.8125rem">
-      <label><input type="checkbox" id="v10-gt"> ground truth (tests/compiler)</label>
-      <label><input type="checkbox" id="v10-rule" checked> rules + grounding check</label>
-      <label><input type="checkbox" id="v10-critic"> independent critic (fresh ctx)</label>
-      <label><input type="checkbox" id="v10-self" checked> self-critique ("are you sure?")</label>
-      <label><input type="checkbox" id="v10-cons"> self-consistency gate (2 samples)</label>
-    </div></div>
-  <div class="ctl"><label>base error rate</label>
-    <input type="range" id="v10-err" min="2" max="40" step="1" value="14"><span class="val" id="v10-err-v">14%</span></div>
-  <div class="ctl"><label>critic sees reasoning</label>
-    <select id="v10-leak"><option value="0" selected>no (fresh context)</option><option value="1">yes (same thread)</option></select></div>
-</div>
-<div id="v10-rows" style="margin-top:.5rem"></div>
-<div class="stats">
-  <div class="stat"><b id="v10-caught">—</b><span>errors caught</span></div>
-  <div class="stat"><b id="v10-fp">—</b><span>false alarms</span></div>
-  <div class="stat"><b id="v10-cost">—</b><span>cost multiplier</span></div>
-  <div class="stat"><b id="v10-lat">—</b><span>added latency</span></div>
-</div>
-<div class="note" id="v10-note" style="margin-top:1rem"></div>`,
-          script: `
-var ERRS = [
-  { k: "code does not compile / test fails", w: 22, gt: .99, rule: .10, critic: .45, self: .30, cons: .35 },
-  { k: "claimed work that was not done",     w: 19, gt: .92, rule: .55, critic: .60, self: .08, cons: .20 },
-  { k: "fabricated fact or citation",        w: 17, gt: .05, rule: .78, critic: .62, self: .12, cons: .55 },
-  { k: "wrong tool / wrong approach",        w: 14, gt: .30, rule: .12, critic: .58, self: .22, cons: .48 },
-  { k: "arithmetic / unit slip",             w: 12, gt: .60, rule: .70, critic: .50, self: .45, cons: .62 },
-  { k: "misread the requirement",            w: 10, gt: .15, rule: .08, critic: .55, self: .15, cons: .30 },
-  { k: "output format violation",            w:  6, gt: .20, rule: .96, critic: .40, self: .55, cons: .25 }
-];
-function upd() {
-  var on = { gt: document.getElementById("v10-gt").checked, rule: document.getElementById("v10-rule").checked,
-             critic: document.getElementById("v10-critic").checked, self: document.getElementById("v10-self").checked,
-             cons: document.getElementById("v10-cons").checked };
-  var leak = document.getElementById("v10-leak").value === "1";
-  var base = +document.getElementById("v10-err").value / 100;
-  document.getElementById("v10-err-v").textContent = (base * 100) + "%";
-
-  var totW = ERRS.reduce(function (a, e) { return a + e.w; }, 0), caught = 0, rows = [];
-  ERRS.forEach(function (e) {
-    var miss = 1;
-    if (on.gt) miss *= (1 - e.gt);
-    if (on.rule) miss *= (1 - e.rule);
-    if (on.critic) miss *= (1 - e.critic * (leak ? 0.35 : 1));   // leaking reasoning guts the critic
-    if (on.self) miss *= (1 - e.self * 0.45);                    // same-context critique is weak
-    if (on.cons) miss *= (1 - e.cons);
-    var share = e.w / totW;
-    caught += share * (1 - miss);
-    rows.push([e.k, 1 - miss, share]);
-  });
-  document.getElementById("v10-rows").innerHTML = rows.map(function (r) {
-    var col = r[1] > .8 ? "var(--ok)" : r[1] > .5 ? "var(--accent)" : "var(--danger)";
-    return '<div style="display:flex;gap:.6rem;align-items:center;margin:.3rem 0">' +
-      '<span class="mono small" style="width:16rem;color:var(--fg-muted)">' + r[0] + '</span>' +
-      '<span class="meter" style="flex:1"><i style="width:' + (r[1] * 100) + '%;background:' + col + '"></i></span>' +
-      '<span class="mono small" style="width:3rem;text-align:right">' + Math.round(r[1] * 100) + '%</span></div>';
-  }).join("");
-
-  var cost = 1 + (on.critic ? .55 : 0) + (on.self ? .25 : 0) + (on.cons ? .9 : 0) + (on.gt ? .05 : 0);
-  var lat = (on.critic ? 900 : 0) + (on.self ? 500 : 0) + (on.cons ? 950 : 0) + (on.gt ? 4000 : 0);
-  var fp = (on.critic ? 6 : 0) + (on.self ? 3 : 0) + (on.rule ? 1 : 0);
-  document.getElementById("v10-caught").textContent = Math.round(caught * 100) + "%";
-  document.getElementById("v10-fp").textContent = fp + "%";
-  document.getElementById("v10-cost").textContent = cost.toFixed(2) + "×";
-  document.getElementById("v10-lat").textContent = lat < 1000 ? lat + " ms" : (lat / 1000).toFixed(1) + " s";
-
-  var n = document.getElementById("v10-note");
-  if (leak && on.critic) n.innerHTML = "<b>The critic is reading the reasoning.</b> Catch rates collapse across the board. A critic that sees how the answer was produced tends to be persuaded by it — which is the whole reason independence is the design requirement, not a nicety.";
-  else if (on.self && !on.gt && !on.critic && !on.cons) n.innerHTML = "<b>Self-critique alone.</b> Look at 'claimed work that was not done': 4%. The model has no way to know it did not do something it believes it did. This is the configuration most teams actually ship.";
-  else if (on.gt && on.rule) n.innerHTML = "<b>The good configuration.</b> Ground truth plus rules costs almost nothing per run and catches the two most damaging classes. Note that fabricated facts still need the grounding check — a compiler has no opinion about citations.";
-  else if (on.cons && on.critic) n.innerHTML = "<b>Expensive and effective.</b> 2.4× cost for broad coverage. Worth it for irreversible actions; wasteful as a blanket policy. Gate it on stakes × uncertainty rather than running it every time.";
-  else n.innerHTML = "<b>Try ground truth.</b> It is the only rung that cannot be argued with, and for code it is nearly free. The rows it cannot help with — fabricated citations, misread requirements — are exactly where the other rungs earn their place.";
+        note("warn", "Patch, never replace", p(`A <code>replan()</code> that regenerates the whole plan lets the model quietly drop the steps it found difficult and declare a smaller goal. Patching — add, block, drop, each with a reason — makes every abandonment explicit and auditable. This is one of those constraints that looks bureaucratic and changes behaviour immediately.`)) +
+        `<h3>Dependencies buy parallelism</h3>` +
+        p(`Once steps declare <code>dependsOn</code>, the ready set is computable and independent work can run concurrently — either as parallel tool calls (${ch("c03", "C03")}) or as subagents (${ch("c20", "C20")}).`) +
+        code({ title: "the ready set",
+          src: `export function ready(plan: Plan): Step[] {
+  const done = new Set(plan.steps.filter((s) => s.status === "done").map((s) => s.id));
+  return plan.steps.filter((s) => s.status === "pending" && s.dependsOn.every((d) => done.has(d)));
 }
-["v10-gt","v10-rule","v10-critic","v10-self","v10-cons","v10-err","v10-leak"].forEach(function (i) {
-  document.getElementById(i).addEventListener("input", upd); document.getElementById(i).addEventListener("change", upd); });
-upd();`,
-          caption: `Tick only self-critique — the most commonly shipped configuration — and read the "claimed work that was not done" row. Then add ground truth. The gap between those two states is most of what this chapter is for.`,
+
+// A research task with 5 independent searches and 1 synthesis goes from
+// 6 sequential steps (~14s) to 2 waves (~4s). The dependency declaration is what
+// makes that safe — without it, parallelising is a guess.`,
         }) },
 
-    { id: "build", kicker: "Build it", title: "A critic worth its call",
+    { id: "explore", kicker: "Explore", title: "When does planning pay?",
       html:
-        code({ title: "code/c10_reflection.ts — independence by construction",
-          src: `export async function critique(
-  task: string, output: string, rubric: Criterion[], model: Model,
-): Promise<Critique> {
-  // Note what is NOT passed: the agent's messages, its reasoning, its tool trace.
-  // The critic evaluates the artefact, not the process that produced it.
-  return structured(model, [{ role: "user", content:
-\`Evaluate this output against the criteria. You are reviewing work produced by
-someone else. You have no information about how it was produced.
+        p(`Compare planning styles across task length and how often the world surprises the agent. The crossover point is the thing to find.`) +
+        lab({ label: "Simulator", title: "planning styles vs task shape",
+          body: `
+<div class="controls">
+  <div class="ctl"><label>true task length</label>
+    <input type="range" id="p9-len" min="2" max="30" step="1" value="12"><span class="val" id="p9-len-v">12 steps</span></div>
+  <div class="ctl"><label>surprise rate</label>
+    <input type="range" id="p9-sur" min="0" max="60" step="5" value="25"><span class="val" id="p9-sur-v">25%</span></div>
+  <div class="ctl"><label>independent steps</label>
+    <input type="range" id="p9-par" min="0" max="80" step="10" value="30"><span class="val" id="p9-par-v">30%</span></div>
+  <div class="ctl"><label>plan pinned in context</label>
+    <select id="p9-pin"><option value="1" selected>yes</option><option value="0">no</option></select></div>
+</div>
+<div id="p9-rows" style="margin-top:.5rem"></div>
+<div class="note" id="p9-note" style="margin-top:1rem"></div>`,
+          script: `
+function upd() {
+  var L = +document.getElementById("p9-len").value, S = +document.getElementById("p9-sur").value / 100,
+      P = +document.getElementById("p9-par").value / 100, pin = document.getElementById("p9-pin").value === "1";
+  document.getElementById("p9-len-v").textContent = L + " steps";
+  document.getElementById("p9-sur-v").textContent = (S * 100) + "%";
+  document.getElementById("p9-par-v").textContent = (P * 100) + "%";
 
-TASK GIVEN:
-\${task}
+  var styles = [
+    { k: "none (ReAct)", extra: 0, driftAt: 6 },
+    { k: "plan-then-execute", extra: 1, driftAt: 99, brittle: true },
+    { k: "interleaved", extra: 1 + Math.round(L * S * 0.5), driftAt: 99 },
+    { k: "hierarchical", extra: 2 + Math.round(L / 6), driftAt: 99, overhead: true }
+  ];
+  var rows = styles.map(function (st) {
+    // drift: without a pinned plan, long tasks lose the goal
+    var drift = (st.k === "none (ReAct)" || !pin) ? Math.max(0, (L - st.driftAt) * 0.055) : 0.02;
+    // brittleness: a fixed plan shatters on surprises
+    var brittle = st.brittle ? S * 1.5 : S * 0.25;
+    // overhead cost on short tasks
+    var over = st.overhead && L < 10 ? 0.12 : 0;
+    var success = Math.max(0.05, Math.min(0.97, 0.94 - drift - brittle - over));
+    var steps = L + st.extra + Math.round(L * S * (st.brittle ? 1.2 : 0.35));
+    var par = st.k === "none (ReAct)" ? 1 : 1 + P * 1.4;
+    return { k: st.k, success: success, steps: steps, wall: (steps / par * 1.6).toFixed(1) };
+  });
+  var best = rows.reduce(function (a, b) { return b.success > a.success ? b : a; });
+  document.getElementById("p9-rows").innerHTML = rows.map(function (r) {
+    var col = r.success > .8 ? "var(--ok)" : r.success > .6 ? "var(--accent)" : "var(--danger)";
+    return '<div style="display:flex;gap:.6rem;align-items:center;margin:.35rem 0">' +
+      '<span class="mono small" style="width:11rem;color:' + (r === best ? "var(--accent)" : "var(--fg-muted)") + ';font-weight:' + (r === best ? 600 : 400) + '">' + r.k + '</span>' +
+      '<span class="meter" style="flex:1"><i style="width:' + (r.success * 100) + '%;background:' + col + '"></i></span>' +
+      '<span class="mono small" style="width:3rem;text-align:right">' + Math.round(r.success * 100) + '%</span>' +
+      '<span class="mono small muted" style="width:8.5rem;text-align:right">' + r.steps + ' steps · ' + r.wall + 's</span></div>';
+  }).join("");
 
-OUTPUT:
-\${output}
+  var n = document.getElementById("p9-note");
+  if (L <= 5) n.innerHTML = "<b>Short task: planning is overhead.</b> The plan costs a call, adds tokens to every turn, and the loop was never going to lose track of five steps. Ship ReAct.";
+  else if (S > .4) n.innerHTML = "<b>High surprise: plan-then-execute collapses.</b> Look at its bar. Every surprise invalidates the fixed plan, and rigid execution against a wrong plan is worse than no plan. Interleaved wins because it replans at each break.";
+  else if (!pin) n.innerHTML = "<b>The plan is not pinned.</b> Notice that every style now drifts on long tasks. A plan that is created and then scrolls out of the attention window is a plan that does nothing. Pinning is most of the benefit.";
+  else if (P > .5) n.innerHTML = "<b>Highly parallel task.</b> Compare wall-clock, not success. Declared dependencies let independent steps run in waves — the ReAct row cannot do this at all, because nothing knows which steps are independent.";
+  else n.innerHTML = "<b>The default region.</b> Long enough to drift, uncertain enough to need replanning: interleaved planning with a pinned todo list. This is what most production coding and research agents do.";
+}
+["p9-len","p9-sur","p9-par","p9-pin"].forEach(function (i) {
+  document.getElementById(i).addEventListener("input", upd); document.getElementById(i).addEventListener("change", upd); });
+upd();`,
+          caption: `Two findings worth internalising. Below about six steps, planning is pure overhead. And turning "plan pinned" off collapses every style to roughly the no-plan row, which tells you that the benefit was context engineering rather than reasoning.`,
+        }) },
 
-CRITERIA:
-\${rubric.map((c, i) => \`\${i + 1}. \${c.name}: \${c.description}\`).join("\\n")}
+    { id: "build", kicker: "Build it", title: "Plan as state, not as prose",
+      html:
+        code({ title: "code/c10_planning.ts — creating the plan",
+          src: `export async function makePlan(goal: string, tools: Tool[], model: Model): Promise<Plan> {
+  const steps = await structured(model, [{ role: "user", content:
+    \`Goal: \${goal}\\n\\nAvailable tools:\\n\${tools.map((t) => \`- \${t.name}: \${t.description.split("\\n")[0]}\`).join("\\n")}\\n\\n\` +
+    \`Break this into 3–7 steps. Rules:\\n\` +
+    \`- Each step must be verifiable — someone else could tell whether it is done.\\n\` +
+    \`- Each step must be achievable with the tools listed. If something is not, make it\\n\` +
+    \`  a step that discovers how, rather than assuming.\\n\` +
+    \`- State dependencies only where they are real. Independent steps run in parallel.\\n\` +
+    \`- If the goal needs fewer than 3 steps, return fewer. Do not pad.\\n\` +
+    \`- Do not plan past the first genuine unknown. Make discovering it the last step.\` }],
+    arr(obj({ what: str(), why: str(), dependsOn: arr(str()) })));
 
-For each criterion give pass/fail and one sentence of justification citing the
-specific part of the output. If the output satisfies every criterion, say so —
-do not invent problems. Then give an overall score from 0 to 1.\` }],
-    obj({
-      criteria: arr(obj({ name: str(), pass: bool(), why: str(), quote: opt(str()) })),
-      score: num({ min: 0, max: 1 }),
-      blocking: arr(str({ description: "issues that must be fixed; empty if none" })),
-    }), { temperature: 0 });
+  return { goal, revision: 1, steps: steps.map((s, i) => ({ ...s, id: String(i + 1), status: "pending" })) };
 }`,
         }) +
-        p(`The same move works for reflection as for planning (${ch("c09", "C09")}): make it a tool rather than a phase. A <code>reflection(analysis, need_replan)</code> the model calls after a surprising observation puts the decision about <em>when</em> to reflect where the information is, instead of in a rule you wrote in advance. A fixed "critique every answer" pass taxes the ninety percent of turns that were fine; a tool the model reaches for when something did not work concentrates the spend on the cases that earn it. The cost is that it is now optional, so measure how often it fires — a model that never calls it needs the instruction sharpened, and one that calls it every turn has found a way to procrastinate.`) +
-        p(`Three specifics. <strong>"Produced by someone else"</strong> measurably reduces agreement bias. <strong>The quote field</strong> forces the critic to point at the text. A criticism that cannot cite the output is usually invented. <strong>The explicit permission to pass</strong> prevents the manufactured-findings behaviour that makes critics useless as gates.`) +
-        code({ title: "the completion gate, in code",
-          src: `// Verification that a model cannot talk its way past.
-export function completionGate(state: RunState, plan: Plan): string | null {
-  const incomplete = plan.steps.filter((s) => s.status === "pending" || s.status === "active");
-  if (incomplete.length)
-    return \`\${incomplete.length} plan steps are not done: \${incomplete.map((s) => s.id).join(", ")}. \` +
-           \`Complete them, or call update_plan to drop them with a reason.\`;
-
-  const unsupported = plan.steps.filter((s) => s.status === "done" && (s.evidence?.length ?? 0) < 20);
-  if (unsupported.length) return \`Steps \${unsupported.map((s) => s.id).join(", ")} are marked done without evidence.\`;
-
-  if (state.filesChanged.length && !state.lastTestResult)
-    return "You changed files but never ran the tests.";
-
-  return null;   // only now may the loop return an answer
-}`,
+        p(`The last two rules do the most work. "Do not pad" prevents the five-step plan for a two-step task that models produce when asked for a plan. "Do not plan past the first unknown" is what converts plan-then-execute into interleaved planning without any extra machinery. The plan is deliberately short, and replanning happens because the plan ran out rather than because something failed.`) +
+        code({ title: "completion requires evidence",
+          src: `const completeStep = defineTool({
+  name: "complete_step",
+  description: \`Mark a plan step done. You must cite the specific observation that
+proves it — a tool result, a file written, a test that passed. "I did it" is not evidence.\`,
+  input: obj({ id: str(), evidence: str({ minLength: 20 }) }),
+  async run({ id, evidence }, ctx) {
+    const step = ctx.state.plan.steps.find((s) => s.id === id);
+    if (!step) return \`No step \${id}. Current plan:\\n\${renderPlan(ctx.state.plan)}\`;
+    if (step.dependsOn.some((d) => statusOf(ctx.state.plan, d) !== "done")) {
+      return \`Step \${id} depends on \${step.dependsOn.join(", ")}, which are not done. \` +
+             \`Either complete them first or call update_plan if the dependency is wrong.\`;
+    }
+    step.status = "done"; step.evidence = evidence;
+    return renderPlan(ctx.state.plan);
+  },
+});`,
         }) +
         code({ title: "run it", lang: "bash", plain: true,
-          src: `node --experimental-strip-types code/c10_reflection.ts
+          src: `node --experimental-strip-types code/c10_planning.ts
 
-#   C10 · Reflection & Verification
+#   C10 · Planning
 #
-#   configuration               caught  false alarms   cost  added latency
-#   none                            0%            0%  1.00×           0 ms
-#   self-critique only             11%            3%  1.25×         500 ms
-#   rules + grounding              43%            1%  1.00×           0 ms
-#   + independent critic           73%            7%  1.55×         900 ms
-#   + critic sees reasoning        53%            7%  1.55×         900 ms
-#   + ground truth (tests)         90%            7%  1.60×          4.9 s
-#   + self-consistency gate        94%            7%  2.50×          5.8 s
+#   PLAN (rev 1) — Migrate auth to the new session API, update tests, check for stale imports
+#   [ ] 1. Find every caller of getSession
+#   [ ] 2. Update callers in packages we own
+#   [ ] 3. Update the auth tests
+#   [ ] 4. Grep for stale imports of the old module
 #
-#   the row that matters — "claimed work that was not done":
+#   Next: Find every caller of getSession
 #
-#     self-critique only            4%
-#     rules + grounding            55%
-#     + ground truth (tests)       99%
+#   a step blocked mid-run, revised by patch:
 #
-#   A model has no way to know it did not do something it believes it did.
-#   Only an external observation surfaces it.
+#   PLAN (rev 2) — Migrate auth to the new session API, update tests, check for stale imports
+#   [x] 1. Find every caller of getSession  ← grep found 11 call sites across 6 files
+#   [!] 2. Update callers in packages we own  ⚠ 2 call sites are in @vendor/sdk
+#   [ ] 3. Update the auth tests
+#   [ ] 4. Grep for stale imports of the old module
+#   [ ] 5. Open an issue against @vendor/sdk
 #
-#   independence, measured: the same critic with and without the reasoning
+#   Next: Open an issue against @vendor/sdk
 #
-#     fresh context   73% caught
-#     same thread     53% caught   ← identical cost, 20 points worse
+#   the guards, exercised:
 #
-#   grounding check (rung 2), on a realistic answer:
+#   ✗ complete a step without evidence             refused: Step 4 needs specific evidence — cite the tool result or file
+#   ✗ complete a step whose dependency is blocked  refused: Step 3 depends on 2, which are not done.
+#   ✗ drop a completed step                        refused: cannot drop completed step 1 — its evidence is the run's recor
+#   ✗ drop a step others depend on                 refused: step 2 is required by 3, 4
+#   ✗ revise with no reason                        refused: a revision must state what was learned
+#   ✓ drop EVERY remaining step (legitimate)       allowed
 #
-#     ✗ unsupported: Qdrant handles 50,000,000 vectors on a single node.
-#     ✗ unsupported: The vendor states it is "the fastest engine available".
-#     ✓ everything else appears in the retrieved sources
+#   dependency waves — what can run in parallel:
 #
-#   The first is a fabricated figure sitting beside a genuine citation — the
 # …
-#     ✓ all clear                        may finish`,
+#     PLAN  Migrate auth to the new session API, update tests, and che   (1 conjunctions, 3 imperatives)`,
         }) },
 
     { id: "production", kicker: "Production notes", title: "Field notes",
       html:
         ul([
-          `<strong>Coding agents are the proof of this chapter.</strong> They outperform agents in other domains largely because ground truth is available and cheap. The generalisable lesson is to <em>manufacture</em> ground truth where it does not exist: a validation endpoint, a dry-run mode, a linter for your domain's output. Building one is usually worth more than any prompt work.`,
-          `<strong>LLM-as-judge has known biases:</strong> position, verbosity (longer answers score higher), and self-preference (a model rates its own outputs above equivalent ones). Randomise order, control for length in the rubric, and use a different model family as judge where the stakes justify it.`,
-          `<strong>Reflexion and self-refine</strong> are the research names for the critic loop. The literature's reported gains are real and are largest where an external signal is available, which is the same finding as rung 1.`,
-          `<strong>Constitutional-AI-style critique</strong> (critique against written principles, then revise) is this pattern with the rubric as the constitution. The mechanism is identical. The difference is who writes the criteria.`,
-          `<strong>Put verification in the loop, not after it.</strong> Verifying at the end tells you the run failed. Verifying at each ground-truth boundary lets the agent fix it while the context is still relevant and cheap.`,
+          `<strong>Make the plan a tool the model calls, not a phase your loop runs.</strong> The implementation people reach for first is a planning step before the loop: call the model once, parse a plan, then execute it. The pattern that survives is a <code>create_tasks(tasks)</code> tool the model invokes whenever it wants — at the start, and again after any observation that invalidates the plan. The loop stops needing a planning phase, replanning stops needing a trigger you designed, and the plan becomes ordinary state the agent maintains rather than a separate control path you keep in sync. It also composes with everything else here for free, because a tool call is already traced, already approvable and already visible.`,
+          `<strong>The todo list is the dominant production pattern.</strong> Claude Code's <code>TodoWrite</code> and Codex's plan tool are both this chapter: a short structured list the agent maintains, rendered into context every turn, visible to the user. The user-visibility is not decoration; it is how a person decides whether to interrupt.`,
+          `<strong>LangGraph's plan-and-execute</strong> makes the plan explicit graph state with a replan node. Worth reading for how it handles the "plan changed mid-execution" edge, which is where hand-rolled versions break.`,
+          `<strong>Do not let the plan become the product.</strong> An agent that spends four calls planning a three-step task has made itself worse. Gate plan creation on an estimated-complexity check, or simply on the first tool result suggesting the task is bigger than it looked.`,
+          `<strong>Plans are excellent UI.</strong> Streaming the todo list as it updates is the single best progress indicator for a long-running agent, far better than token streaming, because it shows intent rather than activity.`,
+          `<strong>Tree-of-thought and similar search methods</strong> explore multiple plans and score them. They are expensive and mostly beaten, in practice, by a single plan plus real verification (${ch("c11", "C11")}), because the bottleneck is usually knowing whether a step worked rather than generating candidate steps.`,
         ]) },
   ],
 
   exercises: [
     { difficulty: "warm-up",
-      prompt: `Why does adding "double-check your answer before responding" to the system prompt produce so little improvement?`,
-      answer: p(`Because the check has the same information as the thing being checked. The model re-reads its own reasoning with every assumption still loaded, and a plausible chain of reasoning re-reads as plausible. What it produces is a fluent justification, not a discovery.`) +
-        p(`It does catch a narrow class: arithmetic slips, format violations, and internal contradictions that are visible on a second pass. It cannot catch "I believe I edited six files", because nothing in the context contradicts that belief. For that you need a source of information the model did not have — a file listing, a test result, a fresh reader.`) },
+      prompt: `For each task, pick a planning style: (a) "what's the weather in Lisbon"; (b) "summarise these 40 PDFs"; (c) "find why the nightly job started failing on Tuesday"; (d) "migrate the codebase from Jest to Vitest".`,
+      answer: ul([
+        `<b>(a) None.</b> One tool call. A plan would cost more than the task.`,
+        `<b>(b) Plan-then-execute</b>, and it is the case where it genuinely shines: 40 independent steps plus one synthesis, no unknowns, fully parallelisable. Declared dependencies turn it into two waves.`,
+        `<b>(c) Interleaved, minimally.</b> Debugging is unknowns all the way down; a detailed plan would be fiction. Plan one or two steps ("find what changed Tuesday"), then replan on what you find.`,
+        `<b>(d) Hierarchical.</b> Phases (inventory, config, mechanical rewrite, fix the ones that are not mechanical, verify), each decomposed on entry, probably with subagents per package. Too big to hold in one plan.`,
+      ]) + p(`The diagnostic question is <em>how much do I know before I start</em>. High knowledge and independence → plan first. Low knowledge → plan one step ahead. Large and structured → hierarchy.`) },
 
     { difficulty: "core",
-      prompt: `Design verification for an agent that drafts customer emails. There is no compiler. What are your rungs 1 and 2?`,
-      answer: p(`"No ground truth" is usually "no ground truth <em>yet</em>". Manufacture it:`) +
-        ol([
-          `<strong>Rung 1 — checks against real systems.</strong> Every factual claim in the draft is verifiable against the data the agent already has access to: does order 4471 exist, is its status what the email says, is the refund amount equal to the order total, does the promised date match the carrier's estimate? Each is a read tool call, cheap and unarguable. This catches the errors that cause real harm.`,
-          `<strong>Rung 2 — rules you write.</strong> Forbidden phrases ("guarantee", "immediately", anything committing to a date not returned by a tool); required elements (order reference, a next step, the correct signature); tone and length limits; and a regex pass for anything that looks like a leaked internal identifier or another customer's data.`,
-        ]) +
-        code({ title: "the claim-check loop", src: `const claims = await extractClaims(draft);          // structured: {text, kind, refersTo}
-const results = await Promise.all(claims.map(verifyAgainstSystems));
-const wrong = results.filter((r) => !r.ok);
-if (wrong.length) {
-  // Feed back as an observation, not an exception — the agent rewrites and re-checks.
-  return \`These claims do not match the system of record:\\n\` +
-    wrong.map((w) => \`- "\${w.claim}" → actual: \${w.actual}\`).join("\\n");
-}` }) +
-        p(`Rung 3 (an independent critic scoring tone, clarity and completeness against a rubric) is a reasonable addition. Rung 4 is not worth the call here. And note that the highest-value rung was available all along. It just had to be built.`) },
+      prompt: `Your agent marks steps complete that are not. Give three mechanisms to make "done" mean something, ordered by cost.`,
+      answer: ol([
+        `<strong>Required evidence (free).</strong> <code>complete_step</code> demands a citation of the observation that proves it, with a minimum length. This alone removes most of the behaviour, because the model must produce something specific and will not invent a test output when it is easier to run one.`,
+        `<strong>Programmatic verification (cheap, where it exists).</strong> A step whose completion is checkable in code — file exists, tests pass, endpoint returns 200 — carries a <code>verify</code> function that runs automatically. The agent's claim is not trusted. It is checked. Where this is available it is strictly the best option.`,
+        `<strong>A verification pass (one call).</strong> At the end, a separate model call gets the goal, the plan with evidence, and the final answer, and answers "is each step genuinely done, given this evidence". Separate call, no tools, deliberately adversarial framing. This is ${ch("c11", "C11")}.`,
+      ]) + p(`A fourth that is worth more than any of them: <strong>make the definition of done part of the step</strong> at planning time. "Update the tests" is unfalsifiable; "npm test passes with zero skipped tests in auth/" is checkable by anyone. The planning prompt's "each step must be verifiable" rule is doing this work upfront.`) },
 
     { difficulty: "core",
-      prompt: `Implement the self-consistency gate: sample twice, verify only on disagreement. What counts as "disagreement" for a tool-calling decision, and what for a written answer?`,
-      answer: code({ title: "cheap agreement, expensive only when it matters",
-        src: `export async function consistencyGated<T>(
-  sample: () => Promise<T>, agree: (a: T, b: T) => boolean,
-  verify: (candidates: [T, T]) => Promise<T>,
-): Promise<{ value: T; verified: boolean }> {
-  const [a, b] = await Promise.all([sample(), sample()]);   // parallel: no added latency
-  if (agree(a, b)) return { value: a, verified: false };
-  return { value: await verify([a, b]), verified: true };
-}
+      prompt: `Implement <code>applyPatch(plan, patch)</code> with the guard that completed steps cannot be modified. What else must it refuse, and what must it allow that looks suspicious?`,
+      answer: code({ title: "the guards are the feature",
+        src: `export function applyPatch(plan: Plan, patch: PlanPatch): Plan {
+  const next: Plan = { ...plan, revision: plan.revision + 1, steps: plan.steps.map((s) => ({ ...s })) };
 
-// Tool decision: same tool name AND semantically equivalent arguments.
-const agreeOnCall = (a: ToolUse, b: ToolUse) =>
-  a.name === b.name && stableStringify(normaliseArgs(a.input)) === stableStringify(normaliseArgs(b.input));
+  for (const d of patch.drop ?? []) {
+    const s = find(next, d.id);
+    if (s.status === "done") throw new PlanError(\`cannot drop completed step \${d.id}\`);
+    // Dropping a step others depend on orphans them — refuse unless they go too.
+    const dependents = next.steps.filter((x) => x.dependsOn.includes(d.id) && x.status !== "dropped");
+    if (dependents.length) throw new PlanError(
+      \`step \${d.id} is required by \${dependents.map((x) => x.id).join(", ")}\`);
+    s.status = "dropped"; s.note = d.note;
+  }
 
-// Written answer: agreement on the CLAIMS, not the wording.
-const agreeOnAnswer = (a: string, b: string) => {
-  const fa = new Set(extractFacts(a)), fb = new Set(extractFacts(b));   // numbers, names, dates, verdicts
-  return jaccard(fa, fb) > 0.85;
+  for (const b of patch.block ?? []) { const s = find(next, b.id); assertNotDone(s); s.status = "blocked"; s.note = b.note; }
+
+  for (const a of patch.add ?? []) {
+    next.steps.push({ id: nextId(next), what: a.what, why: a.why,
+                      dependsOn: a.after ? [a.after] : [], status: "pending" });
+  }
+
+  assertAcyclic(next);          // an added dependency can create a cycle
+  return next;
 }` }) +
       ul([
-        `<strong>For tool decisions,</strong> normalise arguments before comparing — key order, whitespace, and semantically equivalent forms (<code>"2024-03-14"</code> vs <code>"14 March 2024"</code>). Without normalisation your disagreement rate is noise and the gate fires constantly.`,
-        `<strong>For prose,</strong> never compare text. Two correct answers differ in wording almost always. Extract the claims — figures, names, dates, the actual verdict — and compare those.`,
-        `<strong>Sample in parallel</strong> so the gate costs tokens but not wall-clock. This is what makes it affordable at 100% of traffic.`,
-        `<strong>Temperature matters:</strong> at 0 the two samples agree nearly always and the gate never fires; at 1.0 they disagree on wording constantly. Around 0.3 is where disagreement tracks genuine ambiguity.`,
+        `<strong>Must refuse:</strong> modifying or dropping a completed step (its evidence is the run's record); dropping a step that others depend on; any edit that creates a dependency cycle; and a patch with no <code>reason</code>.`,
+        `<strong>Must allow, despite looking wrong:</strong> dropping <em>every</em> remaining step. That is the legitimate "the goal turned out to be already satisfied" case, and blocking it forces the agent to fake work. Require a reason and log it loudly instead.`,
+        `<strong>Also allow:</strong> adding a step that depends on a blocked one. That is how an agent plans around an obstacle it expects to clear.`,
       ]) },
 
     { difficulty: "stretch",
-      prompt: `Your critic loop sometimes makes output worse. Design the instrumentation that would prove it, and the policy change it implies.`,
-      answer: ol([
-        `<strong>Record every candidate, not just the final one.</strong> Each round's output, its score, and the critique that prompted the revision. Without this you cannot tell a regression from a noisy scorer.`,
-        `<strong>Score with an independent judge, not the critic.</strong> The critic's own score is the thing under suspicion. Use a separate rubric-based scorer, or better, ground truth where it exists.`,
-        `<strong>Chart score by round.</strong> The expected shape is a steep rise into round 1, a small rise into round 2, and flat or down after. Your data will tell you where your own curve turns.`,
-        `<strong>Classify the regressions.</strong> Nearly always one of three: the critic raised a <em>stylistic preference</em> and the generator sacrificed substance for it; the critic <em>misread</em> the output and the generator "fixed" something correct; or the revision <em>dropped</em> content while addressing a narrow complaint.`,
-      ]) +
-      p(`<strong>Policy changes implied.</strong> Cap at the round where your curve flattens — usually two. Return the <em>best-scoring</em> candidate rather than the last. Separate blocking issues from suggestions in the critique schema and only revise for blocking ones. And add a regression guard: if a revision scores worse than its predecessor, stop and keep the predecessor.`) +
-      p(`The deeper fix is the third failure mode: instruct the generator to <em>patch</em> rather than rewrite — "address only the blocking issues; leave everything else byte-identical". Content loss during revision is the most common and least noticed way critic loops destroy value, and it has the same shape as the patch-versus-regenerate rule in ${ch("c09", "C09")}.`) },
+      prompt: `Design the decision procedure for whether to plan at all, computed before the first tool call, cheap enough to run every time.`,
+      answer: code({ title: "a gate, not a guess",
+        src: `async function shouldPlan(goal: string, model: Model, history: RunStats): Promise<boolean> {
+  // 1. FREE: structural signals from the goal text.
+  const conjunctions = (goal.match(/\\b(and|then|after|also|plus)\\b/gi) ?? []).length;
+  const imperatives = (goal.match(/\\b(create|update|delete|migrate|refactor|check|verify|deploy)\\b/gi) ?? []).length;
+  if (conjunctions === 0 && imperatives <= 1 && goal.length < 120) return false;   // clearly small
+
+  // 2. FREE: what happened last time on a task like this.
+  const similar = history.similarTasks(goal, 5);
+  if (similar.length >= 3) {
+    const medianSteps = median(similar.map((t) => t.steps));
+    return medianSteps > 6;          // empirical beats any heuristic
+  }
+
+  // 3. CHEAP: one small-model call, only when the first two are inconclusive.
+  const est = await structured(model, [{ role: "user", content:
+    \`How many distinct actions would this require? Answer with a number only.\\n\${goal}\` }],
+    obj({ steps: int({ min: 1, max: 50 }) }), { model: "small" });
+  return est.steps > 6;
+}` }) +
+      p(`Three design points. <strong>Order by cost</strong> — the free signals resolve the obvious cases, and the obvious cases are most cases. <strong>History beats heuristics</strong>: once you have run a few hundred tasks, "similar tasks took a median of 9 steps" is a far better predictor than any feature of the prompt, and it improves on its own. <strong>Fail toward not planning</strong>, because an unplanned long task degrades gracefully (it just drifts, and the replan trigger can catch it at step 6) while a planned short task is immediately and permanently more expensive.`) +
+      p(`The escape hatch matters too: if the agent reaches step 6 with no plan and the repeat or drift detectors from ${ch("c04", "C04")} have fired, create one then. Planning late is cheap; planning unnecessarily is not.`) },
   ],
 
   qa: [
-    { q: "Should the critic use a different model?", a: p(`It helps for subjective judgements — models show a measurable preference for their own outputs — but it matters far less than fresh context and a specific rubric. Fix independence and the rubric first; switch models only if you are comparing candidates or the stakes justify the operational cost of a second provider.`) },
-    { q: "How many critic rounds?", a: p(`Two revisions maximum, with the guards. Measured returns are steep into round 1, small into round 2, and negative after. If you need more, the problem is the generator's prompt or the task decomposition, not the number of rounds.`) },
-    { q: "Is verification worth it for read-only agents?", a: p(`Yes, for a different reason: a read-only agent that fabricates a citation causes real harm even though it changed nothing. The grounding check (rung 2) is nearly free and targets exactly that failure. What you can skip is the expensive approval machinery of ${ch("c16", "C16")}.`) },
-    { q: "Can the agent verify itself by re-reading the files it edited?", a: p(`Yes, and that is genuinely rung 1 rather than rung 4, because the file system is an external source of truth, so re-reading is a real observation. It catches the "I believe I edited six files" error directly. The limitation is that it verifies the edit happened, not that it was correct. That still needs the tests.`) },
-    { q: "How do I stop the critic from inventing problems?", a: p(`Three things together: a rubric with explicit pass/fail criteria rather than open-ended judging; an explicit statement that no issues is an acceptable finding; and a required quote from the output for every criticism. That last one is the most effective. A complaint that cannot cite the text usually evaporates when the citation is required.`) },
+    { q: "Should the plan live in the system prompt or as a message?", a: p(`As a rendered block in the pinned region, restated near the end of the request (${ch("c05", "C05")}). Not in the system prompt: it changes, and mutating the system prompt destroys prompt caching on every revision.`) },
+    { q: "How detailed should a step be?", a: p(`One verifiable outcome, not one tool call. "Find all callers of <code>getSession</code>" is a step; "run grep" is a tool call. If a step maps to exactly one tool call you have built a workflow and should just write the workflow (${ch("c12", "C12")}).`) },
+    { q: "What if the model refuses to replan and keeps pushing a broken plan?", a: p(`Detect it externally: N consecutive steps with no completed step and no plan revision. Then inject the observation — "steps 3 and 4 have failed four times; the plan may be wrong, call update_plan or explain why it is still correct". Same shape as the repeat detector, and for the same reason: the model cannot see the pattern from inside.`) },
+    { q: "Can the plan be generated by a cheaper model?", a: p(`Often yes, and it is a good cost split: a small model decomposes, the capable model executes. It works because decomposition is mostly restating a goal at the right granularity. Check it on your hardest tasks before committing — a bad plan is worse than none, since the agent will follow it.`) },
+    { q: "Do plans help or hurt when the agent is wrong about the domain?", a: p(`They hurt, and visibly — which is their virtue. A wrong plan is legible to a human in ten seconds, whereas a wrong unplanned run reveals itself after nine steps. Show the plan to the user before executing on anything expensive; that is ${ch("c19", "C19")}'s cheapest intervention point.`) },
   ],
 
   project: {
-    title: "Project · A verification layer",
-    brief: p(`Add verification to your agent at three rungs, then measure what each one actually catches. The deliverable is the measurement. You should be able to say which rung earns its cost on your task.`),
+    title: "Project · A plan your agent can be held to",
+    brief: p(`Add interleaved planning to your agent, with a pinned todo list and evidence-backed completion. Then prove with numbers that it helps on long tasks and hurts on short ones.`),
     spec: [
-      "At least one ground-truth verifier exposed as a tool, and a <code>completionGate()</code> in the loop that refuses to return an answer without it.",
-      "Rule-based checks including a grounding check that flags claims not supported by any retrieved source.",
-      "An independent critic with a fresh context, a rubric, required quotes, and explicit permission to pass.",
-      "<code>withCritic()</code> with a maximum of two revisions, a no-improvement guard, a repeated-issue guard, and best-candidate-wins rather than last.",
-      "A gating policy so verification runs on stakes × uncertainty, not on everything.",
-      "A results table over at least 50 runs: catch rate, false-alarm rate, cost multiplier and added latency per configuration.",
+      "A <code>Plan</code> structure with <code>what</code>, <code>why</code>, <code>dependsOn</code>, <code>status</code> and <code>evidence</code>.",
+      "<code>makePlan()</code> whose prompt forbids padding and stops at the first genuine unknown.",
+      "<code>update_plan</code> as a patch tool — add, block, drop, each with a reason. Completed steps immutable; cycles and orphaned dependencies refused.",
+      "<code>complete_step</code> requiring evidence and checking dependencies.",
+      "The rendered plan pinned into every request, under 150 tokens, with the next actionable step named.",
+      "A <code>shouldPlan()</code> gate so short tasks skip planning entirely.",
+      "Measurements: success rate and step count for no-plan vs planned, on a set of short tasks and a set of 12+ step tasks.",
     ],
     stretch: [
-      "Add the self-consistency gate with parallel sampling and claim-level agreement, and report what fraction of traffic it escalates.",
-      "Run the critic with and without the agent's reasoning in its context and report the difference. It is the most convincing experiment in this chapter.",
-      "Chart critique score by round for 30 tasks and find the round where your own curve turns.",
+      "Run the ready set in parallel and report the wall-clock difference on a task with independent steps.",
+      "Add the stalled-plan detector (N steps, no completion, no revision) with the injected intervention.",
+      "Stream plan updates to a terminal UI and compare, informally, how quickly you can tell a run is going wrong versus reading the raw trace.",
     ],
   },
 
   quiz: [
-    { q: "What makes a verification step worth its cost?",
-      options: ["The checker knows something the author did not — a test result, a written rule, or a fresh context", "It uses a larger model than the generator", "It runs at temperature 0", "It is repeated several times"],
+    { q: "What is the primary benefit of an explicit plan in an agent?",
+      options: ["A short pinned statement of intent that survives compaction, plus a checklist completion can be measured against", "Models cannot sequence actions without one", "It reduces the number of model calls", "It guarantees the agent cannot fail a step"],
       answer: 0,
-      why: "A check with identical information to the thing being checked mostly produces agreement. Independence is the design requirement; everything else is detail." },
-    { q: "Why must the critic NOT see the agent's reasoning?",
-      options: ["A critic that reads the reasoning is persuaded by it, which converts an independent check into agreement", "It would exceed the context window", "It would slow the critic down", "The reasoning may contain secrets"],
+      why: "Models sequence fine. The plan's value is context engineering: a 120-token block in the high-attention region against 30,000 tokens of scrollback, and an enumerated set of outcomes the agent can be checked against when it claims to be done." },
+    { q: "Why does plan-then-execute fail on exactly the tasks that most need planning?",
+      options: ["Those tasks contain unknowns, and any step can invalidate a plan committed to before anything was learned", "Those tasks have too many steps to enumerate", "Models cannot produce long plans", "Parallel execution is unsafe"],
       answer: 0,
-      why: "The simulator makes this vivid: leaking the reasoning collapses catch rates across every error class. The critic should evaluate the artefact, not the process, which is also how human code review works best." },
-    { q: "Which error class does self-critique essentially fail to catch?",
-      options: ["Claiming work that was not done", "Arithmetic slips", "Output format violations", "Internal contradictions"],
+      why: "Committing to a full decomposition before the first observation means the plan is fiction wherever there were unknowns — and rigidly executing a wrong plan is worse than having no plan. Interleaved planning stops at the first unknown deliberately." },
+    { q: "Why should replanning patch the plan rather than regenerate it?",
+      options: ["Regeneration lets the model silently drop hard steps and declare a smaller goal; a patch makes every abandonment explicit", "Patching uses fewer tokens", "Regeneration breaks prompt caching", "Patches are easier to serialise"],
       answer: 0,
-      why: "The model has no way to know it did not do something it believes it did, because nothing in its context contradicts the belief. Only an external observation (re-read the files, run the tests, list the changes) surfaces it." },
-    { q: "In a generate-critique-revise loop, which round gives most of the benefit?",
-      options: ["Round 1; round 2 is small and round 3 is often negative", "Round 3, once the critic has calibrated", "All rounds improve equally", "The final round always produces the best output"],
+      why: "It is an accountability constraint. Add/block/drop each carry a reason and appear in the log, so scope reduction is visible to a reviewer rather than being absorbed into a fresh plan that happens to be easier." },
+    { q: "What makes 'step complete' mean something?",
+      options: ["Requiring the agent to cite the specific observation that proves it, and verifying programmatically wherever possible", "Asking the model to double-check its work", "Setting a lower temperature on the completion call", "Requiring all steps to be completed in order"],
       answer: 0,
-      why: "The measured pattern is consistent. Later rounds drift into stylistic preference, and revising for style tends to sacrifice substance. Cap at two and keep the best-scoring candidate rather than the last." },
-    { q: "What is a `completionGate` and why is it stronger than a prompt instruction?",
-      options: ["A check in the loop code that refuses to return an answer until conditions are met — the model cannot talk its way past it", "A stricter system prompt about finishing", "A higher confidence threshold on the final answer", "A limit on the number of steps"],
+      why: "Evidence citation is free and removes most premature completion, because inventing a plausible test output is harder than running the test. Where completion is checkable in code, check it rather than trusting the claim." },
+    { q: "What did the simulator show happens when the plan is not pinned into every request?",
+      options: ["Every planning style collapses toward the no-plan result, showing the benefit was context engineering", "Plans become more accurate because the model is less anchored", "Token usage rises", "Replanning triggers more often and compensates"],
       answer: 0,
-      why: "Prompt instructions are suggestions to a stochastic process. A structural check is deterministic: 'you changed files and never ran the tests' is decided by your code, not negotiated with the model." },
-    { q: "What is the self-consistency gate, and why is it good value?",
-      options: ["Sample twice in parallel and run expensive verification only when the samples disagree — concentrating spend on genuinely ambiguous cases", "Ask the model the same question twice and take the second answer", "Run the same prompt at two temperatures and average", "Compare the output against a cached previous answer"],
+      why: "A plan created once and then scrolled out of the attention window does nothing. That the benefit disappears without pinning is the clearest evidence that planning is a context technique, not a reasoning one." },
+    { q: "Below roughly how many steps is explicit planning usually net-negative?",
+      options: ["About six", "About twenty", "About two", "It is never net-negative"],
       answer: 0,
-      why: "Disagreement between samples is a decent proxy for the cases where the model is uncertain, which is usually 5–15% of traffic. Sampling in parallel means it costs tokens but not wall-clock." },
+      why: "Under about six steps the loop will not lose track of the goal, and the plan costs a model call plus tokens on every subsequent turn. Gate planning on estimated length — and fail toward not planning, since an unplanned long task can be rescued at step six." },
   ],
 
-  continues: p(`Planning and verification both add model calls to buy reliability. Sometimes the cheaper answer is to take the decision away from the model entirely: notice that this branch never actually needed judgement, and write an <code>if</code> statement. ${ch("c11", "C11")} is about where to draw that line, and it is the most useful architectural chapter in the course.`),
+  continues: p(`A plan tells the agent what to do. It does not tell it whether what it did was any good — and models are systematically over-confident about their own output, marking steps complete on evidence that does not support the claim. ${ch("c11", "C11")} is about checking the work, and about why the obvious approach of "ask the model if it is sure" does almost nothing.`),
 };
 
 export default chapter;

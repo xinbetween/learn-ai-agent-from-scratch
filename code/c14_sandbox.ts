@@ -1,7 +1,7 @@
 /**
- * C13 · Code Execution — a worker-thread sandbox with every limit set, attacked
+ * C14 · Code Execution — a worker-thread sandbox with every limit set, attacked
  * by the payloads that correspond to real incident classes.
- *   node --experimental-strip-types code/c13_sandbox.ts
+ *   node --experimental-strip-types code/c14_sandbox.ts
  */
 
 import { Worker } from "node:worker_threads";
@@ -147,7 +147,7 @@ const CAPABILITY = `
 `;
 
 async function main(): Promise<void> {
-  console.log("\n  C13 · Code Execution — worker isolation, env stripped, no network, all limits\n");
+  console.log("\n  C14 · Code Execution — worker isolation, env stripped, no network, all limits\n");
 
   let contained = 0;
   for (const [label, source] of PAYLOADS) {

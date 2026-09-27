@@ -430,7 +430,7 @@ Query: \${q}\` }], arr(str()), { attempts: 1 });
   const rankings = await Promise.all([q, ...alts].map((query) => idx.search(query, 30)));
   return rrf(rankings.map((r) => r.map((h) => h.id))).slice(0, k);
 }` }) +
-        p(`<strong>Worth it when:</strong> the vocabulary gap is real — users say "refund", documents say "returns"; users describe symptoms, documents describe causes. Also when recall matters far more than latency (research tasks, ${ch("c23", "C23")}'s capstone).`) +
+        p(`<strong>Worth it when:</strong> the vocabulary gap is real — users say "refund", documents say "returns"; users describe symptoms, documents describe causes. Also when recall matters far more than latency (research tasks, ${ch("c27", "C27")}'s capstone).`) +
         p(`<strong>Hurts when:</strong> the query contains an exact identifier — expansion dilutes <code>ERR_4471</code> into four queries of which three are generic, and RRF then promotes generic matches. Also in an interactive agent, where it adds ~900ms to <em>every</em> search and the agent could have reformulated itself for free after seeing the first result.`) +
         p(`<strong>The rule:</strong> skip expansion when the query matches an identifier pattern; skip it when the agent is allowed to re-query anyway. Use it for one-shot pipelines and for deliberately exhaustive search.`) },
     { difficulty: "stretch",
@@ -499,7 +499,7 @@ Query: \${q}\` }], arr(str()), { attempts: 1 });
       why: "A question like 'is order 4471 refundable' needs the order's category before the right policy query can even be formed. No chunking strategy or reranker fixes that; only a loop that reads a result and searches again does." },
   ],
 
-  continues: p(`Retrieval finds what was written down before the run started. It cannot tell you what <em>this</em> user told you last week, which approach failed on Tuesday, or that this customer always wants the invoice as a PDF. That is memory — knowledge the agent writes itself, and the hard part is not storing it. ${ch("c07", "C07")} is about deciding what deserves to be remembered.`),
+  continues: p(`Retrieval finds what was written down before the run started. It cannot tell you what <em>this</em> user told you last week, which approach failed on Tuesday, or that this customer always wants the invoice as a PDF. That is memory — knowledge the agent writes itself, and the hard part is not storing it. ${ch("c08", "C08")} is about deciding what deserves to be remembered.`),
 };
 
 export default chapter;
