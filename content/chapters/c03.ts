@@ -152,6 +152,9 @@ COST: about 300ms. Safe to call repeatedly.\``,
           `<strong>What comes back</strong> — shape, limits, and what "empty" means. Prevents the model treating zero results as an error and retrying forever.`,
           `<strong>What it costs</strong> — latency and side effects, so the model can budget.`,
         ]) +
+        `<h3>Where the schema comes from</h3>` +
+        p(`Writing JSON Schema by hand is tedious and it drifts: the schema says <code>limit</code> is optional, the function stopped defaulting it two months ago, and nothing failed loudly. The alternative is to derive it from the function itself, which is what most frameworks do — AutoGen from a Python signature and docstring, the OpenAI Agents SDK from a decorated function, pi from a typebox declaration.`) +
+        p(`It is worth knowing even though this course writes schemas explicitly, since ${ch("c02", "C02")} builds the validator that produces them. Derivation buys one source of truth and costs the thing this chapter says matters most: a parameter description generated from a variable name is <code>"query: the query"</code>, which tells the model nothing. Whatever you derive, the descriptions still have to be written by a person, because they are the part being read at the moment of the decision.`) +
         `<h3>Naming is selection</h3>` +
         p(`<code>search</code>, <code>query</code>, <code>find</code>, and <code>lookup</code> in the same registry guarantees confusion, because they are synonyms in English and the model is reading English. Use <code>verb_noun</code> and make the noun disjoint. Once you have <code>search_orders</code>, <code>search_policies</code> and <code>search_archive</code>, the tool name alone carries most of the routing signal.`),
     },

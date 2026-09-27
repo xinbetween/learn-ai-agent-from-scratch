@@ -258,6 +258,7 @@ do not invent problems. Then give an overall score from 0 to 1.\` }],
     }), { temperature: 0 });
 }`,
         }) +
+        p(`The same move works for reflection as for planning (${ch("c09", "C09")}): make it a tool rather than a phase. A <code>reflection(analysis, need_replan)</code> the model calls after a surprising observation puts the decision about <em>when</em> to reflect where the information is, instead of in a rule you wrote in advance. A fixed "critique every answer" pass taxes the ninety percent of turns that were fine; a tool the model reaches for when something did not work concentrates the spend on the cases that earn it. The cost is that it is now optional, so measure how often it fires — a model that never calls it needs the instruction sharpened, and one that calls it every turn has found a way to procrastinate.`) +
         p(`Three specifics. <strong>"Produced by someone else"</strong> measurably reduces agreement bias. <strong>The quote field</strong> forces the critic to point at the text. A criticism that cannot cite the output is usually invented. <strong>The explicit permission to pass</strong> prevents the manufactured-findings behaviour that makes critics useless as gates.`) +
         code({ title: "the completion gate, in code",
           src: `// Verification that a model cannot talk its way past.

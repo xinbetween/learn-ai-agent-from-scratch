@@ -193,6 +193,11 @@ Answer:       Yes — the 14-day window does not apply because a fault was repor
           ]
         ) +
         p(`The second row is where most implementations are lazy, and it is the one users actually encounter. An agent that hits its step budget has usually done seven useful things; throwing them away and returning <code>"I was unable to complete this request"</code> destroys real value and teaches the user not to trust it.`) +
+        note(
+          "",
+          "A typed answer and a termination signal, in one move",
+          p(`The loop above ends when the model emits no tool calls, which means the final answer arrives as free text and anything structured has to be parsed back out of it (${ch("c02", "C02")}). There is a neater arrangement: give the agent a <code>final_answer</code> tool whose input schema <em>is</em> the shape you want, and end the run when it calls that. Termination becomes an explicit action rather than the absence of one, the answer arrives already validated, and the model cannot accidentally finish by forgetting to call a tool. The cost is that an agent which never calls it runs to its budget, so keep the no-tool-calls exit as a fallback rather than replacing it.`)
+        ) +
         code({
           title: "degrade, do not fail",
           src: `async function degrade(reason: StopCause, messages: Message[], cfg: AgentConfig): Promise<AgentResult> {

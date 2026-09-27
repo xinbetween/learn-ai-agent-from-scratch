@@ -67,6 +67,9 @@ const chapter: Chapter = {
   <li><strong>会返回什么</strong> —— 形状、上限，以及"空"意味着什么。它能防止模型把零结果当成错误然后永远重试。</li>
   <li><strong>它的代价</strong> —— 延迟和副作用，好让模型能做预算。</li>
 </ol>` +
+        `<h3>schema 从哪里来</h3>` +
+        p(`手写 JSON Schema 既枯燥又容易漂移：schema 上写着 <code>limit</code> 是可选的，而那个函数两个月前就不再给它默认值了，却没有任何地方报错。另一条路是从函数本身推导出来，这也是大多数框架的做法——AutoGen 从 Python 函数签名和 docstring 推，OpenAI Agents SDK 从一个加了装饰器的函数推，pi 从一份 typebox 声明推。`) +
+        p(`即使这门课选择显式地写 schema（${ch("c02", "C02")} 会把产出它们的那个校验器写出来），这件事也值得知道。推导给你的是单一事实来源，而它拿走的恰好是这一章认为最要紧的东西：一个从变量名生成出来的参数描述是 <code>"query: the query"</code>，它什么也没告诉模型。不管你推导出什么，描述仍然得由人来写，因为它们才是在做决定的那一刻被读到的部分。`) +
         `<h3>命名就是选择</h3>` +
         p(`把 <code>search</code>、<code>query</code>、<code>find</code>、<code>lookup</code> 放进同一个清单，一定会乱，因为它们在英语里是同义词，而模型读的就是英语。用 <code>verb_noun</code>，并且让名词互不相交。一旦你有了 <code>search_orders</code>、<code>search_policies</code> 和 <code>search_archive</code>，光工具名本身就承载了大部分的路由信号。`),
     },

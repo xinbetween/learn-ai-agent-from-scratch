@@ -4,8 +4,8 @@ export const SITE = {
   title: "Build an AI Agent From Scratch",
   short: "AI Agents",
   tagline:
-    "Build an AI agent from scratch in TypeScript: the ReAct loop, tools, code actions, context engineering, memory, planning, MCP, multi-agent systems, evals and security. 27 chapters, no framework.",
-  chapters: 27,
+    "Build an AI agent from scratch in TypeScript: the ReAct loop, tools, code actions, context engineering, memory, planning, MCP, multi-agent systems, evals and security. 29 chapters, no framework.",
+  chapters: 29,
   lines: 6191,
   lang: "TypeScript",
   /** Social links in the top nav. Empty string renders an inert placeholder. */

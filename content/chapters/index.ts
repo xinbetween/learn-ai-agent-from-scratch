@@ -26,6 +26,8 @@ import c23 from "./c23.ts";
 import c24 from "./c24.ts";
 import c25 from "./c25.ts";
 import c26 from "./c26.ts";
+import c27 from "./c27.ts";
+import c28 from "./c28.ts";
 
 /** Reading order, which is not id order.
  *
@@ -36,9 +38,9 @@ import c26 from "./c26.ts";
  *  before the server that hosts it. */
 export const chapters: Chapter[] = [
   c00, c01, c02, c03, c04,
-  c05, c06, c07, c08,
+  c05, c06, c28, c07, c08,
   c09, c10, c11, c12,
-  c13, c25, c14, c15, c16,
+  c13, c25, c14, c15, c27, c16,
   c17, c18, c19, c20, c21, c26, c22,
   c23, c24,
 ];
